@@ -4,11 +4,13 @@ import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Optional;
 
 @Service("userService")
 public class UserService {
@@ -38,6 +40,9 @@ public class UserService {
 
     public User login(String userId, String password) throws UnAuthenticationException {
         // TODO 로그인 기능 구현
-        return null;
+        //Optional -> 한 라인으로 구현
+        return userRepository.findByUserId(userId)
+                .filter(p -> p.getPassword().equals( password))
+                .orElseThrow(UnAuthenticationException::new);
     }
 }
