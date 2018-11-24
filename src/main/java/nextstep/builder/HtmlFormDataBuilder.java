@@ -16,7 +16,6 @@ public class HtmlFormDataBuilder {
         this.headers = headers;
         this.params = new LinkedMultiValueMap<>();
     }
-//    [...]
 
     public HtmlFormDataBuilder addParameter(String key, Object value) {
         this.params.add(key, value);

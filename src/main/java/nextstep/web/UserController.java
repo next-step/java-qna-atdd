@@ -62,6 +62,6 @@ public class UserController {
             httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, userService.login(userId,password));
             return  "redirect:/users";
         }
-        return "templates/user/login_failed.html";
+        return "/user/login_failed";
     }
 }
