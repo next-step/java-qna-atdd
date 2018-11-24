@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -36,6 +37,35 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(String title, String contents, User writer) {
+        this.title = title;
+        this.contents = contents;
+        this.writer =  writer;
+    }
+
+    public Question(long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer =  writer;
+    }
+
+    public Question(String title, String contents, User writer, List<Answer> answers) {
+        this.title = title;
+        this.contents = contents;
+        this.writer =  writer;
+        this.answers = answers;
+    }
+
+    public void update(Question origin, Question target) throws UnAuthenticationException {
+        if (!origin.writer.equalsNameAndEmail(target.writer)) {
+            throw new UnAuthenticationException();
+        }
+        origin.answers = target.answers;
+        origin.contents = target.contents;
+        origin.title = target.title;
     }
 
     public String getTitle() {
