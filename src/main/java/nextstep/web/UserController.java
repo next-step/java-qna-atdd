@@ -1,6 +1,8 @@
 package nextstep.web;
 
+import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.security.HttpSessionUtils;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
@@ -51,4 +54,19 @@ public class UserController {
         return "redirect:/users";
     }
 
+
+    @PostMapping("/login")
+    public String login(String userId, String password, HttpSession httpSession) {
+        // TODO 로그인 기능 구현 및 세션에 User 정보 저장
+
+        try {
+            User login = userService.login(userId, password);
+            HttpSessionUtils.setUserToSession(httpSession, login);
+
+        } catch (UnAuthenticationException e) {
+            e.printStackTrace();
+            return "redirect:/templates/user/login_failed.html";
+        }
+        return "redirect:/users";
+    }
 }
