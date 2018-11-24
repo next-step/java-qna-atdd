@@ -29,6 +29,10 @@ public class HttpSessionUtils {
         return true;
     }
 
+    public static void login(HttpSession session, User user) {
+        session.setAttribute(USER_SESSION_KEY, user);
+    }
+
     public static User getUserFromSession(HttpSession session) {
         if (!isLoginUser(session)) {
             return null;

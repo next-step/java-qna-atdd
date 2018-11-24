@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
+import nextstep.web.dto.QuestionDTO;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -77,6 +79,25 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public void update(User user, Question question) {
+        if(!isOwner(user)){
+            throw new UnAuthorizedException();
+        }
+        this.title = question.getTitle();
+        this.contents = question.getContents();
+    }
+
+    public void delete(User requestUser){
+        if(!this.isOwner(requestUser)){
+            throw new UnAuthorizedException();
+        }
+        this.deleted = true;
+    }
+
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
@@ -85,5 +106,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public static Question of(QuestionDTO dto) {
+        return new Question(dto.getTitle(), dto.getContents());
     }
 }
