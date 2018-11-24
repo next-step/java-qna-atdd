@@ -79,5 +79,19 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/qna/show");
     }
 
+    @Test
+    public void delete() {
+        User loginUser = defaultUser();
+        String id = String.valueOf(defaultQuestion().getId());
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParam("_method", "delete")
+                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%s", id), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
 
 }

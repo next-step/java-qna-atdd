@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -15,7 +16,8 @@ import support.test.BaseTest;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.longThat;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QnaServiceTest extends BaseTest {
@@ -26,7 +28,20 @@ public class QnaServiceTest extends BaseTest {
     private QnaService qnaService;
 
     @Test
-    public void deleteQuestion() {
+    public void deleteQuestion() throws CannotDeleteException {
+        User user = UserTest.JAVAJIGI;
+        long questionId = 1;
+        verify(qnaService, times(1))
+                .deleteQuestion(user, questionId);
+    }
+
+    @Test(expected = Exception.class)
+    public void deleteQuestion_throws() throws CannotDeleteException {
+        User user = UserTest.JAVAJIGI;
+        long questionId = 1;
+        doThrow().when(qnaService).deleteQuestion(user, questionId);
+
+        qnaService.deleteQuestion(user, questionId);
     }
 
     @Test

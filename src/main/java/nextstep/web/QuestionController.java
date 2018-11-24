@@ -1,5 +1,7 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthenticationException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -45,11 +47,15 @@ public class QuestionController {
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) {
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) throws UnAuthenticationException {
         qnaService.update(loginUser, id, updateQuestion);
         model.addAttribute("user", qnaService.findById(id));
         return "redirect:/qna/show";
     }
 
-
+    @DeleteMapping("/{id}")
+    public String delete(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) throws UnAuthenticationException, CannotDeleteException {
+        qnaService.deleteQuestion(loginUser, id);
+        return "redirect:/questions/";
+    }
 }
