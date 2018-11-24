@@ -60,7 +60,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void update(Question origin, Question target) throws UnAuthenticationException {
-        if (!origin.writer.equalsNameAndEmail(target.writer)) {
+        if (!origin.writer.matchUser(target.writer)) {
             throw new UnAuthenticationException();
         }
         origin.answers = target.answers;

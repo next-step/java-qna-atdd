@@ -32,16 +32,23 @@ public class QuestionController {
     }
 
     //TODO 로그인한 사용자의 것만 수정 가능하게하기
-    @GetMapping("/{{id}}/form")
+    @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("user", qnaService.findById(id));
         return "/questions/form";
     }
 
+    @GetMapping("/{id}")
+    public String find(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        model.addAttribute("user", qnaService.findById(id));
+        return "redirect:/qna/show";
+    }
+
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion) {
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) {
         qnaService.update(loginUser, id, updateQuestion);
-        return "redirect:/questions";
+        model.addAttribute("user", qnaService.findById(id));
+        return "redirect:/qna/show";
     }
 
 

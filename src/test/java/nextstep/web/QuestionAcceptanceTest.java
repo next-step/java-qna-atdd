@@ -62,7 +62,22 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void update() throws Exception {
         ResponseEntity<String> response = update(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/qna/show");
     }
+
+    @Test
+    public void findByID() {
+        User loginUser = defaultUser();
+        String id = String.valueOf(defaultQuestion().getId());
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParam("_method", "get")
+                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).getForEntity(String.format("/questions/%s", id), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/qna/show");
+    }
+
 
 }
