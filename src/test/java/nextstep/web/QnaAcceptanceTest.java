@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -27,9 +26,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	public void test_질문생성() {
 		TestRestTemplate template = basicAuthTemplate();
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.POST)
-			.addParameter("title", "테스트 제목")
-			.addParameter("contents", "테스트 내용").build();
+			.post().addParameter("title", "테스트 제목").addParameter("contents", "테스트 내용").build();
 
 		ResponseEntity<String> response = template.postForEntity("/questions", request, String.class);
 
@@ -39,9 +36,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	@Test
 	public void test_로그인없이_질문생성() {
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.POST)
-			.addParameter("title", "테스트 제목")
-			.addParameter("contents", "테스트 내용").build();
+			.post().addParameter("title", "테스트 제목").addParameter("contents", "테스트 내용").build();
 		ResponseEntity<String> response = template().postForEntity("/questions", request, String.class);
 
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -52,9 +47,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 		TestRestTemplate template = basicAuthTemplate();
 
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.PUT)
-			.addParameter("title", "테스트 제목")
-			.addParameter("contents", "테스트 내용").build();
+			.put().addParameter("title", "테스트 제목").addParameter("contents", "테스트 내용").build();
 
 		ResponseEntity<String> response = template.postForEntity(String.format("/questions/2"), request, String.class);
 
@@ -66,7 +59,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 		TestRestTemplate template = basicAuthTemplate();
 
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.PUT).addParameter("title", "테스트 제목")
+			.put().addParameter("title", "테스트 제목")
 			.addParameter("contents", "테스트 내용").build();
 
 		ResponseEntity<String> response = template.postForEntity(String.format("/questions/1"), request, String.class);
@@ -79,8 +72,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	@Test
 	public void test_질문삭제_다른사용자() {
 		TestRestTemplate template = basicAuthTemplate();
-		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.DELETE).build();
+		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
 		ResponseEntity<String> response = template.postForEntity(String.format("/questions/2"), request, String.class);
 
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -91,8 +83,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	public void test_질문삭제() {
 		TestRestTemplate template = basicAuthTemplate();
 
-		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.DELETE).build();
+		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
 		ResponseEntity<String> response = template.postForEntity(String.format("/questions/1"), request, String.class);
 
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -103,7 +94,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	public void test_답변생성() {
 		TestRestTemplate template = basicAuthTemplate();
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.POST).addParameter("contents", "테스트 답변").build();
+			.post().addParameter("contents", "테스트 답변").build();
 		ResponseEntity<String> response = template.postForEntity("/questions/1/answers", request, String.class);
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		softly.assertThat(answerRepository.findAllByQuestionId(1)).extracting("contents").containsAnyOf("테스트 답변");
@@ -112,8 +103,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	@Test
 	public void test_답변삭제_다른사용자() {
 		TestRestTemplate template = basicAuthTemplate();
-		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.DELETE).build();
+		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
 		ResponseEntity<String> response = template.postForEntity("/questions/1/answers/2", request, String.class);
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
@@ -121,8 +111,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	@Test
 	public void test_답변삭제() {
 		TestRestTemplate template = basicAuthTemplate();
-		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-			.setMethod(HttpMethod.DELETE).build();
+		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
 		ResponseEntity<String> response = template.postForEntity("/questions/1/answers/1", request, String.class);
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		softly.assertThat(answerRepository.findById(1L).get().isDeleted()).isTrue();

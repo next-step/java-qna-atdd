@@ -27,8 +27,18 @@ public class HtmlFormDataBuilder {
 		return this;
 	}
 
-	public HtmlFormDataBuilder setMethod(HttpMethod value) {
-		this.params.add(METHOD_PARAM, value.name());
+	public HtmlFormDataBuilder post() {
+		this.params.add(METHOD_PARAM, HttpMethod.POST.name());
+		return this;
+	}
+
+	public HtmlFormDataBuilder put() {
+		this.params.add(METHOD_PARAM, HttpMethod.PUT.name());
+		return this;
+	}
+
+	public HtmlFormDataBuilder delete() {
+		this.params.add(METHOD_PARAM, HttpMethod.DELETE.name());
 		return this;
 	}
 

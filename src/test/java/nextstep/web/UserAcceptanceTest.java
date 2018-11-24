@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -32,7 +31,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
     public void create() throws Exception {
         String userId = "testuser";
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-            .setMethod(HttpMethod.POST)
+            .post()
             .addParameter("userId", userId)
             .addParameter("password", "password")
             .addParameter("name", "자바지기")
@@ -78,7 +77,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-            .setMethod(HttpMethod.PUT)
+            .put()
             .addParameter("password", "test")
             .addParameter("name", "자바지기2")
             .addParameter("email", "javajigi@slipp.net").build();

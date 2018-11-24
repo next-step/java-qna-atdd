@@ -1,7 +1,6 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,9 +42,8 @@ public class QnaService {
 	}
 
 	public Question update(User loginUser, long id, Question updatedQuestion)  {
-		Question question = questionRepository.findById(id)
-			.filter(q -> q.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new);
-		question.update(updatedQuestion);
+		Question question = questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+		question.update(loginUser,updatedQuestion);
 		return question;
 	}
 
