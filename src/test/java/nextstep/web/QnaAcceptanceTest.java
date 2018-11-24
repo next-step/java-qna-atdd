@@ -33,8 +33,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
 		ResponseEntity<String> response = template.postForEntity("/questions", request, String.class);
 
-		softly.assertThat(response.getBody()).contains("테스트 제목");
-		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 	}
 
 	@Test
@@ -96,7 +95,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 			.setMethod(HttpMethod.DELETE).build();
 		ResponseEntity<String> response = template.postForEntity(String.format("/questions/1"), request, String.class);
 
-		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 		softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isTrue();
 	}
 

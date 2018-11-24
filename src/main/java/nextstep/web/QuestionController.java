@@ -24,6 +24,7 @@ import static nextstep.web.HomeController.*;
 public class QuestionController {
 	public static final String QUESTION_DETAIL_VIEW_PATH = "/qna/show";
 	public static final String QNA_FORM_VIEW_PATH = "/qna/form";
+	public static final String QNA_UPDATE_FORM_PATH = "/qna/updateForm";
 
 	private final QnaService qnaService;
 
@@ -40,7 +41,7 @@ public class QuestionController {
 	public String getUpdateForm(@PathVariable long questionId, @LoginUser User user, Model model) {
 		Question question = qnaService.findByIdAndUser(questionId, user).orElseThrow(EntityNotFoundException::new);
 		model.addAttribute("question", question);
-		return "/qna/updateForm";
+		return QNA_UPDATE_FORM_PATH;
 	}
 
 	@GetMapping("/{questionId}")
@@ -54,7 +55,7 @@ public class QuestionController {
 	public String addQuestion(QuestionDTO questionDTO, @LoginUser User loginUser, Model model) {
 		Question question = Question.of(questionDTO);
 		model.addAttribute("question", qnaService.create(loginUser, question));
-		return "redirect:/";
+		return HOME_REDIRECT;
 	}
 
 	@PutMapping("/{questionId}")
