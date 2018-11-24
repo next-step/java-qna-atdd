@@ -72,7 +72,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     private ResponseEntity<String> update(TestRestTemplate template) {
 
         HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "put")
+                //.addParameter("_method", "put")
                 .addParameter("password", "test")
                 .addParameter("title", "국내에는 있을까?")
                 .addParameter("contents", "국내에는 없다")
