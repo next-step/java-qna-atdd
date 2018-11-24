@@ -8,11 +8,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
+
+import javax.persistence.Temporal;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
@@ -41,6 +44,24 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(questionRepository.findById(Long.valueOf(3)).isPresent()).isTrue();
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
+    private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
+        String id = String.valueOf(defaultQuestion().getId());
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParam("_method", "put")
+                .addParam("id", id)
+                .addParam("title", "제목수정")
+                .addParam("contents", "본문수정")
+                .build();
+        return template.postForEntity(String.format("/questions/%s", id), request, String.class);
+    }
+
+    @Test
+    public void update() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 

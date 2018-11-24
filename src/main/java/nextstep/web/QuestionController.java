@@ -8,9 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/questions")
@@ -22,7 +21,7 @@ public class QuestionController {
 
     @GetMapping("/form")
     public String form() {
-        return "/user/form";
+        return "/questions/form";
     }
 
     @PostMapping("")
@@ -31,4 +30,19 @@ public class QuestionController {
 
         return "redirect:/questions/";
     }
+
+    //TODO 로그인한 사용자의 것만 수정 가능하게하기
+    @GetMapping("/{{id}}/form")
+    public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        model.addAttribute("user", qnaService.findById(id));
+        return "/questions/form";
+    }
+
+    @PutMapping("/{id}")
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion) {
+        qnaService.update(loginUser, id, updateQuestion);
+        return "redirect:/questions";
+    }
+
+
 }
