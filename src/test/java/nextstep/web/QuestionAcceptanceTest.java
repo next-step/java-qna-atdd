@@ -46,8 +46,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity("/questions", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findById(Long.valueOf(4)).isPresent()).isTrue();
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+        softly.assertThat(response.getHeaders().getLocation().getPath().startsWith("/questions/"));
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
@@ -65,21 +64,26 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void update() throws Exception {
         ResponseEntity<String> response = update(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/qna/show");
+        softly.assertThat(response.getHeaders().getLocation().getPath()
+                .startsWith(String.format("/questions/%d",defaultQuestion().getId())));
     }
 
     @Test
     public void findByID() {
         User loginUser = defaultUser();
         String id = String.valueOf(defaultQuestion().getId());
+        ResponseEntity<String> response = find(loginUser, id);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody().contains(defaultQuestion().getTitle()));
+    }
+
+    private ResponseEntity<String> find(User loginUser, String id) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParam("_method", "get")
                 .build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).getForEntity(String.format("/questions/%s", id), String.class);
-
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/qna/show");
+        return basicAuthTemplate(loginUser).getForEntity(String.format("/questions/%s", id), String.class);
     }
 
 
@@ -87,14 +91,18 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void delete() {
         User loginUser = defaultUser();
         String id = String.valueOf(3L);
+        ResponseEntity<String> response = delete(loginUser, id);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
+    private ResponseEntity<String> delete(User loginUser, String id) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParam("_method", "delete")
                 .build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%s", id), request, String.class);
-
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+        return basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%s", id), request, String.class);
     }
 
 

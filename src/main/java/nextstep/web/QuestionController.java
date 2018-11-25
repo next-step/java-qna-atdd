@@ -31,26 +31,27 @@ public class QuestionController {
     public String create(@LoginUser User loginUser, Question question) {
         qnaService.create(loginUser, question);
 
-        return "redirect:/questions/";
+        return "redirect:/questions/"+question.getId();
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("user", qnaService.findById(id));
-        return "/questions/form";
+        model.addAttribute("question", qnaService.findById(id).get());
+        return "/qna/updateForm";
     }
 
     @GetMapping("/{id}")
     public String find(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("user", qnaService.findById(id));
-        return "redirect:/qna/show";
+        model.addAttribute("question", qnaService.findById(id).get());
+        return "/qna/show";
     }
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) throws UnAuthenticationException, CannotUpdateException {
         qnaService.update(loginUser, id, updateQuestion);
-        model.addAttribute("user", qnaService.findById(id));
-        return "redirect:/qna/show";
+        model.addAttribute("question", qnaService.findById(id).get());
+        model.addAttribute("user", loginUser);
+        return "redirect:/questions/"+id;
     }
 
     @DeleteMapping("/{id}")

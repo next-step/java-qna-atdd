@@ -44,4 +44,8 @@ public class HttpSessionUtils {
     public static void setUserToSession(HttpSession session, User user) {
         session.setAttribute(USER_SESSION_KEY, user);
     }
+
+    public static void removeUserFromSession(HttpSession session) {
+        session.removeAttribute(USER_SESSION_KEY);
+    }
 }

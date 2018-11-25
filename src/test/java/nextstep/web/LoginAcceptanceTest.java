@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import com.sun.deploy.net.HttpUtils;
+import nextstep.UnAuthenticationException;
 import nextstep.domain.UserRepository;
 import nextstep.helper.HtmlFormDataBuilder;
 import nextstep.security.HttpSessionUtils;
@@ -34,34 +35,31 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     @Test
     public void login_success() {
         String userId = "javajigi";
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParam("userId", userId)
-                .addParam("password", "test")
-                .build();
-
-        ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
+        ResponseEntity<String> response = login(userId, "test");
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+        softly.assertThat(response.getHeaders().getLocation().getPath().startsWith("/"));
+    }
+
+    private ResponseEntity<String> login(String userId, String test) {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParam("userId", userId)
+                .addParam("password", test)
+                .build();
+
+        return template().postForEntity("/login", request, String.class);
     }
 
     /**
-     * 로그인 성공
+     * 로그인 실패
      */
-    @Test
+    @Test()
     public void login_failed() {
         String userId = "javajigi";
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParam("userId", userId)
-                .addParam("password", "test2")
-                .build();
+        ResponseEntity<String> response = login(userId, "test23");
 
-        ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
-
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
-        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/templates/user/login_failed.html");
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
 

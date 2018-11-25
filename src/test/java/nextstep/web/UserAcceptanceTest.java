@@ -43,7 +43,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 
     @Test
@@ -91,6 +91,6 @@ public class UserAcceptanceTest extends AcceptanceTest {
     public void update() throws Exception {
         ResponseEntity<String> response = update(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 }

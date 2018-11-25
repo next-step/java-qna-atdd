@@ -31,7 +31,7 @@ public class UserController {
     @PostMapping("")
     public String create(User user) {
         userService.add(user);
-        return "redirect:/users";
+        return "redirect:/";
     }
 
     @GetMapping("")
@@ -51,22 +51,10 @@ public class UserController {
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
-        return "redirect:/users";
+        return "redirect:/";
     }
 
 
-    @PostMapping("/login")
-    public String login(String userId, String password, HttpSession httpSession) {
-        // TODO 로그인 기능 구현 및 세션에 User 정보 저장
 
-        try {
-            User login = userService.login(userId, password);
-            HttpSessionUtils.setUserToSession(httpSession, login);
 
-        } catch (UnAuthenticationException e) {
-            e.printStackTrace();
-            return "redirect:/templates/user/login_failed.html";
-        }
-        return "redirect:/users";
-    }
 }

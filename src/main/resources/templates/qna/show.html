@@ -4,7 +4,7 @@
         <div class="panel panel-default">
             {{# question }}
             <header class="qna-header">
-                <h2 class="qna-title">{{ title }}</h2>
+                <h2 class="qna-title">{{question.title}}</h2>
             </header>
             <div class="content-main">
                 <article class="article">
@@ -24,7 +24,9 @@
                     <div class="article-doc">
                         <p>{{ contents }}</p>
                     </div>
+
                     <div class="article-util">
+
                         <ul class="article-util-list">
                             <li>
                                 <a class="link-modify-article" href="/questions/{{id}}/form">수정</a>
