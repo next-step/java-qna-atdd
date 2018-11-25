@@ -10,12 +10,27 @@ import java.util.Collections;
 
 public class HtmlFormDataBuilder {
 
+    private static final String FORMAT = "_method";
+    private static final String PUT = "put";
+    private static final String DELETE = "delete";
+
+
     private HttpHeaders headers;
     private MultiValueMap<String, Object> params;
 
     private HtmlFormDataBuilder(HttpHeaders headers) {
         this.headers = headers;
         this.params = new LinkedMultiValueMap<>();
+    }
+
+    public HtmlFormDataBuilder put() {
+        this.params.add(FORMAT, PUT);
+        return this;
+    }
+
+    public HtmlFormDataBuilder delete() {
+        this.params.add(FORMAT, DELETE);
+        return this;
     }
 
     public HtmlFormDataBuilder addParameter(String key, Object value) {

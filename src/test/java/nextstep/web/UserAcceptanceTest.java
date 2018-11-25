@@ -78,7 +78,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template) {
         HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "put")
+                .put()
                 .addParameter("password", "test")
                 .addParameter("name", "자바지기2")
                 .addParameter("email", "javajigi@slipp.net")
