@@ -12,6 +12,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
@@ -19,6 +21,7 @@ import javax.persistence.Temporal;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
+    private static final long DEFAULT_QUESTION_ID2 = 2;
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -43,7 +46,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity("/questions", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findById(Long.valueOf(3)).isPresent()).isTrue();
+        softly.assertThat(questionRepository.findById(Long.valueOf(4)).isPresent()).isTrue();
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
@@ -79,10 +82,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/qna/show");
     }
 
+
     @Test
     public void delete() {
         User loginUser = defaultUser();
-        String id = String.valueOf(defaultQuestion().getId());
+        String id = String.valueOf(3L);
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParam("_method", "delete")
                 .build();

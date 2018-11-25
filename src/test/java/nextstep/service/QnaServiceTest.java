@@ -1,11 +1,9 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
-import nextstep.domain.UserTest;
-import org.hibernate.service.spi.InjectService;
+import nextstep.CannotUpdateException;
+import nextstep.UnAuthenticationException;
+import nextstep.domain.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,8 +13,6 @@ import support.test.BaseTest;
 
 import java.util.Optional;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.longThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -28,20 +24,33 @@ public class QnaServiceTest extends BaseTest {
     private QnaService qnaService;
 
     @Test
-    public void deleteQuestion() throws CannotDeleteException {
-        User user = UserTest.JAVAJIGI;
-        long questionId = 1;
-        verify(qnaService, times(1))
-                .deleteQuestion(user, questionId);
+    public void update_equal_writer() throws UnAuthenticationException, CannotUpdateException {
+        Question question1 = QuestionTest.QUESTION_1;
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question1));
+        Question target = new Question(1L, "제목", "본문", UserTest.JAVAJIGI);
+        softly.assertThat(qnaService.update(UserTest.JAVAJIGI, 1L, target)).isEqualTo(target);
     }
 
-    @Test(expected = Exception.class)
-    public void deleteQuestion_throws() throws CannotDeleteException {
-        User user = UserTest.JAVAJIGI;
-        long questionId = 1;
-        doThrow().when(qnaService).deleteQuestion(user, questionId);
+    @Test(expected = CannotUpdateException.class)
+    public void update_not_equal_writer() throws CannotUpdateException {
+        Question question = QuestionTest.QUESTION_1;
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        Question target = new Question(1L,"제목", "본문", UserTest.SANJIGI);
+        qnaService.update(UserTest.SANJIGI, 1L, target);
+    }
 
-        qnaService.deleteQuestion(user, questionId);
+    @Test
+    public void deleteQuestion() throws CannotDeleteException {
+        Question question = QuestionTest.QUESTION_1;
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        qnaService.deleteQuestion(UserTest.JAVAJIGI, question.getId());
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void deleteQuestion_not_equal_writer() throws CannotDeleteException {
+        Question question1 = QuestionTest.QUESTION_1;
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question1));
+        qnaService.deleteQuestion(UserTest.SANJIGI, question1.getId());
     }
 
     @Test

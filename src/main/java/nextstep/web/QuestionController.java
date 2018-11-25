@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
+import nextstep.CannotUpdateException;
 import nextstep.UnAuthenticationException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
@@ -33,7 +34,6 @@ public class QuestionController {
         return "redirect:/questions/";
     }
 
-    //TODO 로그인한 사용자의 것만 수정 가능하게하기
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("user", qnaService.findById(id));
@@ -47,7 +47,7 @@ public class QuestionController {
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) throws UnAuthenticationException {
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) throws UnAuthenticationException, CannotUpdateException {
         qnaService.update(loginUser, id, updateQuestion);
         model.addAttribute("user", qnaService.findById(id));
         return "redirect:/qna/show";

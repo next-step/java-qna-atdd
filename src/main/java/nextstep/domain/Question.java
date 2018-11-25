@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotUpdateException;
 import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -59,9 +60,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.answers = answers;
     }
 
-    public void update(Question origin, Question target) throws UnAuthenticationException {
-        if (!origin.writer.matchUser(target.writer)) {
-            throw new UnAuthenticationException();
+    public void update(Question origin, Question target, User loginUser) throws CannotUpdateException {
+        if (!origin.writer.matchUser(loginUser)) {
+            throw new CannotUpdateException("본인이 작성한 질문만 변경할 수 있습니다.");
         }
         origin.answers = target.answers;
         origin.contents = target.contents;
