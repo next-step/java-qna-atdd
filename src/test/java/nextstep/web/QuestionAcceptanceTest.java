@@ -15,4 +15,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
     }
+
+    @Test
+    public void list() throws Exception {
+        ResponseEntity<String> response = template().getForEntity("/", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+        softly.assertThat(response.getBody()).contains(defaultQuestion().getTitle());
+    }
 }
