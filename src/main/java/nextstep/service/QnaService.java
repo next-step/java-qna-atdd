@@ -44,7 +44,10 @@ public class QnaService {
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        findById(questionId)
+            .filter(question -> !question.isDeleted())
+            .orElseThrow(() -> new CannotDeleteException("이미 삭제되었거나 삭제할 질문이 존재하지 않습니다."))
+            .delete(loginUser);
     }
 
     public Iterable<Question> findAll() {

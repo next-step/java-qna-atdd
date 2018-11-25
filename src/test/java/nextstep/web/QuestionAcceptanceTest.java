@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = template().getForEntity("/", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
-        softly.assertThat(response.getBody()).contains(defaultQuestion().getTitle());
     }
 
     @Test
@@ -110,6 +108,32 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void 수정_로그인_사용자() throws Exception {
         ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+    }
+
+    @Test
+    public void 삭제_비로그인_사용자() throws Exception {
+        ResponseEntity<String> response = delete(template());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", response.getBody());
+    }
+
+    private ResponseEntity<String> delete(TestRestTemplate template) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("_method", "delete");
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+
+        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+    }
+
+    @Test
+    public void 삭제_로그인_사용자() throws Exception {
+        ResponseEntity<String> response = delete(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }

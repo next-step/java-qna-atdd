@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -46,6 +47,12 @@ public class QuestionController {
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
         qnaService.update(loginUser, id, target);
+        return "redirect:/";
+    }
+
+    @DeleteMapping("/{id}")
+    public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
+        qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }
 }
