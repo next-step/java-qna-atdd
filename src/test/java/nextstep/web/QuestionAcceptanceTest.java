@@ -23,4 +23,13 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         log.debug("body : {}", response.getBody());
         softly.assertThat(response.getBody()).contains(defaultQuestion().getTitle());
     }
+
+    @Test
+    public void 질문_상세보기() throws Exception {
+        ResponseEntity<String> response = template().getForEntity("/questions/" + defaultQuestion().getId(), String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+        softly.assertThat(response.getBody()).contains(defaultQuestion().getTitle());
+        softly.assertThat(response.getBody()).contains(defaultQuestion().getContents());
+    }
 }
