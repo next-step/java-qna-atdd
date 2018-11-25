@@ -122,7 +122,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
 	private ResponseEntity<String> updateQuestion(TestRestTemplate template, String title, String contents) {
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-				.addParameter("_method", "put")
+				.put()
 				.addParameter("title", title)
 				.addParameter("contents", contents)
 				.build();
