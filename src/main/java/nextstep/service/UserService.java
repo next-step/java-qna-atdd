@@ -4,14 +4,17 @@ import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import nextstep.security.HttpSessionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @Service("userService")
 public class UserService {
+
     @Resource(name = "userRepository")
     private UserRepository userRepository;
 
@@ -41,4 +44,9 @@ public class UserService {
                 .filter(user -> user.getPassword().equals(password))
                 .orElseThrow(UnAuthenticationException::new);
     }
+
+    public void createSession(final User user, final HttpSession httpSession) {
+        httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, user);
+    }
+
 }

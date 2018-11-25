@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
@@ -10,12 +11,20 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 @Controller
 @RequestMapping("/users")
 public class UserController {
+
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
+    private static final String LOGIN_SUCCESS_PATH = "redirect:/users";
+    private static final String LOGIN_FAIL_PATH = "/users/login_failed";
 
     @Resource(name = "userService")
     private UserService userService;
@@ -49,6 +58,13 @@ public class UserController {
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
         return "redirect:/users";
+    }
+
+    @PostMapping("/login")
+    public String login(final String userId, final String password, final HttpSession httpSession) throws UnAuthenticationException {
+        final Optional<User> loginUser = ofNullable(userService.login(userId, password));
+        loginUser.ifPresent(user -> userService.createSession(user, httpSession));
+        return loginUser.isPresent() ? LOGIN_SUCCESS_PATH : LOGIN_FAIL_PATH;
     }
 
 }
