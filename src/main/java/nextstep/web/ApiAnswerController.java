@@ -24,7 +24,7 @@ public class ApiAnswerController {
     @PostMapping("")
     public ResponseEntity<Void> create(@LoginUser User user, @PathVariable long id, @Valid @RequestBody String answer) {
         Answer saved = qnaService.addAnswer(user, id, answer);
-        System.out.println("testsetest");
+
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/questions/" + id + "/answers/" + saved.getId()));
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
@@ -32,7 +32,6 @@ public class ApiAnswerController {
 
     @GetMapping("{id}")
     public Answer showAnswer(@PathVariable long id) {
-        System.out.println("wowowo"+qnaService.findAnswerById(id).isDeleted());
         return qnaService.findAnswerById(id);
     }
 

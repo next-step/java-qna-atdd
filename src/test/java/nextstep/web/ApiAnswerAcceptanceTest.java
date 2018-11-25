@@ -20,7 +20,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         String answerContent = "this is answer";
 
-        ResponseEntity<Void> response = getResponseByExchage("/api/questions/2/answers", createHttpEntity(answerContent), Void.class, loginUser, HttpMethod.POST);
+        ResponseEntity<Void> response = getResponseByExchange("/api/questions/2/answers", createHttpEntity(answerContent), Void.class, loginUser, HttpMethod.POST);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         Answer answer = getResource("/api/questions/2/answers/3", Answer.class, loginUser);
@@ -41,7 +41,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void 질문에_대한_답변_수정() {
         User loginUser = defaultUser();
         String update = "test_update";
-        ResponseEntity<Answer> responseEntity = getResponseByExchage("/api/questions/1/answers/1", createHttpEntity(update), Answer.class, loginUser, HttpMethod.POST);
+        ResponseEntity<Answer> responseEntity = getResponseByExchange("/api/questions/1/answers/1", createHttpEntity(update), Answer.class, loginUser, HttpMethod.POST);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(responseEntity.getBody().getContents().equals(update)).isTrue();

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -35,12 +34,7 @@ public class ApiQuestionController {
 
     @GetMapping("")
     public List<Question> showAllQuestions() {
-        Iterable<Question> questionIterable = qnaService.findAll();
-        List<Question> questions = new ArrayList<>();
-        questionIterable.iterator()
-                .forEachRemaining(questions::add);
-
-        return questions;
+        return qnaService.findAllQuestions();
     }
 
     @GetMapping("{id}")

@@ -42,7 +42,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<User> responseEntity = getResponseByExchage(location, createHttpEntity(updateUser), User.class, newUser, HttpMethod.PUT);
+        ResponseEntity<User> responseEntity = getResponseByExchange(location, createHttpEntity(updateUser), User.class, newUser, HttpMethod.PUT);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(updateUser.equalsNameAndEmail(responseEntity.getBody())).isTrue();
@@ -73,7 +73,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         User updateUser = new User(newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
 
         ResponseEntity<Void> responseEntity =
-                getResponseByExchage(location, createHttpEntity(updateUser), Void.class, defaultUser(), HttpMethod.PUT);
+                getResponseByExchange(location, createHttpEntity(updateUser), Void.class, defaultUser(), HttpMethod.PUT);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }

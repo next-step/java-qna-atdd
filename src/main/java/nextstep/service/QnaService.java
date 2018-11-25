@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,6 +66,15 @@ public class QnaService {
         Answer answer = new Answer(id, loginUser, question, contents);
         question.addAnswer(answer);
         return answer;
+    }
+
+    public List<Question> findAllQuestions() {
+        Iterable<Question> questionIterable = findAll();
+        List<Question> questions = new ArrayList<>();
+        questionIterable.iterator()
+                .forEachRemaining(questions::add);
+
+        return questions;
     }
 
     @Transactional

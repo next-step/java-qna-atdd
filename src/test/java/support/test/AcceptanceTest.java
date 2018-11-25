@@ -54,7 +54,7 @@ public abstract class AcceptanceTest extends BaseTest {
         return basicAuthTemplate(loginUser).getForObject(location, responseType);
     }
 
-    protected <T> ResponseEntity<T> getResponseByExchage(String location, HttpEntity entity, Class<T> responseType, User loginUser, HttpMethod method) {
+    protected <T> ResponseEntity<T> getResponseByExchange(String location, HttpEntity entity, Class<T> responseType, User loginUser, HttpMethod method) {
         return basicAuthTemplate(loginUser).exchange(location, method, entity, responseType);
     }
 

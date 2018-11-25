@@ -49,7 +49,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question updateQuestion = new Question("test update", "test update content");
 
         ResponseEntity<Question> responseEntity =
-                getResponseByExchage("/api/questions/1", createHttpEntity(updateQuestion), Question.class, loginUser, HttpMethod.POST);
+                getResponseByExchange("/api/questions/1", createHttpEntity(updateQuestion), Question.class, loginUser, HttpMethod.POST);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(updateQuestion.equalsTitleAndContents(responseEntity.getBody())).isTrue();
@@ -61,7 +61,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question updateQuestion = new Question("test update", "test update content");
 
         ResponseEntity<Question> responseEntity =
-                getResponseByExchage("/api/questions/1", createHttpEntity(updateQuestion), Question.class, loginUser, HttpMethod.POST);
+                getResponseByExchange("/api/questions/1", createHttpEntity(updateQuestion), Question.class, loginUser, HttpMethod.POST);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 

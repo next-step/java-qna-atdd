@@ -27,10 +27,7 @@ public class QuestionController {
 
     @GetMapping("")
     public String list(Model model) {
-        Iterable<Question> questionIterable = qnaService.findAll();
-        List<Question> questions = new ArrayList<>();
-        questionIterable.iterator()
-                .forEachRemaining(questions::add);
+        List<Question> questions = qnaService.findAllQuestions();
 
         log.debug("user size : {}", questions.size());
         model.addAttribute("question", questions);
