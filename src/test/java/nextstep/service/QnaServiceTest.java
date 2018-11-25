@@ -135,7 +135,7 @@ public class QnaServiceTest extends BaseTest {
         qnaService.deleteQuestion(loginUser, questionId);
     }
 
-    @Test(expected = CannotDeleteException.class)
+    @Test(expected = UnAuthorizedException.class)
     public void deleteQuestion_작성자_다름() throws UnAuthenticationException {
         final User anotherUser = new User(9L, "id", "pwd", "nm", "em");
         final Question findedQuestion = new Question();
