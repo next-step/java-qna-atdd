@@ -6,10 +6,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
 public class LoginAcceptanceTest extends AcceptanceTest {
@@ -42,7 +40,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
                 .build();
 
         ResponseEntity<String> response = template().postForEntity("/users/login", htmlFormData.newHttpEntity(), String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
         softly.assertThat(response.getBody()).contains("아이디 또는 비밀번호가 틀립니다. 다시 로그인 해주세요.");
     }

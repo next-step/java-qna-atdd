@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.naming.CannotProceedException;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,13 +39,20 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question original = findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
+        original.update(loginUser, updatedQuestion);
+        return original;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question foundQuestion = findById(questionId)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(() -> new CannotDeleteException("질문을 삭제할 수 없습니다."));
+
+        questionRepository.delete(foundQuestion);
     }
 
     public Iterable<Question> findAll() {
