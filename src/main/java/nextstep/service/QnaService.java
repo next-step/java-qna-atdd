@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,25 +26,35 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question createQuestion(User loginUser, Question question) {
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
+    public Optional<Question> findByIdAngLoginUser(long id) {
         return questionRepository.findById(id);
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question updateQuestion(User loginUser, long id, Question updatedQuestion) {
+        Question question = findByIdAngLoginUser(loginUser ,id);
+        updatedQuestion.writeBy(loginUser);
+        question.update(updatedQuestion);;
+        return question;
+    }
+
+    @Transactional
+    Question findByIdAngLoginUser(User loginUser, long id) {
+        return questionRepository.findByIdAndDeletedFalse(id)
+                                    .filter(question -> loginUser.equals(question.getWriter()))
+                                    .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        findByIdAngLoginUser(loginUser, questionId);
+        questionRepository.deleteById(questionId);
     }
 
     public Iterable<Question> findAll() {
@@ -55,8 +66,10 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Question question = questionRepository.findByIdAndDeletedFalse(questionId).orElseThrow(EntityNotFoundException::new);
+        Answer answer = new Answer(loginUser, contents);
+        question.addAnswer(answer);
+        return answerRepository.save(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
