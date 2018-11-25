@@ -6,14 +6,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
-import support.test.AcceptanceTest;
+import support.test.WebAcceptanceTest;
 
-import java.util.Arrays;
+import static support.util.MultiValueMapBuilder.builder;
 
-public class QnaAcceptanceTest extends AcceptanceTest {
+public class QnaAcceptanceTest extends WebAcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QnaAcceptanceTest.class);
 
     @Autowired
@@ -28,26 +30,27 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
+        // given
         String title = "제목입니다.";
         String contents = "본문입니다.";
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("title", title);
-        params.add("contents", contents);
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        MultiValueMap<String, Object> params = builder()
+                .add("title", title)
+                .add("contents", contents)
+                .build();
+
+        // when
+        HttpEntity request = createWebRequestEntity(params);
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/questions", request, String.class);
 
-        String redirectPath = response.getHeaders().getLocation().getPath();
-        softly.assertThat(redirectPath).startsWith("/questions/");
+        // then
+        softly.assertThat(getResponseLocationPath(response)).startsWith("/questions/");
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 
-        Long questionId = getQuestionIdFromPath(redirectPath);
+        Long questionId = getQuestionIdFromPath(response);
         softly.assertThat(questionRepository.findById(questionId).isPresent()).isTrue();
     }
+
 
     @Test
     public void showQuestion() throws Exception {
@@ -70,26 +73,24 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         Question question = insertTestQuestion("이전 타이틀", "이전 컨텐츠");
 
         // when
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         String title = "제목입니다.";
         String contents = "본문입니다.";
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("title", title);
-        params.add("contents", contents);
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+        MultiValueMap<String, Object> params = builder()
+                .add("title", title)
+                .add("contents", contents).build();
+
+        HttpEntity request = createWebRequestEntity(params);
+
         String updateUrl = "/questions/" + question.getId();
         ResponseEntity<String> response = basicAuthTemplate().exchange(updateUrl, HttpMethod.PUT, request, String.class);
 
         // then
-        String redirectPath = response.getHeaders().getLocation().getPath();
+        String redirectPath = getResponseLocationPath(response);
         softly.assertThat(redirectPath).startsWith("/questions/");
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 
-        Long questionId = getQuestionIdFromPath(redirectPath);
+        Long questionId = getQuestionIdFromPath(response);
         softly.assertThat(questionRepository.findById(questionId).isPresent()).isTrue();
     }
 
@@ -99,21 +100,19 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         Question question = insertTestQuestion("타이틀", "컨텐츠");
 
         // when
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-
-        ResponseEntity<String> response = basicAuthTemplate().exchange("/questions/" + question.getId(), HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+        HttpEntity request = createWebRequestEntity();
+        ResponseEntity<String> response = basicAuthTemplate().exchange("/questions/" + question.getId(), HttpMethod.DELETE, request, String.class);
 
         // then
-        String redirectPath = response.getHeaders().getLocation().getPath();
-        softly.assertThat(redirectPath).isEqualTo("/");
+        softly.assertThat(getResponseLocationPath(response)).isEqualTo("/");
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
 
         softly.assertThat(questionRepository.findById(question.getId()).get().isDeleted()).isTrue();
     }
 
 
-    private Long getQuestionIdFromPath(String redirectPath) {
+    private Long getQuestionIdFromPath(ResponseEntity<String> response) {
+        String redirectPath = getResponseLocationPath(response);
         String[] split = redirectPath.split("/");
         return Long.valueOf(split[split.length - 1]);
     }
