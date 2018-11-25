@@ -1,5 +1,7 @@
 package support.test;
 
+import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.junit.runner.RunWith;
@@ -20,6 +22,9 @@ public abstract class AcceptanceTest extends BaseTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private QuestionRepository questionRepository;
+
     public TestRestTemplate template() {
         return template;
     }
@@ -38,5 +43,11 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
+    }
+
+    public Question insertTestQuestion(String title, String contents) {
+        Question question = new Question(title, contents);
+        question.writeBy(defaultUser());
+        return questionRepository.save(question);
     }
 }

@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,19 +32,31 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
+    public Question findByIdWithAuthorized(User loginUser, long questionId) {
+        Question question = this.findById(questionId).orElseThrow(() -> new IllegalArgumentException("question이 존재하지 않음"));
+        if (!question.isOwner(loginUser)) {
+            throw new UnAuthorizedException("사용자가 일치하지 않음");
+        }
+
+        return question;
+    }
+
     public Optional<Question> findById(long id) {
         return questionRepository.findById(id);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question original = findByIdWithAuthorized(loginUser, id);
+        original.update(loginUser, updatedQuestion);
+
+        return original;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question question = findByIdWithAuthorized(loginUser, questionId);
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
