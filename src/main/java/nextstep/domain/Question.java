@@ -1,13 +1,22 @@
 package nextstep.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.validation.constraints.Size;
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -75,6 +84,34 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void update(User loginUser, Question target) {
+    	if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException("작성자만 가능합니다.");
+        }
+
+        this.title = target.title;
+        this.contents = target.contents;
+    }
+
+    public void delete(User loginUser) throws CannotDeleteException {
+    	if (isDeleted()) {
+    	    throw new CannotDeleteException("삭제된 질문입니다.");
+        }
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException("작성자만 변경할 수 있습니다.");
+        }
+
+    	deleted = true;
+    }
+
+    public boolean equalsTitleAndContents(Question question) {
+        return this.title.equals(question.title) && this.contents.equals(question.contents);
+    }
+
+    public List<Answer> getAnswers() {
+        return answers;
     }
 
     @Override
