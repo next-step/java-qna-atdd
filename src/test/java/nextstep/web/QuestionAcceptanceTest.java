@@ -1,8 +1,10 @@
 package nextstep.web;
 
+import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -68,5 +70,47 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 
+    @Test
+    public void 수정_폼_비로그인_사용자() throws Exception {
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", defaultQuestion().getId()),
+                String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 
+    @Test
+    public void 수정_폼_로그인_사용자() throws Exception {
+        ResponseEntity<String> response = basicAuthTemplate()
+                .getForEntity(String.format("/questions/%d/form", defaultQuestion().getId()), String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody()).contains(defaultQuestion().getTitle());
+        softly.assertThat(response.getBody()).contains(defaultQuestion().getContents());
+    }
+
+    @Test
+    public void 수정_비로그인_사용자() throws Exception {
+        ResponseEntity<String> response = update(template());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", response.getBody());
+    }
+
+    private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("_method", "put");
+        params.add("title", "수정된 제목");
+        params.add("contents", "수정된 내용");
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+
+        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+    }
+
+    @Test
+    public void 수정_로그인_사용자() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+    }
 }
