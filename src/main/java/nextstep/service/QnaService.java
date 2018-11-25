@@ -61,13 +61,6 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long id, String contents) {
-        Question question = findById(id).orElseThrow(QuestionNotFoundException::new);
-        Answer answer = new Answer(id, loginUser, question, contents);
-        question.addAnswer(answer);
-        return answer;
-    }
-
     public List<Question> findAllQuestions() {
         Iterable<Question> questionIterable = findAll();
         List<Question> questions = new ArrayList<>();
@@ -75,6 +68,14 @@ public class QnaService {
                 .forEachRemaining(questions::add);
 
         return questions;
+    }
+
+    @Transactional
+    public Answer addAnswer(User loginUser, long id, String contents) {
+        Question question = findById(id).orElseThrow(QuestionNotFoundException::new);
+        Answer answer = new Answer(loginUser, contents);
+        question.addAnswer(answer);
+        return answerRepository.save(answer);
     }
 
     @Transactional

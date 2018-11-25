@@ -21,12 +21,12 @@ public class ApiAnswerController {
     @Resource(name = "qnaService")
     private QnaService qnaService;
 
-    @PostMapping("{id}/questions")
+    @PostMapping("questions/{id}")
     public ResponseEntity<Void> create(@LoginUser User user, @PathVariable long id, @Valid @RequestBody String answer) {
         Answer saved = qnaService.addAnswer(user, id, answer);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/api/questions/" + id + "/answers/" + saved.getId()));
+        headers.setLocation(URI.create("/api/answers/" + saved.getId()));
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
