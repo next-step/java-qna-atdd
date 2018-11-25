@@ -1,10 +1,15 @@
 package nextstep.domain;
 
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.validation.constraints.Size;
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -66,6 +71,18 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public boolean isDeleted() {
         return deleted;
     }
+
+    public void delete(User loginUser) throws CannotDeleteException {
+    	if (isDeleted()) {
+    	    throw new CannotDeleteException("삭제된 답변입니다.");
+        }
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException("작성자만 변경할 수 있습니다.");
+        }
+
+        deleted = true;
+    }
+
 
     @Override
     public String generateUrl() {
