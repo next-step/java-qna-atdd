@@ -5,19 +5,14 @@ import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
-import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
-
-    private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -54,7 +49,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question updateQuestion = new Question("test update", "test update content");
 
         ResponseEntity<Question> responseEntity =
-                basicAuthTemplate(loginUser).exchange("/api/questions/1", HttpMethod.POST, createHttpEntity(updateQuestion), Question.class);
+                getResponseByExchage("/api/questions/1", createHttpEntity(updateQuestion), Question.class, loginUser, HttpMethod.POST);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(updateQuestion.equalsTitleAndContents(responseEntity.getBody())).isTrue();
@@ -66,8 +61,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question updateQuestion = new Question("test update", "test update content");
 
         ResponseEntity<Question> responseEntity =
-                basicAuthTemplate(loginUser).exchange("/api/questions/1", HttpMethod.POST, createHttpEntity(updateQuestion), Question.class);
-
+                getResponseByExchage("/api/questions/1", createHttpEntity(updateQuestion), Question.class, loginUser, HttpMethod.POST);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
@@ -77,11 +71,5 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         basicAuthTemplate(loginUser).delete("/api/questions/1");
         softly.assertThat(questionRepository.findById(1L).orElseThrow(QuestionNotFoundException::new).isDeleted()).isTrue();
-    }
-
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
     }
 }

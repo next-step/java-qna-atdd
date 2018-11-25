@@ -1,6 +1,8 @@
 package nextstep.service;
 
+import nextstep.AnswerNotFoundException;
 import nextstep.CannotDeleteException;
+import nextstep.QuestionNotFoundException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
@@ -38,17 +40,16 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
         Question question = findById(id).orElseThrow(UnAuthorizedException::new);
         question.update(loginUser, updatedQuestion);
         return question;
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question question = findById(questionId).orElseThrow(UnAuthorizedException::new);
         question.delete(loginUser);
+        return question;
     }
 
     public Iterable<Question> findAll() {
@@ -59,13 +60,27 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer addAnswer(User loginUser, long id, String contents) {
+        Question question = findById(id).orElseThrow(QuestionNotFoundException::new);
+        Answer answer = new Answer(id, loginUser, question, contents);
+        question.addAnswer(answer);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = answerRepository.findById(id).orElseThrow(AnswerNotFoundException::new);
+        return answer.delete(loginUser);
+    }
+
+    @Transactional
+    public Answer updateAnswer(User loginUser, long id, String contents) {
+        Answer answer = answerRepository.findById(id).orElseThrow(AnswerNotFoundException::new);
+        answer.update(loginUser, contents);
+        return answer;
+    }
+
+    public Answer findAnswerById(long id) {
+        return answerRepository.findById(id).orElseThrow(AnswerNotFoundException::new);
     }
 }
