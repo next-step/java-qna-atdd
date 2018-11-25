@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
+import nextstep.CannotFoundException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -35,17 +36,17 @@ public class QuestionController {
     }
 
     @GetMapping("/{id}")
-    public Question readQuestion(@PathVariable Long id, Model model) {
-        Question question = qnaService.findByIdAngLoginUser(id).orElseThrow(EntityNotFoundException::new);
+    public String readQuestion(@PathVariable Long id, Model model) {
+        Question question = qnaService.findById(id).orElseThrow(EntityNotFoundException::new);
         model.addAttribute("question", question);
-        return question;
+        return VIEW_QUESTIONS;
     }
 
     @PutMapping("/{id}")
     public String updateQuestion(@LoginUser User user, @PathVariable("id") long id, Question question) {
         log.info("Question updateQuestion method question : " + question + "  user : " + user + "  id : " + id);
         qnaService.updateQuestion(user, id ,question);
-        return UPDATE_VIEW_QUESTIONS;
+        return REDIRECT_QUESTIONS;
     }
 
     @DeleteMapping("/{id}")
@@ -57,12 +58,25 @@ public class QuestionController {
     }
 
     @PostMapping("/{id}/answer")
-    public String createAnswer(@LoginUser User user, @PathVariable("id") long id, String contents, Model model) {
+    public String createAnswer(@LoginUser User user, @PathVariable("id") long id, String contents, Model model) throws CannotFoundException {
         log.info("Question createAnswer method contents : " + contents + "  user : " + user + "  id : " + id);
         qnaService.addAnswer(user, id, contents);
-        Question question = qnaService.findByIdAngLoginUser(id).orElseThrow(EntityNotFoundException::new);
+        Question question = qnaService.findByIdAndDeletedFalse(user ,id);
 
         model.addAttribute("question", question);
         return VIEW_QUESTIONS;
     }
+
+    @DeleteMapping("/{id}/answer/{answerId}")
+    public String deleteAnswer(@LoginUser User user, @PathVariable("id") long id , @PathVariable("answerId") long answerId, Model model) throws CannotFoundException, CannotDeleteException {
+        log.info("Question deleteAnswer method answerId : " + answerId + "  user : " + user + "  id : " + id);
+        qnaService.deleteAnswer(user, id, answerId);
+        Question question = qnaService.findByIdAndDeletedFalse(user ,id);
+
+        model.addAttribute("question", question);
+        return VIEW_QUESTIONS;
+    }
+
+
+
 }

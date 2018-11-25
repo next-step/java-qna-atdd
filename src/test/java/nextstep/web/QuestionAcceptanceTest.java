@@ -2,17 +2,15 @@ package nextstep.web;
 
 import nextstep.domain.AnswerRepository;
 import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
-
-import java.util.Arrays;
+import support.test.HtmlFormDataBuilder;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
@@ -25,18 +23,15 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문_만들기_로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        User loginUser = defaultUser();
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         String title = "자바 강의";
-        params.add("title", title);
-        params.add("contents", "TDD 교육을 듣자");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        String contents = "TDD 교육을 듣자";
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .addParameter("title", title)
+                                                .addParameter("contents", contents)
+                                                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser())
                 .postForEntity("/questions", request , String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -46,15 +41,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문_만들기_비로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        String title = "자바 강의";
-        params.add("title", title);
-        params.add("contents", "TDD 교육을 듣자");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                 .build();
 
         ResponseEntity<String> response = template().postForEntity("/questions", request, String.class);
 
@@ -63,40 +51,28 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문_수정_로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        User loginUser = defaultUser();
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", HttpMethod.PUT.name());
         String title = "TDD 교육";
-        params.add("title", title);
         String contents = "TDD 교육을 들으면 리팩토링 상승";
-        params.add("contents", contents);
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                    .postForEntity(String.format("/questions/1"), request, String.class);
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .put()
+                                                .addParameter("title", title)
+                                                .addParameter("contents", contents)
+                                                .build();
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser())
+                .postForEntity("/questions/1", request , String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(questionRepository.findByIdAndDeletedFalse(1L).get().getTitle()).isEqualTo(title);
         softly.assertThat(questionRepository.findByIdAndDeletedFalse(1L).get().getContents()).isEqualTo(contents);
     }
 
     @Test
     public void 질문_수정_비로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", HttpMethod.PUT.name());
-        String title = "자바강의수정";
-        params.add("title", title);
-        String contents = "TDD 교육 내용을 수정합니다";
-        params.add("contents", contents);
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .put()
+                                                .build();
 
         ResponseEntity<String> response = template().postForEntity("/questions/1", request, String.class);
 
@@ -104,45 +80,66 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문_삭제_로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
+    public void 질문_수정_다른_로그인_사용자(){
+        String title = "TDD 교육";
+        String contents = "TDD 교육을 들으면 리팩토링 상승";
 
-        User loginUser = defaultUser();
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", HttpMethod.DELETE.name());
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .put()
+                                                .addParameter("title", title)
+                                                .addParameter("contents", contents)
+                                                .build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser())
                 .postForEntity("/questions/2", request , String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(questionRepository.findByIdAndDeletedFalse(2L).isPresent()).isFalse();
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void 질문_삭제_로그인_사용자(){
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .delete()
+                                                .build();
+
+        basicAuthTemplate(defaultUser()).postForEntity("/questions/3", request , String.class);
+
+        softly.assertThat(questionRepository.findByIdAndDeletedFalse(3L).isPresent()).isFalse();
     }
 
     @Test
     public void 질문_삭제_비로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .delete()
+                                                .build();
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", HttpMethod.DELETE.name());
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
-        ResponseEntity<String> response = template().postForEntity("/questions/2", request , String.class);
+        ResponseEntity<String> response = template().postForEntity("/questions/2", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
+    public void 질문_삭제_다른_로그인_사용자(){
+
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .delete()
+                                                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser())
+                .postForEntity("/questions/2", request , String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
     public void 답변_작성_로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
-
-        User loginUser = defaultUser();
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         String contents = "TDD 답변입니다.";
-        params.add("contents", contents);
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                            .addParameter("contents", contents)
+                            .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser())
                 .postForEntity("/questions/1/answer", request , String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -151,19 +148,51 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 답변_작성_비로그인_사용자(){
-        HttpHeaders headers = new HttpHeaders();
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        String contents = "TDD 답변입니다.";
-        params.add("contents", contents);
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .build();
 
         ResponseEntity<String> response = template().postForEntity("/questions/1/answer", request , String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    @Test
+    public void 답변_삭제_로그인_사용자(){
 
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .delete()
+                                                .build();
+
+        basicAuthTemplate(defaultUser())
+                .postForEntity("/questions/1/answer/1", request , String.class);
+
+        softly.assertThat(answerRepository.findByIdAndDeletedFalse(1L).isPresent()).isFalse();
+    }
+
+    @Test
+    public void 답변_삭제_비로그인_사용자(){
+
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .delete()
+                                                .build();
+
+        ResponseEntity<String> response = template().postForEntity("/questions/1/answer/1", request , String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void 답변_삭제_다른_로그인_사용자(){
+
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                                                .delete()
+                                                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser())
+                .postForEntity("/questions/1/answer/2", request , String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
 
 
 }

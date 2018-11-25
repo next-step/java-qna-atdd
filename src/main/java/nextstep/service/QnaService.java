@@ -1,6 +1,8 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.CannotFoundException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,11 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 @Service("qnaService")
+@Transactional
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
@@ -32,29 +36,27 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findByIdAngLoginUser(long id) {
+    public Optional<Question> findById(long id) {
         return questionRepository.findById(id);
     }
 
-    @Transactional
     public Question updateQuestion(User loginUser, long id, Question updatedQuestion) {
-        Question question = findByIdAngLoginUser(loginUser ,id);
+        Question question = findByIdAndDeletedFalse(loginUser ,id);
         updatedQuestion.writeBy(loginUser);
         question.update(updatedQuestion);;
         return question;
     }
 
-    @Transactional
-    Question findByIdAngLoginUser(User loginUser, long id) {
-        return questionRepository.findByIdAndDeletedFalse(id)
-                                    .filter(question -> loginUser.equals(question.getWriter()))
-                                    .orElseThrow(EntityNotFoundException::new);
+    public Question findByIdAndDeletedFalse(User loginUser, long questionId) {
+        return findById(questionId)
+                .filter(question -> !question.isDeleted())
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
-    @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        findByIdAngLoginUser(loginUser, questionId);
-        questionRepository.deleteById(questionId);
+        Question target = findById(questionId).orElseThrow(CannotDeleteException::new);
+        target.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -65,15 +67,21 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        Question question = questionRepository.findByIdAndDeletedFalse(questionId).orElseThrow(EntityNotFoundException::new);
-        Answer answer = new Answer(loginUser, contents);
-        question.addAnswer(answer);
-        return answerRepository.save(answer);
+    Question findQuestion(long questionId) throws CannotFoundException {
+        return questionRepository.findByIdAndDeletedFalse(questionId).orElseThrow(CannotFoundException::new);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer addAnswer(User loginUser, long questionId, String contents) throws CannotFoundException {
+        Question question = findQuestion(questionId);
+        Answer answer = new Answer(loginUser, contents);
+        question.addAnswer(answer);
+        return answer;
+    }
+
+    public Answer deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException, CannotFoundException {
+        findQuestion(questionId);
+        Answer answer = answerRepository.findById(answerId).orElseThrow(CannotFoundException::new);
+        answer.delete(loginUser);
+        return answer;
     }
 }
