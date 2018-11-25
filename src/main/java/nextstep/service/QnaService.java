@@ -1,31 +1,41 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
+import com.google.common.collect.ImmutableList;
+import nextstep.UnAuthenticationException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
+import nextstep.security.LoginChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Transactional(readOnly = true)
 @Service("qnaService")
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
-    @Resource(name = "questionRepository")
-    private QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
+    private final DeleteHistoryService deleteHistoryService;
 
-    @Resource(name = "answerRepository")
-    private AnswerRepository answerRepository;
+    public QnaService(QuestionRepository questionRepository, AnswerRepository answerRepository,
+                      DeleteHistoryService deleteHistoryService) {
 
-    @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
+        this.deleteHistoryService = deleteHistoryService;
+    }
 
-    public Question create(User loginUser, Question question) {
+    @Transactional
+    public Question create(User loginUser, Question question) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);
@@ -35,15 +45,41 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
-    @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question findNotDeletedQuestionById(Long id) {
+        return questionRepository.findByIdAndDeleted(id, false)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
+
+        Question findedQuestion = findNotDeletedQuestionById(id);
+
+        checkOwner(loginUser, findedQuestion);
+
+        return findedQuestion.setTitle(updatedQuestion.getTitle()).setContents(updatedQuestion.getContents());
+    }
+
+    private void checkOwner(User loginUser,
+                            Question findedQuestion) {
+        if (!findedQuestion.isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+    }
+
+    @Transactional
+    public void deleteQuestion(User loginUser, Long questionId) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
+
+        Question findedQuestion = findNotDeletedQuestionById(questionId);
+
+        checkOwner(loginUser, findedQuestion);
+
+        findedQuestion.delete();
+
+        DeleteHistory deleteHistory = new DeleteHistory(ContentType.QUESTION, questionId, loginUser, LocalDateTime.now());
+        deleteHistoryService.saveAll(ImmutableList.of(deleteHistory));
     }
 
     public Iterable<Question> findAll() {
@@ -54,11 +90,13 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현
         return null;
     }
 
+    @Transactional
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현 
         return null;
