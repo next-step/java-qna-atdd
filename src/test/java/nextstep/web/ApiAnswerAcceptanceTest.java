@@ -20,10 +20,10 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         String answerContent = "this is answer";
 
-        ResponseEntity<Void> response = getResponseByExchange("/api/questions/2/answers", createHttpEntity(answerContent), Void.class, loginUser, HttpMethod.POST);
+        ResponseEntity<Void> response = getResponseByExchange("/api/answers/2/questions", createHttpEntity(answerContent), Void.class, loginUser, HttpMethod.POST);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-        Answer answer = getResource("/api/questions/2/answers/3", Answer.class, loginUser);
+        Answer answer = getResource("/api/answers//3", Answer.class, loginUser);
         softly.assertThat(answer).isNotNull();
     }
 
@@ -31,9 +31,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void 질문에_대한_답변_삭제() {
         User loginUser = defaultUser();
 
-        basicAuthTemplate(loginUser).delete("/api/questions/1/answers/1");
+        basicAuthTemplate(loginUser).delete("/api/answers/1");
 
-        Answer answer = getResource("/api/questions/1/answers/1", Answer.class, loginUser);
+        Answer answer = getResource("/api/answers/1", Answer.class, loginUser);
         softly.assertThat(answer.isDeleted()).isTrue();
     }
 
@@ -41,7 +41,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void 질문에_대한_답변_수정() {
         User loginUser = defaultUser();
         String update = "test_update";
-        ResponseEntity<Answer> responseEntity = getResponseByExchange("/api/questions/1/answers/1", createHttpEntity(update), Answer.class, loginUser, HttpMethod.POST);
+        ResponseEntity<Answer> responseEntity = getResponseByExchange("/api/answers/1", createHttpEntity(update), Answer.class, loginUser, HttpMethod.POST);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(responseEntity.getBody().getContents().equals(update)).isTrue();

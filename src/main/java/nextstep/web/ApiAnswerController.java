@@ -15,13 +15,13 @@ import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/questions/{id}/answers")
+@RequestMapping("/api/answers")
 public class ApiAnswerController {
 
     @Resource(name = "qnaService")
     private QnaService qnaService;
 
-    @PostMapping("")
+    @PostMapping("{id}/questions")
     public ResponseEntity<Void> create(@LoginUser User user, @PathVariable long id, @Valid @RequestBody String answer) {
         Answer saved = qnaService.addAnswer(user, id, answer);
 
