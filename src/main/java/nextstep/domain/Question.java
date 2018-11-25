@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -8,6 +9,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+
+import static support.util.QnaUtil.not;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -36,6 +39,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(String title, String contents, User writer) {
+        this(title, contents);
+        this.writeBy(writer);
     }
 
     public String getTitle() {
@@ -85,5 +93,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public void update(User loginUser, Question updatedQuestion) {
+        if (not(isOwner(loginUser))) {
+            throw new UnAuthorizedException("사용자가 일치하지 않음");
+        }
+
+        this.title = updatedQuestion.getTitle();
+        this.contents = updatedQuestion.getContents();
+    }
+
+    public void delete(User loginUser) {
+        if (not(isOwner(loginUser))) {
+            throw new UnAuthorizedException("사용자가 일치하지 않음");
+        }
+
+        this.deleted = true;
     }
 }
