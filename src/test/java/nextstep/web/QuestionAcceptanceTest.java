@@ -1,15 +1,13 @@
 package nextstep.web;
 
+import nextstep.util.HtmlFormDataBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
-
-import java.util.Arrays;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
@@ -39,30 +37,22 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 생성_비로그인_사용자() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("title", "테스트 제목");
-        params.add("contents", "테스트 내용");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("title", "테스트 제목")
+                .addParameter("contents", "테스트 내용")
+                .build();
         ResponseEntity<String> response = template().postForEntity("/questions", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void 생성_로그인_사용자() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("title", "테스트 제목");
-        params.add("contents", "테스트 내용");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("title", "테스트 제목")
+                .addParameter("contents", "테스트 내용")
+                .build();
         ResponseEntity<String> response = basicAuthTemplate().postForEntity("/questions", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
@@ -92,16 +82,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", "put");
-        params.add("title", "수정된 제목");
-        params.add("contents", "수정된 내용");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("_method", "put")
+                .addParameter("title", "수정된 제목")
+                .addParameter("contents", "수정된 내용")
+                .build();
         return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
     }
 
@@ -120,14 +106,10 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> delete(TestRestTemplate template) throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", "delete");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("_method", "delete")
+                .build();
         return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
     }
 
