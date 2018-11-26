@@ -1,15 +1,13 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -41,11 +39,25 @@ public class QuestionController {
         return "/qna/show";
     }
 
-    @PostMapping("/{id}/form")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
-        //loginUser가 자기자신인지 확인하는 작업필요
-        //id로 비교?
-        qnaService.update(loginUser, id, target);
+    @DeleteMapping("/{id}")
+    public String deleteQuestion(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        try {
+            qnaService.deleteQuestion(loginUser, id);
+        } catch (CannotDeleteException e) {
+            return "redirect:/questions";
+        }
+        return "redirect:/";
+    }
 
+    @GetMapping("/{id}/form")
+    public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        model.addAttribute("question", qnaService.findByIdForUpdate(loginUser, id));
+        return "/qna/updateForm";
+    }
+
+    @PostMapping("/{id}/update")
+    public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, Question question) {
+        qnaService.update(loginUser, id, question);
+        return "redirect:/";
     }
 }
