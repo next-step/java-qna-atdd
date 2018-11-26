@@ -88,9 +88,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 
-
-    public void update(Question updatedQuestion) {
-        this.title = updatedQuestion.getTitle();
-        this.contents = updatedQuestion.getContents();
+    public boolean update(User loginUser, Question updatedQuestion) {
+        if (this.isOwner(loginUser)) {
+            this.title = updatedQuestion.getTitle();
+            this.contents = updatedQuestion.getContents();
+            return true;
+        }
+        return false;
     }
 }

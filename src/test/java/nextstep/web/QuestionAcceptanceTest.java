@@ -62,7 +62,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         HttpEntity<MultiValueMap<String, Object>> request = getMultiValueUpdateMapHttpEntity();
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d/update", defaultQuestion().getId()), request, String.class);
+                .postForEntity(String.format("/questions/%d/", defaultQuestion().getId()), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         log.debug("body : {}",response.getBody());
@@ -73,7 +73,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         HttpEntity<MultiValueMap<String, Object>> request = getMultiValueUpdateMapHttpEntity();
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d/update", 2), request, String.class);
+                .postForEntity(String.format("/questions/%d/", 2), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         log.debug("body : {}", response.getBody());
@@ -81,29 +81,37 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_my_question() throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapCreateAndDeleteHttpEntity();
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapDeleteHttpEntity();
 
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .exchange(String.format("/questions/%d/", defaultUser().getId()), HttpMethod.DELETE, request, String.class);
+                .postForEntity(String.format("/questions/%d/", defaultUser().getId()), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
 
     @Test
     public void delete_not_my_question() throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapCreateAndDeleteHttpEntity();
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapDeleteHttpEntity();
 
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .exchange(String.format("/questions/%d/", 2), HttpMethod.DELETE, request, String.class);
+                .postForEntity(String.format("/questions/%d/", 2), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private HttpEntity<MultiValueMap<String, Object>> getMultiValueUpdateMapHttpEntity() {
         return HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "put")
+                .put()
+                .addParameter("title", "createTitle")
+                .addParameter("contents", "this is my first ATDD test")
+                .build();
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> getMultiValueMapDeleteHttpEntity() {
+        return HtmlFormDataBuilder.urlEncodedForm()
+                .delete()
                 .addParameter("title", "createTitle")
                 .addParameter("contents", "this is my first ATDD test")
                 .build();

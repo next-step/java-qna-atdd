@@ -38,12 +38,10 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        Question questionOriginal = questionRepository.findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
-
-        questionOriginal.update(updatedQuestion);
+        Question questionOriginal = questionRepository.findById(id).get();
+        if (!questionOriginal.update(loginUser, updatedQuestion)) {
+            throw new UnAuthorizedException();
+        }
         return questionOriginal;
     }
 
