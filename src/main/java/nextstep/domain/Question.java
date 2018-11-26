@@ -94,7 +94,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         histories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer, LocalDateTime.now()));
 
         answers.stream()
-                .map(answer -> new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter(), LocalDateTime.now())).forEach(histories::add);
+                .map(answer -> new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter(), LocalDateTime.now()))
+                .forEach(histories::add);
 
         return histories;
     }
@@ -134,9 +135,5 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
-    }
-
-    public List<Answer> getAnswers() {
-        return answers;
     }
 }

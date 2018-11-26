@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.CannotDeleteException;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
