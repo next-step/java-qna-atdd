@@ -34,7 +34,7 @@ public class QnaService {
     }
 
     public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+        return questionRepository.findByIdAndDeletedFalse(id);
     }
 
 	public Optional<Question> findByIdAndUser(long id, User user) {
@@ -73,5 +73,15 @@ public class QnaService {
 		Answer targetAnswer = answerRepository.findById(id).filter(answer -> !answer.isDeleted()).orElseThrow(
 			() -> new CannotDeleteException("지울 대상이 없습니다."));
 		targetAnswer.delete(loginUser);
+	}
+
+	public Answer updateAnswer(User loginUser, long id, String updateContents) {
+		Answer targetAnswer = answerRepository.findById(id).filter(answer -> !answer.isDeleted()).orElseThrow(EntityNotFoundException::new);
+		targetAnswer.update(loginUser, updateContents);
+		return targetAnswer;
+	}
+
+	public Answer findAnswer(long answerId) {
+		return answerRepository.findByIdAndDeletedFalse(answerId).orElseThrow(EntityNotFoundException::new);
 	}
 }

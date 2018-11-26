@@ -12,6 +12,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
     private static final String DEFAULT_LOGIN_USER = "javajigi";
+    protected static final String OTHER_USER = "sanjigi";
+
 
     @Autowired
     private TestRestTemplate template;
@@ -33,6 +35,10 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected User defaultUser() {
         return findByUserId(DEFAULT_LOGIN_USER);
+    }
+
+    protected User testUser(){
+        return findByUserId(OTHER_USER);
     }
 
     protected User findByUserId(String userId) {

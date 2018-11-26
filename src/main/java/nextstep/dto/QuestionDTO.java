@@ -1,6 +1,4 @@
-package nextstep.web.dto;
-
-import nextstep.domain.Question;
+package nextstep.dto;
 
 /**
  * Created by hspark on 23/11/2018.
@@ -23,6 +21,14 @@ public class QuestionDTO {
 	}
 
 	public void setContents(String contents) {
+		this.contents = contents;
+	}
+
+	public QuestionDTO() {
+	}
+
+	public QuestionDTO(String title, String contents) {
+		this.title = title;
 		this.contents = contents;
 	}
 }
