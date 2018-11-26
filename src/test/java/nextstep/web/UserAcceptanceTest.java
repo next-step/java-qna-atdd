@@ -91,4 +91,24 @@ public class UserAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
+
+    @Test
+    public void 로그인_폼() throws Exception {
+        ResponseEntity<String> response = template().getForEntity("/login", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void 로그인() throws Exception {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
+                .urlEncodedForm()
+                .addParameter("userId", "javajigi")
+                .addParameter("password", "test")
+                .build();
+        ResponseEntity<String> response = template()
+                .postForEntity("/login", request, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+    }
 }
