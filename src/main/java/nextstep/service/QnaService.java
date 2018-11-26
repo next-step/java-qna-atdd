@@ -37,9 +37,10 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question original = findById(id).get();
-        original.update(loginUser, updatedQuestion);
-        return original;
+        return findById(id).map((question) -> {
+            question.update(loginUser, updatedQuestion);
+            return question;
+        }).get();
     }
 
     @Transactional

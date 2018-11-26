@@ -80,9 +80,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public boolean delete(User loginUser) {
+    public boolean delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
+        }
+
+        if (isDeleted()) {
+            throw new CannotDeleteException("");
         }
 
         this.deleted = true;
