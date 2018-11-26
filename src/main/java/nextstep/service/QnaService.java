@@ -56,16 +56,7 @@ public class QnaService {
 
         Question findedQuestion = findNotDeletedQuestionById(id);
 
-        checkOwner(loginUser, findedQuestion);
-
-        return findedQuestion.setTitle(updatedQuestion.getTitle()).setContents(updatedQuestion.getContents());
-    }
-
-    private void checkOwner(User loginUser,
-                            Question findedQuestion) {
-        if (!findedQuestion.isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
+        return findedQuestion.update(loginUser, updatedQuestion);
     }
 
     @Transactional
@@ -74,9 +65,7 @@ public class QnaService {
 
         Question findedQuestion = findNotDeletedQuestionById(questionId);
 
-        checkOwner(loginUser, findedQuestion);
-
-        findedQuestion.delete();
+        findedQuestion.delete(loginUser);
 
         DeleteHistory deleteHistory = new DeleteHistory(ContentType.QUESTION, questionId, loginUser, LocalDateTime.now());
         deleteHistoryService.saveAll(ImmutableList.of(deleteHistory));
