@@ -2,6 +2,7 @@ package nextstep.util;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -16,6 +17,26 @@ public class HtmlFormDataBuilder {
     private HtmlFormDataBuilder(final HttpHeaders headers) {
         this.headers = headers;
         this.params = new LinkedMultiValueMap<>();
+    }
+
+    public HtmlFormDataBuilder get() {
+        this.params.add("_method", HttpMethod.GET.name());
+        return this;
+    }
+
+    public HtmlFormDataBuilder post() {
+        this.params.add("_method", HttpMethod.POST.name());
+        return this;
+    }
+
+    public HtmlFormDataBuilder put() {
+        this.params.add("_method", HttpMethod.PUT.name());
+        return this;
+    }
+
+    public HtmlFormDataBuilder delete() {
+        this.params.add("_method", HttpMethod.DELETE.name());
+        return this;
     }
 
     public HtmlFormDataBuilder addParameter(final String key, final String value) {

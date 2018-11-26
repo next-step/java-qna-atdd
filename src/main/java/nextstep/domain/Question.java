@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.CannotUpdateException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -11,6 +13,7 @@ import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
+
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -77,6 +80,33 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public void update(final User loginUser, final Question question) {
+
+        if (isDeleted()) {
+            throw new CannotUpdateException("Deleted questions.");
+        }
+
+        if (!isOwner(loginUser)) {
+            throw new CannotUpdateException("Not the author of the question");
+        }
+
+        this.title = question.title;
+        this.contents = question.contents;
+    }
+
+    public void delete(final User loginUser) throws CannotDeleteException {
+
+        if (isDeleted()) {
+            throw new CannotDeleteException("Deleted questions.");
+        }
+
+        if (!isOwner(loginUser)) {
+            throw new CannotDeleteException("Not the author of the question");
+        }
+
+        this.deleted = true;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
@@ -86,4 +116,5 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
+
 }
