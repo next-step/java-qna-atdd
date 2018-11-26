@@ -34,7 +34,7 @@ public class AnswerAcceptanceTest extends AcceptanceTest {
         Question question = defaultQuestion();
         Answer answer = defaultAnswer();
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParam("_method","delete")
+                .delete()
                 .build();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)

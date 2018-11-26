@@ -52,7 +52,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
         String id = String.valueOf(defaultQuestion().getId());
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParam("_method", "put")
+                .put()
                 .addParam("id", id)
                 .addParam("title", "제목수정")
                 .addParam("contents", "본문수정")
@@ -80,7 +80,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> find(User loginUser, String id) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParam("_method", "get")
+                .get()
                 .build();
 
         return basicAuthTemplate(loginUser).getForEntity(String.format("/questions/%s", id), String.class);
@@ -99,7 +99,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> delete(User loginUser, String id) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParam("_method", "delete")
+                .delete()
                 .build();
 
         return basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%s", id), request, String.class);

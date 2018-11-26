@@ -9,6 +9,10 @@ import org.springframework.util.MultiValueMap;
 import java.util.Arrays;
 
 public class HtmlFormDataBuilder {
+    public static final String METHOD = "_method";
+    public static final String PUT = "put";
+    public static final String GET = "get";
+    public static final String DELETE = "delete";
     private HttpHeaders httpHeaders;
     private MultiValueMap<String, Object> params;
 
@@ -36,4 +40,17 @@ public class HtmlFormDataBuilder {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HtmlFormDataBuilder(headers);
     }
+    
+    public HtmlFormDataBuilder put() {
+        return addParam(METHOD, PUT);
+    }
+    
+    public HtmlFormDataBuilder get() {
+        return addParam(METHOD, GET);
+    }
+    
+    public HtmlFormDataBuilder delete() {
+        return addParam(METHOD, DELETE);
+    }
+    
 }

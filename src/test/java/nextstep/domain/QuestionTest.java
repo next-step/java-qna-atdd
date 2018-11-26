@@ -28,7 +28,7 @@ public class QuestionTest extends BaseTest {
         Question origin = QUESTION_1;
         Question target = new Question(origin.getId(), "제목수정", "본문수정", user);
 
-        origin.update(origin, target, user);
+        origin.update(target, user);
         softly.assertThat(origin.getContents()).isEqualTo(target.getContents());
         softly.assertThat((origin.getTitle())).isEqualTo(target.getTitle());
         softly.assertThat((origin.getWriter())).isEqualTo(target.getWriter());
@@ -40,7 +40,7 @@ public class QuestionTest extends BaseTest {
         Question origin = QUESTION_1;
         Question target = new Question(origin.getId(), "제목수정", "본문수정", UserTest.SANJIGI);
 
-        origin.update(origin, target, user);
+        origin.update(target, user);
         softly.assertThat(origin.getContents()).isEqualTo(target.getContents());
         softly.assertThat((origin.getTitle())).isEqualTo(target.getTitle());
         softly.assertThat((origin.getWriter())).isEqualTo(target.getWriter());

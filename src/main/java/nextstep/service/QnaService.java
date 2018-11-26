@@ -40,7 +40,7 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) throws CannotUpdateException {
         Question question = findById(id).orElseThrow(IllegalArgumentException::new);
-        question.update(question, updatedQuestion, loginUser);
+        question.update(updatedQuestion, loginUser);
 
         return question;
     }
@@ -66,6 +66,7 @@ public class QnaService {
     @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
+        answer.toQuestion(questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new));
         log.debug("answer : {}", answer);
         return answerRepository.save(answer);
     }

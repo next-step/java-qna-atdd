@@ -53,8 +53,6 @@ public class QuestionController {
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion, Model model) throws UnAuthenticationException, CannotUpdateException {
         qnaService.update(loginUser, id, updateQuestion);
-        model.addAttribute("question", qnaService.findById(id).get());
-        model.addAttribute("user", loginUser);
         return REDIRECT_QUESTIONS+id;
     }
 
@@ -72,8 +70,8 @@ public class QuestionController {
     }
 
     @DeleteMapping("/{questionId}/answers/{id}")
-    public String deleteAnswer(@LoginUser User loginUser,@PathVariable long questionId) throws CannotDeleteException {
-        qnaService.deleteAnswer(loginUser, questionId);
+    public String deleteAnswer(@LoginUser User loginUser,@PathVariable long questionId,@PathVariable long id) throws CannotDeleteException {
+        qnaService.deleteAnswer(loginUser, id);
         return REDIRECT_QUESTIONS+questionId;
     }
 }

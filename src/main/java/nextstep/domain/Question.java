@@ -41,9 +41,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question(String title, String contents, User writer) {
-        this.title = title;
-        this.contents = contents;
-        this.writer =  writer;
+        this(0L, title, contents, writer);
     }
 
     public Question(long id, String title, String contents, User writer) {
@@ -60,13 +58,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.answers = answers;
     }
 
-    public void update(Question origin, Question target, User loginUser) throws CannotUpdateException {
-        if (!origin.writer.matchUser(loginUser)) {
+    public void update(Question target, User loginUser) throws CannotUpdateException {
+        if (!this.writer.matchUser(loginUser)) {
             throw new CannotUpdateException("본인이 작성한 질문만 변경할 수 있습니다.");
         }
-        origin.answers = target.answers;
-        origin.contents = target.contents;
-        origin.title = target.title;
+        this.answers = target.answers;
+        this.contents = target.contents;
+        this.title = target.title;
     }
 
     public String getTitle() {
@@ -116,5 +114,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+    
+    public List<Answer> getAnswers() {
+        return answers;
     }
 }
