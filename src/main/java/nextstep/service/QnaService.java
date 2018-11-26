@@ -1,6 +1,8 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.CannotUpdateException;
+import nextstep.UnAuthenticationException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,14 +38,21 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question update(User loginUser, long id, Question updatedQuestion) throws CannotUpdateException {
+        Question question = findById(id).orElseThrow(IllegalArgumentException::new);
+        question.update(updatedQuestion, loginUser);
+
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question question = questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new);
+        if(!question.isOwner(loginUser)) {
+            throw new CannotDeleteException("본인이 작성한 질문만 삭제할 수 있습니다.");
+        }
+
+        questionRepository.deleteById(questionId);
     }
 
     public Iterable<Question> findAll() {
@@ -54,13 +63,21 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Answer answer = new Answer(loginUser, contents);
+        answer.toQuestion(questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new));
+        log.debug("answer : {}", answer);
+        return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = answerRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        if(!answer.isOwner(loginUser)) {
+            throw new CannotDeleteException("본인이 작성한 답변만 삭제할 수 있습니다.");
+        }
+
+        answerRepository.deleteById(id);
     }
 }

@@ -96,6 +96,10 @@ public class User extends AbstractEntity {
         return this.userId.equals(userId);
     }
 
+    public boolean matchUser(User user) {
+        return this.userId.equals(user.getUserId());
+    }
+
     public boolean matchPassword(String targetPassword) {
         return password.equals(targetPassword);
     }

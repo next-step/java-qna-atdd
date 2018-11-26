@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotUpdateException;
+import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -36,6 +38,33 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(String title, String contents, User writer) {
+        this(0L, title, contents, writer);
+    }
+
+    public Question(long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer =  writer;
+    }
+
+    public Question(String title, String contents, User writer, List<Answer> answers) {
+        this.title = title;
+        this.contents = contents;
+        this.writer =  writer;
+        this.answers = answers;
+    }
+
+    public void update(Question target, User loginUser) throws CannotUpdateException {
+        if (!this.writer.matchUser(loginUser)) {
+            throw new CannotUpdateException("본인이 작성한 질문만 변경할 수 있습니다.");
+        }
+        this.answers = target.answers;
+        this.contents = target.contents;
+        this.title = target.title;
     }
 
     public String getTitle() {
@@ -85,5 +114,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+    
+    public List<Answer> getAnswers() {
+        return answers;
     }
 }

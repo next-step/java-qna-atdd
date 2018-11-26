@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import nextstep.helper.HtmlFormDataBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,23 +30,20 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         String userId = "testuser";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "password");
-        params.add("name", "자바지기");
-        params.add("email", "javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParam("userId", userId)
+                .addParam("password", "password")
+                .addParam("name", "자바지기")
+                .addParam("email", "javajigi@slipp.net")
+                .build();
 
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 
     @Test
@@ -80,17 +78,12 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", "put");
-        params.add("password", "test");
-        params.add("name", "자바지기2");
-        params.add("email", "javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .put()
+                .addParam("password", "test")
+                .addParam("name", "자바지기2")
+                .addParam("email", "javajigi@slipp.net")
+                .build();
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
     }
 
@@ -98,6 +91,6 @@ public class UserAcceptanceTest extends AcceptanceTest {
     public void update() throws Exception {
         ResponseEntity<String> response = update(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 }
