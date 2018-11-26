@@ -9,6 +9,14 @@ import org.junit.Test;
 
 public class QuestionTest {
 
+	public static Question newQuestion() {
+		return new Question("질문 제목", "질문 내용");
+	}
+
+	public static Question newQuestion(String title, String contents) {
+		return new Question(title, contents);
+	}
+
 	private Question question;
 
 	@Before
