@@ -1,10 +1,6 @@
 package support.test;
 
-import nextstep.CannotDeleteException;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
-import nextstep.domain.UserRepository;
+import nextstep.domain.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
+    private static final long DEFAULT_ANSWER_ID = 1L;
     private static final long DEFAULT_QUESTION_ID = 2L;
     private static final String DEFAULT_LOGIN_USER = "javajigi";
 
@@ -29,6 +26,9 @@ public abstract class AcceptanceTest extends BaseTest {
 
     @Autowired
     private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     public TestRestTemplate template() {
         return template;
@@ -54,14 +54,16 @@ public abstract class AcceptanceTest extends BaseTest {
         return findByQuestionId(DEFAULT_QUESTION_ID);
     }
 
-    protected Question defaultQuestionByDeleted() throws CannotDeleteException {
-        Question question = findByQuestionId(DEFAULT_QUESTION_ID);
-        question.delete(question.getWriter());
-        return question;
-    }
-
     protected User defaultQuestionWriter() {
         return defaultQuestion().getWriter();
+    }
+
+    protected Question defaultAnswer() {
+        return findByQuestionId(DEFAULT_ANSWER_ID);
+    }
+
+    protected Answer findByAnswerId(Long answerId) {
+        return answerRepository.findById(answerId).get();
     }
 
     protected Question findByQuestionId(Long questionId) {

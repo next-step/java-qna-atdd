@@ -22,7 +22,7 @@ public class ApiQuestionController {
     @PostMapping
     public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
         Question savedQuestion = qnaService.create(loginUser, question);
-        URI location = URI.create("/api/questions/" + savedQuestion.getId());
+        URI location = URI.create("/api/" + savedQuestion.generateUrl());
         return ResponseEntity.created(location).build();
     }
 

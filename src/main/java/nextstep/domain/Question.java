@@ -1,6 +1,7 @@
 package nextstep.domain;
 
 import nextstep.CannotDeleteException;
+import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -81,6 +82,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
+    }
+
+    public Answer findAnswer(long answerId) {
+        return answers.stream()
+                .filter(answer -> answer.equalsId(answerId))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
     }
 
     public boolean isOwner(User loginUser) {
