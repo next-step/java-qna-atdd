@@ -20,28 +20,26 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     public void login_success() throws UnAuthenticationException {
         String userId = "javajigi";
         String password = "test";
-
-        HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
-                .addParameter("userId", userId)
-                .addParameter("password", password)
-                .build();
-
-        ResponseEntity<String> response = template().postForEntity("/users/login", htmlFormData.newHttpEntity(), String.class);
-
+        ResponseEntity<String> response = login(userId, password);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userService.login(userId, password).getUserId()).isEqualTo(userId);
     }
 
     @Test
     public void login_failed() {
-        HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
-                .addParameter("userId", "javajigi")
-                .addParameter("password", "password")
-                .build();
-
-        ResponseEntity<String> response = template().postForEntity("/users/login", htmlFormData.newHttpEntity(), String.class);
+        ResponseEntity<String> response = login("javajigi", "password");
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
         softly.assertThat(response.getBody()).contains("아이디 또는 비밀번호가 틀립니다. 다시 로그인 해주세요.");
+    }
+    
+    private ResponseEntity<String> login(String userId, String password) {
+        HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
+                .addParameter("userId", userId)
+                .addParameter("password", password)
+                .build();
+
+        ResponseEntity<String> response = template().postForEntity("/users/login", htmlFormData.newHttpEntity(), String.class);
+        return response;
     }
 }

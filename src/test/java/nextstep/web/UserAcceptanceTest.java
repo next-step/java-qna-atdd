@@ -1,16 +1,15 @@
 package nextstep.web;
 
-import nextstep.domain.User;
-import nextstep.domain.UserRepository;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
+
+import nextstep.domain.User;
+import nextstep.domain.UserRepository;
 import support.test.AcceptanceTest;
 
 public class UserAcceptanceTest extends AcceptanceTest {
@@ -29,16 +28,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Test
     public void create() {
         String userId = "testuser";
-
-        HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
-                .addParameter("userId", userId)
-                .addParameter("password", "password")
-                .addParameter("name", "자바지기")
-                .addParameter("email", "javajigi@slipp.net")
-                .build();
-
-        ResponseEntity<String> response = template().postForEntity("/users", htmlFormData.newHttpEntity(), String.class);
-
+        ResponseEntity<String> response = create(template(), userId);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
@@ -75,6 +65,25 @@ public class UserAcceptanceTest extends AcceptanceTest {
         log.debug("body : {}", response.getBody());
     }
 
+    @Test
+    public void update() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+    }
+    
+    
+    private ResponseEntity<String> create(TestRestTemplate template, String userId) {
+        HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
+                .addParameter("userId", userId)
+                .addParameter("password", "password")
+                .addParameter("name", "자바지기")
+                .addParameter("email", "javajigi@slipp.net")
+                .build();
+
+        return template().postForEntity("/users", htmlFormData.newHttpEntity(), String.class);
+    }
+    
     private ResponseEntity<String> update(TestRestTemplate template) {
         HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
                 .addParameter("_method", "put")
@@ -84,12 +93,5 @@ public class UserAcceptanceTest extends AcceptanceTest {
                 .build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), htmlFormData.newHttpEntity(), String.class);
-    }
-
-    @Test
-    public void update() throws Exception {
-        ResponseEntity<String> response = update(basicAuthTemplate());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
 }

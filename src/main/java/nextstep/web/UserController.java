@@ -53,7 +53,7 @@ public class UserController {
         userService.update(loginUser, id, target);
         return "redirect:/users";
     }
-
+    
     @PostMapping("/login")
     public String login(String userId, String password, HttpSession httpSession) throws UnAuthenticationException {
         User loginUser = userService.login(userId, password);

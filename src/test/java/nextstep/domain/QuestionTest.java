@@ -1,38 +1,52 @@
 package nextstep.domain;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
+import support.test.BaseTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class QuestionTest {
+public class QuestionTest extends BaseTest {
 
-    // 제목 수정
-    // 내용 수정
-    // 질문자 설정
-    // 질문 추가
-    // 본인 질문인지 체크
-
+    private User origin;
+    private Question question;
+    private Question updatedQuestion;
+    
+    @Before
+    public void setup() {
+        origin = UserTest.JAVAJIGI;
+        question = new Question("하이 뜻은?", "한국어 뜻은?", origin);
+        updatedQuestion = new Question( "Hi 뜻은?", "한국어 뜻은?");
+    }
+    
     @Test
-    public void update_title() {
-        String otherTitle = "Hi 뜻은?";
-        Question question = new Question("하이 뜻은?", "한국어 뜻은?");
-        Question updatedQuestion = new Question(otherTitle, "한국어 뜻은?");
-        question.setTitle(otherTitle);
+    public void update_owner() {
+        User loginUser = origin;
+        question.update(loginUser, updatedQuestion);
         assertThat(question.getTitle()).isEqualTo(updatedQuestion.getTitle());
+        assertThat(question.getContents()).isEqualTo(updatedQuestion.getContents());
     }
 
+    @Test(expected = UnAuthorizedException.class)
+    public void update_not_owner() {
+        User loginUser = UserTest.newUser("korkorna");
+        question.update(loginUser, updatedQuestion);
+    }
+    
     @Test
-    public void update_contents() {
-        String otherContent = "아무거나 내용";
-        Question question = new Question("하이 뜻은?", "한국어 뜻은?");
-        Question otherQuestion = new Question("하이 뜻은", otherContent);
-        question.setContents(otherContent);
-        assertThat(question.getContents()).isEqualTo(otherQuestion.getContents());
+    public void delete_owner() throws CannotDeleteException {
+        User loginUser = origin;
+        question.delete(loginUser);
+        assertThat(question.isDeleted()).isTrue();
     }
 
-    @Test
-    public void add_answer() {
+    @Test(expected = CannotDeleteException.class)
+    public void delete_not_owner() throws CannotDeleteException {
+        User loginUser = UserTest.newUser("korkorna");
+        question.delete(loginUser);
     }
-
 }

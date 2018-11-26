@@ -38,8 +38,7 @@ public class SecurityControllerAdvice {
 
     @ExceptionHandler(CannotDeleteException.class)
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-    public String cannotDelete() {
+    public void cannotDelete() {
         log.debug("CannotDeleteException is happened!");
-        return "/user/login";
     }
 }
