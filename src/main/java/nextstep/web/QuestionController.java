@@ -26,18 +26,18 @@ public class QuestionController {
     private QnaService qnaService;
 
     @GetMapping("/form")
-    public String form(){
+    public String form() {
         return "/qna/form";
     }
 
     @PostMapping("")
-    public String create(@LoginUser User loginUser, Question question){
+    public String create(@LoginUser User loginUser, Question question) {
         qnaService.create(loginUser, question);
         return "redirect:/questions";
     }
 
     @GetMapping("")
-    public String list(Model model, Pageable pageable){
+    public String list(Model model, Pageable pageable) {
         List<Question> questions = qnaService.findAll(pageable);
         log.debug("question size : {}", questions.size());
         model.addAttribute("questions", questions);
@@ -46,19 +46,19 @@ public class QuestionController {
     }
 
     @GetMapping("/{id}/detail")
-    public String showDetail(@PathVariable long id, Model model){
+    public String showDetail(@PathVariable long id, Model model) {
         model.addAttribute("question", qnaService.findById(id).get());
         return "/qna/show";
     }
 
     @GetMapping("/{id}/form")
-    public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model){
+    public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("question", qnaService.findById(id).get());
         return "qna/updateForm";
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion){
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question updateQuestion) {
         try {
             qnaService.update(loginUser, id, updateQuestion);
         } catch (UnAuthenticationException e) {
@@ -68,7 +68,7 @@ public class QuestionController {
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@LoginUser User loginUser, @PathVariable long id){
+    public String delete(@LoginUser User loginUser, @PathVariable long id) {
         try {
             qnaService.deleteQuestion(loginUser, id);
         } catch (CannotDeleteException e) {
@@ -76,9 +76,10 @@ public class QuestionController {
             e.printStackTrace();
         } catch (UnAuthenticationException e) {
             log.debug("유저정보가 올바르지 않습니다.");
-        }finally {
+        } finally {
             return "/home";
         }
     }
-
 }
+
+
