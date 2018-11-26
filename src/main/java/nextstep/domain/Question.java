@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -85,5 +86,26 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public void update(User loginUser, Question target) {
+        if (!matchUserId(loginUser.getUserId())) {
+            throw new UnAuthorizedException();
+        }
+
+        if (!matchPassword(target.getPassword())) {
+            throw new UnAuthorizedException();
+        }
+
+        this.title = target;
+        this.email = target.email;
+    }
+
+    private boolean matchUserId(String userId) {
+        return this.userId.equals(userId);
+    }
+
+    public boolean matchPassword(String targetPassword) {
+        return password.equals(targetPassword);
     }
 }

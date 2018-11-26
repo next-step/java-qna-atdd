@@ -63,8 +63,5 @@ public class UserController {
         } catch (UnAuthenticationException e) {
             return "/user/login_failed";
         }
-
     }
-
-
 }
