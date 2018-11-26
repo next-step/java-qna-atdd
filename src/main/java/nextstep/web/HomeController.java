@@ -23,6 +23,9 @@ import java.util.stream.StreamSupport;
 @Controller
 public class HomeController {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
+    public static final String ROUTE_HOME = "home";
+    public static final String ROUTE_USER_LOGIN = "user/login";
+    public static final String ROUTE_REDIRECT_HOME = "redirect:/";
 
     @Resource(name = "qnaService")
     private QnaService qnaService;
@@ -37,24 +40,24 @@ public class HomeController {
             .collect(Collectors.toList());
         log.debug("question size : {}", questions.size());
         model.addAttribute("questions", questions);
-        return "home";
+        return ROUTE_HOME;
     }
 
     @GetMapping("/login")
     public String loginForm(Model model) {
-        return "user/login";
+        return ROUTE_USER_LOGIN;
     }
 
     @PostMapping("/login")
     public String login(String userId, String password, HttpSession session) throws UnAuthenticationException {
         User loginUser = userService.login(userId, password);
         session.setAttribute(HttpSessionUtils.USER_SESSION_KEY, loginUser);
-        return "redirect:/";
+        return ROUTE_REDIRECT_HOME;
     }
 
     @GetMapping("/logout")
     public String logout(@LoginUser User loginUser, HttpSession session) {
         session.removeAttribute(HttpSessionUtils.USER_SESSION_KEY);
-        return "redirect:/";
+        return ROUTE_REDIRECT_HOME;
     }
 }
