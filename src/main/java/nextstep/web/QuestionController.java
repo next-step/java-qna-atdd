@@ -55,7 +55,7 @@ public class QuestionController {
         return "/qna/updateForm";
     }
 
-    @PostMapping("/{id}/update")
+    @PutMapping("/{id}/update")
     public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, Question question) {
         qnaService.update(loginUser, id, question);
         return "redirect:/";

@@ -10,6 +10,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import support.helper.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
 
 import java.util.Arrays;
@@ -17,9 +18,6 @@ import java.util.Objects;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
-
-    @Autowired
-    private QuestionRepository questionRepository;
 
     @Test
     public void createForm() throws Exception {
@@ -30,16 +28,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create_login() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapCreateAndDeleteHttpEntity();
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         User loginUser = defaultUser();
-        params.add("title", "createTitle");
-        params.add("contents", "this is my first ATDD test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity("/questions", request, String.class);
 
@@ -48,16 +39,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create_no_login() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapCreateAndDeleteHttpEntity();
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         User loginUser = new User("hyunwoo", "1234", "김현우", "hyunwoo9283@gmail.com");
-        params.add("title", "createTitle");
-        params.add("contents", "this is my first ATDD test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity("/questions", request, String.class);
 
@@ -75,54 +59,31 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_my_question() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueUpdateMapHttpEntity();
         User loginUser = defaultUser();
-        params.add("title", "createTitle");
-        params.add("contents", "this is my first ATDD test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity(String.format("/questions/%d/update", defaultQuestion().getId()), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}",response.getBody());
     }
 
     @Test
     public void update_not_my_question() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueUpdateMapHttpEntity();
         User loginUser = defaultUser();
-        params.add("title", "createTitle");
-        params.add("contents", "this is my first ATDD test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
-
-
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity(String.format("/questions/%d/update", 2), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void delete_my_question() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapCreateAndDeleteHttpEntity();
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         User loginUser = defaultUser();
-        params.add("title", "createTitle");
-        params.add("contents", "this is my first ATDD test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .exchange(String.format("/questions/%d/", defaultUser().getId()), HttpMethod.DELETE, request, String.class);
 
@@ -131,19 +92,27 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_not_my_question() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapCreateAndDeleteHttpEntity();
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
         User loginUser = defaultUser();
-        params.add("title", "createTitle");
-        params.add("contents", "this is my first ATDD test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .exchange(String.format("/questions/%d/", 2), HttpMethod.DELETE, request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> getMultiValueUpdateMapHttpEntity() {
+        return HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("_method", "put")
+                .addParameter("title", "createTitle")
+                .addParameter("contents", "this is my first ATDD test")
+                .build();
+    }
+
+    private HttpEntity<MultiValueMap<String, Object>> getMultiValueMapCreateAndDeleteHttpEntity() {
+        return HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", "createTitle")
+                .addParameter("contents", "this is my first ATDD test")
+                .build();
     }
 }
