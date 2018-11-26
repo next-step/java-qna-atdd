@@ -73,9 +73,9 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) {
+	    answer.writeBy(loginUser);
     	Question question = findById(questionId);
-	    Answer answer = new Answer(loginUser, contents);
 	    question.addAnswer(answer);
         return answer;
     }

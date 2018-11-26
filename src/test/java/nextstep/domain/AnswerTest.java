@@ -9,6 +9,14 @@ import org.junit.Test;
 
 public class AnswerTest {
 
+	public static Answer newAnswer() {
+		return newAnswer("기본 답변 생성");
+	}
+
+	public static Answer newAnswer(String contents) {
+		return new Answer(UserTest.JAVAJIGI, contents);
+	}
+
 	private Answer answer;
 
 	@Before
