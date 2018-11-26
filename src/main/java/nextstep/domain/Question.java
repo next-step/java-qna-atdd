@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -33,9 +35,24 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
+    public Question(Long id ,String title, String contents, User writer, List<Answer> answers) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
+        this.answers = answers;
+    }
+
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
     }
 
     public String getTitle() {
@@ -77,6 +94,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
@@ -85,5 +106,25 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public Question update(Question updatedQuestion) {
+        if(!isOwner(updatedQuestion.getWriter())){
+            throw new UnAuthorizedException();
+        }
+
+        this.title = updatedQuestion.title;
+        this.contents = updatedQuestion.contents;
+        return this;
+    }
+
+    public void delete(User loginUser) throws CannotDeleteException {
+        if(isDeleted()){
+            throw new CannotDeleteException("삭제된 질문입니다.");
+        }
+        if(!isOwner(loginUser)){
+            throw new UnAuthorizedException("작성자가 아닙니다.");
+        }
+        deleted = true;
     }
 }
