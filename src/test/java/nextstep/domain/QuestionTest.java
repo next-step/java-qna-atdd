@@ -5,6 +5,8 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.List;
+
 public class QuestionTest extends BaseTest {
     public static final User JAVAJIGI = new User(1L, "javajigi", "password", "name", "javajigi@slipp.net");
     public static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
@@ -36,8 +38,10 @@ public class QuestionTest extends BaseTest {
     @Test
     public void 질문_작성자와_로그인한_사용자가_같은_경우() throws CannotDeleteException {
         ORIGIN.writeBy(JAVAJIGI);
-        ORIGIN.delete(JAVAJIGI);
+        List<DeleteHistory> histories = ORIGIN.delete(JAVAJIGI);
+
         softly.assertThat(ORIGIN.isDeleted()).isTrue();
+        softly.assertThat(histories.size()).isEqualTo(1);
     }
 
     @Test(expected = CannotDeleteException.class)
@@ -51,9 +55,11 @@ public class QuestionTest extends BaseTest {
         Answer answer = new Answer(JAVAJIGI, "Test answer");
         ORIGIN.writeBy(JAVAJIGI);
         ORIGIN.addAnswer(answer);
-        ORIGIN.delete(JAVAJIGI);
+        List<DeleteHistory> histories = ORIGIN.delete(JAVAJIGI);
         softly.assertThat(ORIGIN.isDeleted()).isTrue();
         softly.assertThat(answer.isDeleted()).isTrue();
+        softly.assertThat(histories.size()).isEqualTo(2);
+
     }
 
     @Test (expected = CannotDeleteException.class)
