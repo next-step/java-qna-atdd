@@ -11,8 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class HomeController {
+    public static final String HOME = "home";
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
-
+    
     @Autowired
     private QnaService qnaService;
 
@@ -21,6 +22,6 @@ public class HomeController {
         Iterable<Question> questions = qnaService.findAll();
         log.debug("questions size : {}");
         model.addAttribute("questions", questions);
-        return "home";
+        return HOME;
     }
 }

@@ -17,12 +17,15 @@ import javax.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/login")
 public class LoginController {
+    public static final String USER_LOGIN_FAILED = "/user/login_failed";
+    public static final String USER_LOGIN = "/user/login";
+    
     @Autowired
     UserService userService;
 
     @GetMapping("")
     public String loginForm() {
-        return "/user/login";
+        return USER_LOGIN;
     }
 
     @PostMapping("")
@@ -33,7 +36,7 @@ public class LoginController {
 
         } catch (UnAuthenticationException e) {
             e.printStackTrace();
-            return "/user/login_failed";
+            return USER_LOGIN_FAILED;
         }
         return "redirect:/";
     }
