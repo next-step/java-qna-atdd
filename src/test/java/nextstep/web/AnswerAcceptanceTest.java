@@ -1,11 +1,9 @@
 package nextstep.web;
 
-import nextstep.CannotDeleteException;
-import nextstep.domain.QuestionRepository;
+import nextstep.AnswerNotFoundException;
+import nextstep.domain.AnswerRepository;
 import nextstep.domain.User;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -15,47 +13,28 @@ import support.test.AcceptanceTest;
 
 import java.util.Objects;
 
-public class QuestionAcceptanceTest extends AcceptanceTest {
-    private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
-
+public class AnswerAcceptanceTest extends AcceptanceTest {
     @Autowired
-    private QuestionRepository questionRepository;
+    private AnswerRepository answerRepository;
 
     @Test
-    public void createForm() {
-        ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
-    }
-
-    @Test
-    public void create() {
+    public void createAnswer() {
         User loginUser = defaultUser();
 
         HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", "title")
                 .addParameter("contents", "test contents")
                 .build();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity("/questions", request, String.class);
+                .postForEntity("/questions/answers/1", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findById(3L).isPresent()).isTrue();
+        softly.assertThat(answerRepository.findById(1L).isPresent()).isTrue();
         softly.assertThat(Objects.requireNonNull(response.getHeaders().getLocation()).getPath()).startsWith("/questions");
     }
-
-    @Test
-    public void list() {
-        ResponseEntity<String> response = template().getForEntity("/questions", String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
-        softly.assertThat(response.getBody().contains("runtime")).isTrue();
-    }
-
     @Test
     public void updateForm_no_login() {
-        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", 2L),
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/answers/%d/form", 2L),
                 String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -64,28 +43,24 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void updateForm_login() {
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .getForEntity(String.format("/questions/%d/form", 1L), String.class);
+                .getForEntity(String.format("/questions/answers/%d/form", 1L), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
-        softly.assertThat(response.getBody().contains("국내에서")).isTrue();
+        softly.assertThat(response.getBody().contains("강추")).isTrue();
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) {
-
         HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("password", "test")
-                .addParameter("title", "국내에는 있을까?")
                 .addParameter("contents", "국내에는 없다")
                 .build();
 
-        return template.postForEntity(String.format("/questions/%d",1L), request, String.class);
+        return template.postForEntity(String.format("/questions/answers/%d",1L), request, String.class);
     }
 
     @Test
     public void update_no_login() {
         ResponseEntity<String> response = update(template());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
@@ -97,30 +72,17 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete() {
-        User loginUser = findByUserId("sanjigi");
+        User loginUser = defaultUser();
 
         HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
                 .delete()
                 .build();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d", 2L), request, String.class);
+                .postForEntity(String.format("/questions/answers/%d", 1L), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findById(2L).isPresent()).isTrue();
+        softly.assertThat(answerRepository.findById(1L).orElseThrow(AnswerNotFoundException::new).isDeleted()).isTrue();
         softly.assertThat(Objects.requireNonNull(response.getHeaders().getLocation()).getPath()).startsWith("/questions");
-    }
-
-    @Test
-    public void delete_impossible() {
-        User loginUser = defaultUser();
-        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
-                .delete()
-                .build();
-
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d", 1L), request, String.class);
-
-        softly.assertThat(response.getBody().contains("error")).isTrue();
     }
 }

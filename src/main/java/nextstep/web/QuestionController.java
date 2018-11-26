@@ -81,9 +81,9 @@ public class QuestionController {
         return "redirect:/questions";
     }
 
-    @DeleteMapping("/answers/{answerId}")
-    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long answerId) throws CannotDeleteException {
-        qnaService.deleteAnswer(loginUser, answerId);
+    @DeleteMapping("/answers/{id}")
+    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
+        qnaService.deleteAnswer(loginUser, id);
         return "redirect:/questions";
     }
 
