@@ -11,8 +11,12 @@ import static nextstep.domain.UserTest.SANJIGI;
 public class QuestionTest extends BaseTest {
 
     public static Question newQuestion() {
+        return newQuestion("제목1", "내용1");
+    }
+
+    public static Question newQuestion(User user) {
         Question question = new Question("제목1", "내용1");
-        question.writeBy(JAVAJIGI);
+        question.writeBy(user);
         return question;
     }
 
@@ -28,8 +32,8 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void update_owner() throws Exception {
-        Question origin = newQuestion();
         User loginUser = JAVAJIGI;
+        Question origin = newQuestion(loginUser);
         Question target = newQuestion("제목2", "내용2");
 
         origin.update(loginUser, target);
@@ -39,7 +43,7 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() throws Exception {
-        Question origin = newQuestion();
+        Question origin = newQuestion(JAVAJIGI);
         User loginUser = SANJIGI;
         Question target = newQuestion("제목2", "내용2");
 
@@ -48,8 +52,8 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void delete_owner() throws Exception {
-        Question origin = newQuestion();
         User loginUser = JAVAJIGI;
+        Question origin = newQuestion(loginUser);
 
         origin.delete(loginUser);
         softly.assertThat(origin.isDeleted()).isTrue();
@@ -57,7 +61,7 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_not_owner() throws Exception {
-        Question origin = newQuestion();
+        Question origin = newQuestion(JAVAJIGI);
         User loginUser = SANJIGI;
 
         origin.delete(loginUser);
