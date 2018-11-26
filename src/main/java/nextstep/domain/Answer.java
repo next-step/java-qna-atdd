@@ -64,6 +64,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public Answer delete(User loginUser) throws CannotDeleteException {
+        System.out.println("aaa" + loginUser + " "+writer);
         if(!isOwner(loginUser)) {
             throw new CannotDeleteException("자신의 답변만 삭제 가능.");
         }

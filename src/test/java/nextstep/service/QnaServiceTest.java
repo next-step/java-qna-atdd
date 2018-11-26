@@ -1,9 +1,9 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.QuestionNotFoundException;
+import nextstep.UnAuthorizedException;
+import nextstep.domain.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,11 +20,14 @@ import static org.mockito.Mockito.when;
 public class QnaServiceTest extends BaseTest {
     @Mock
     private QuestionRepository questionRepository;
+    @Mock
+    private AnswerRepository answerRepository;
 
     @InjectMocks
     private QnaService qnaService;
 
     User user;
+    User diffUser;
     Question question;
 
     @Before
@@ -35,6 +38,7 @@ public class QnaServiceTest extends BaseTest {
                         "RoR과 Play 기반으로 개발을 해보면 정말 생산성이 높으며, 웹 프로그래밍이 재미있기까지 하다. Spring MVC + JPA(Hibernate) " +
                         "기반으로 진행하면 설정할 부분도 많고, 기본으로 지원하지 않는 기능도 많아 RoR과 Play에서 기본적으로 지원하는 기능을 서비스하려면 " +
                         "추가적인 개발이 필요하다.");
+        diffUser = new User(3L, "testuser", "password", "name", "test@slipp.net");
         question.writeBy(user);
     }
 
@@ -46,11 +50,56 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(newQuestion).isEqualTo(question);
     }
 
+    @Test (expected = UnAuthorizedException.class)
+    public void update_question_where_login_user_is_not_writer() {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+
+        qnaService.update(diffUser, 1L, new Question("test update", "test update"));
+    }
+
     @Test
     public void delete_question() throws CannotDeleteException {
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(user, 1L);
         softly.assertThat(question.isDeleted()).isTrue();
+    }
+
+    @Test (expected = QuestionNotFoundException.class)
+    public void delete_not_existing_question() throws CannotDeleteException {
+        qnaService.deleteQuestion(user, 3L);
+    }
+
+    @Test (expected = CannotDeleteException.class)
+    public void 질문_작성자와_로그인한_사용자가_다른_경우_테스트() throws CannotDeleteException {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+
+        qnaService.deleteQuestion(diffUser, 1L);
+    }
+
+    @Test
+    public void 질문의_답변_작성자가_로그인한_사용자와_같은_경우() throws CannotDeleteException {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(answerRepository.save(new Answer())).thenReturn(new Answer(user, "answer"));
+
+        Question questionWithAnswer = qnaService.findById(1L).orElseThrow(QuestionNotFoundException::new);
+        questionWithAnswer.addAnswer(new Answer(user, "answer"));
+
+        qnaService.addAnswer(user, 1L, "answer");
+        Question deleted = qnaService.deleteQuestion(user, 1L);
+
+        softly.assertThat(deleted.isDeleted()).isTrue();
+    }
+
+    @Test (expected = CannotDeleteException.class)
+    public void 질문의_답변_작성자가_로그인한_사용자와_다른_경우() throws CannotDeleteException {
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(answerRepository.save(new Answer())).thenReturn(new Answer(diffUser, "answer"));
+
+        Question questionWithAnswer = qnaService.findById(1L).orElseThrow(QuestionNotFoundException::new);
+        questionWithAnswer.addAnswer(new Answer(diffUser, "answer"));
+
+        qnaService.addAnswer(user, 1L, "answer");
+        qnaService.deleteQuestion(user, 1L);
     }
 }

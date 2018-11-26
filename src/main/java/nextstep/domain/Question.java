@@ -77,12 +77,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws CannotDeleteException{
+    public Question delete(User loginUser) throws CannotDeleteException {
         if(!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 지울 수 있음");
         }
+
+        isAnswerExists(loginUser);
+
         this.deleted = true;
         return this;
+    }
+
+    private void isAnswerExists(User loginUser) throws CannotDeleteException {
+        for(Answer answer : answers) {
+            answer.delete(loginUser);
+        }
     }
 
     public void addAnswer(Answer answer) {

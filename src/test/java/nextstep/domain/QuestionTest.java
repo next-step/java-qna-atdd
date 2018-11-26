@@ -34,18 +34,34 @@ public class QuestionTest extends BaseTest {
     }
 
     @Test
-    public void delete_question() throws CannotDeleteException {
+    public void 질문_작성자와_로그인한_사용자가_같은_경우() throws CannotDeleteException {
         ORIGIN.writeBy(JAVAJIGI);
-
         ORIGIN.delete(JAVAJIGI);
         softly.assertThat(ORIGIN.isDeleted()).isTrue();
     }
 
     @Test(expected = CannotDeleteException.class)
-    public void delete_question_by_not_writer() throws CannotDeleteException {
+    public void 질문_작성자와_로그인한_사용자가_다른_경우() throws CannotDeleteException {
         ORIGIN.writeBy(JAVAJIGI);
         ORIGIN.delete(SANJIGI);
     }
 
+    @Test
+    public void 질문과_답변_작성자가_로그인한_사용자와_같은_경우() throws CannotDeleteException {
+        Answer answer = new Answer(JAVAJIGI, "Test answer");
+        ORIGIN.writeBy(JAVAJIGI);
+        ORIGIN.addAnswer(answer);
+        ORIGIN.delete(JAVAJIGI);
+        softly.assertThat(ORIGIN.isDeleted()).isTrue();
+        softly.assertThat(answer.isDeleted()).isTrue();
+    }
+
+    @Test (expected = CannotDeleteException.class)
+    public void 질문과_답변_작성자가_로그인한_사용자와_다른_경우() throws CannotDeleteException {
+        Answer answer = new Answer(SANJIGI, "Test answer");
+        ORIGIN.writeBy(JAVAJIGI);
+        ORIGIN.addAnswer(answer);
+        ORIGIN.delete(JAVAJIGI);
+    }
 }
 

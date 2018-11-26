@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -9,10 +10,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import support.test.AcceptanceTest;
 
 import java.util.Objects;
+
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
@@ -96,20 +105,30 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete() {
-        User loginUser = defaultUser();
+        User loginUser = findByUserId("sanjigi");
 
         HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
                 .delete()
-                .addParameter("password", "test")
-                .addParameter("title", "국내에는 있을까?")
-                .addParameter("contents", "국내에는 없다")
+                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+                .postForEntity(String.format("/questions/%d", 2L), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(questionRepository.findById(2L).isPresent()).isTrue();
+        softly.assertThat(Objects.requireNonNull(response.getHeaders().getLocation()).getPath()).startsWith("/questions");
+    }
+
+    @Test
+    public void delete_impossible() {
+        User loginUser = defaultUser();
+        HttpEntity request = HtmlFormDataBuilder.urlEncodedForm()
+                .delete()
                 .build();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity(String.format("/questions/%d", 1L), request, String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findById(1L).isPresent()).isTrue();
-        softly.assertThat(Objects.requireNonNull(response.getHeaders().getLocation()).getPath()).startsWith("/questions");
+        softly.assertThat(response.getBody().contains("error")).isTrue();
     }
 }
