@@ -29,10 +29,10 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문에_대한_답변_삭제() {
-        User loginUser = defaultUser();
-        basicAuthTemplate(loginUser).delete("/api/answers/1");
+        User loginUser = findByUserId("sanjigi");
+        basicAuthTemplate(loginUser).delete("/api/answers/2");
 
-        Answer answer = getResource("/api/answers/1", Answer.class, loginUser);
+        Answer answer = getResource("/api/answers/2", Answer.class, loginUser);
         softly.assertThat(answer.isDeleted()).isTrue();
     }
 

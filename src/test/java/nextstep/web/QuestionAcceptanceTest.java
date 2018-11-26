@@ -58,7 +58,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = template().getForEntity("/questions", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
-        softly.assertThat(response.getBody()).contains("runtime");
+        softly.assertThat(response.getBody().contains("runtime")).isTrue();
     }
 
     @Test
@@ -75,7 +75,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .getForEntity(String.format("/questions/%d/form", 1L), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
-        softly.assertThat(response.getBody()).contains("국내에서");
+        softly.assertThat(response.getBody().contains("국내에서")).isTrue();
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) {

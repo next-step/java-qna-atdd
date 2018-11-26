@@ -8,6 +8,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -77,15 +78,25 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if(!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 지울 수 있음");
         }
 
         isAnswerExists(loginUser);
-
         this.deleted = true;
-        return this;
+
+        return addToDeleteHistory();
+    }
+
+    private List<DeleteHistory> addToDeleteHistory() {
+        List<DeleteHistory> histories = new ArrayList<>();
+        histories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer, LocalDateTime.now()));
+
+        answers.stream()
+                .map(answer -> new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter(), LocalDateTime.now())).forEach(histories::add);
+
+        return histories;
     }
 
     private void isAnswerExists(User loginUser) throws CannotDeleteException {
