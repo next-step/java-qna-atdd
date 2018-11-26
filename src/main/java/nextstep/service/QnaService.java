@@ -1,16 +1,23 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
-import nextstep.domain.*;
+import java.util.List;
+import java.util.Optional;
+
+import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.List;
-import java.util.Optional;
+import nextstep.CannotDeleteException;
+import nextstep.domain.Answer;
+import nextstep.domain.AnswerRepository;
+import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
+import nextstep.domain.User;
 
 @Service("qnaService")
 public class QnaService {
@@ -25,25 +32,29 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
+    @Transactional
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) {
+        return questionRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question original = findById(id);
+        original.update(loginUser, updatedQuestion);
+        return original;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question foundQuestion = findById(questionId);
+        foundQuestion.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
