@@ -1,9 +1,12 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
+import javax.naming.AuthenticationException;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
@@ -33,9 +36,23 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
-    public Question(String title, String contents) {
+    private Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    private Question(String title, String contents, User login) {
+        this.title = title;
+        this.contents = contents;
+        this.writeBy(login);
+
+    }
+    public static Question of(String title, String contents){
+        return new Question(title, contents);
+    }
+
+    public static Question ofUser(String title, String contents, User login){
+        return new Question(title, contents, login);
     }
 
     public String getTitle() {
@@ -61,6 +78,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void writeBy(User loginUser) {
+        if(loginUser == null || loginUser.isGuestUser()){
+            throw new UnAuthorizedException();
+        }
         this.writer = loginUser;
     }
 
@@ -85,5 +105,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public void update(Question question,  User loginUser) {
+        if(!writer.equals(loginUser)){
+            throw new UnAuthorizedException();
+        }
+        this.title = (question.getTitle());
+        this.contents = (question.getContents());
+    }
+
+    public void delete(User loginUser) {
+        if(!writer.equals(loginUser)){
+            throw new UnAuthorizedException();
+        }
+        this.deleted = true;
+
     }
 }
