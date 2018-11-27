@@ -1,7 +1,9 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import nextstep.UnAuthorizedException;
-import nextstep.web.dto.QuestionDTO;
+import nextstep.dto.QuestionDTO;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -28,6 +30,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
     @OrderBy("id ASC")
+    @JsonManagedReference
     private List<Answer> answers = new ArrayList<>();
 
     private boolean deleted = false;
@@ -92,6 +95,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
         this.deleted = true;
+    }
+
+    public boolean equalsTitle(String title){
+        return StringUtils.equals(title, this.title);
+    }
+
+    public boolean equalsContents(String contents){
+        return StringUtils.equals(contents, this.contents);
     }
 
     public List<Answer> getAnswers() {

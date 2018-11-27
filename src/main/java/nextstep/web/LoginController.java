@@ -4,7 +4,7 @@ import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.security.HttpSessionUtils;
 import nextstep.service.UserService;
-import nextstep.web.dto.LoginInfoDTO;
+import nextstep.dto.LoginInfoDTO;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

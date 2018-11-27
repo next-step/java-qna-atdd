@@ -1,4 +1,4 @@
-package nextstep.web.dto;
+package nextstep.dto;
 
 /**
  * Created by hspark on 24/11/2018.
