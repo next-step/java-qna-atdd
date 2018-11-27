@@ -6,11 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
@@ -49,7 +45,7 @@ public class QuestionController {
         return "/qna/updateForm";
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question updatedQuestion) {
         qnaService.update(loginUser, id, updatedQuestion);
         return String.format("redirect:/qna/show/%d",  id);

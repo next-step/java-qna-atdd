@@ -1,9 +1,7 @@
 package nextstep.web;
 
-import static nextstep.domain.UserTest.newUser;
-
-import java.util.List;
-
+import nextstep.domain.Question;
+import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,10 +9,12 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import nextstep.domain.Question;
-import nextstep.domain.User;
 import support.test.AcceptanceTest;
+
+import java.util.List;
+
+import static nextstep.domain.QuestionTest.newQuestion;
+import static nextstep.domain.UserTest.newUser;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
@@ -56,76 +56,60 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     
     @Test
     public void update_owner() {
-        User newUser = defaultUser();
-        Question question = new Question("제목입니다.", "내용입니다.");
-        String location = createResource(basicAuthTemplate(), "/api/questions", question);
-        question = getResource(location, Question.class, newUser);
-        
+        String location = createResource(basicAuthTemplate(), "/api/questions", newQuestion());
+        Question question = getResource(location, Question.class, defaultUser());
         Question updatedQuestion = new Question(question.getId(), "제목입니다.2", question.getContents(),question.getWriter());
-        
-        ResponseEntity<Question> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
-        
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        ResponseEntity<Question> responseEntity = putResource(location, updatedQuestion, basicAuthTemplate(), HttpStatus.OK);
         softly.assertThat(updatedQuestion.equalsTitleAndContentsAndWriter(responseEntity.getBody())).isTrue();
     }
     
     @Test
     public void update_no_owner() {
         User newUser = findByUserId("sanjigi");
-        Question question = new Question("제목입니다.", "내용입니다.");
-        String location = createResource(basicAuthTemplate(newUser), "/api/questions", question);
-        question = getResource(location, Question.class, newUser);
-        
+        String location = createResource(basicAuthTemplate(newUser), "/api/questions", newQuestion());
+        Question question = getResource(location, Question.class, newUser);
         Question updatedQuestion = new Question(question.getId(), "제목입니다.2", question.getContents(),question.getWriter());
-        
-        ResponseEntity<Question> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        ResponseEntity<Question> responseEntity = putResource(location, updatedQuestion, basicAuthTemplate(), HttpStatus.FORBIDDEN);
         log.debug("error message : {}", responseEntity.getBody());
     }
     @Test
     public void update_no_login() {
         User newUser = defaultUser();
-        Question question = new Question("제목입니다.", "내용입니다.");
-        String location = createResource(basicAuthTemplate(), "/api/questions", question);
-        question = getResource(location, Question.class, newUser);
-        
+        String location = createResource(basicAuthTemplate(), "/api/questions", newQuestion());
+        Question question = getResource(location, Question.class, newUser);
         Question updatedQuestion = new Question(question.getId(), "제목입니다.2", question.getContents(),question.getWriter());
-        
-        ResponseEntity<Question> responseEntity = template().exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        ResponseEntity<Question> responseEntity = putResource(location, updatedQuestion, template(), HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", responseEntity.getBody());
     }
-    
+
+
     @Test
     public void delete_owner() {
         User newUser = defaultUser();
-        Question question = new Question("제목입니다.", "내용입니다.");
-        String location = createResource(basicAuthTemplate(), "/api/questions", question);
-        question = getResource(location, Question.class, newUser);
-        
-        ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.DELETE, null, Void.class);
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        String location = createResource(basicAuthTemplate(), "/api/questions", newQuestion());
+        Question question = getResource(location, Question.class, newUser);
+
+        deleteResource(location, basicAuthTemplate(), HttpStatus.NO_CONTENT);
     }
     
     @Test
     public void delete_no_owner() {
         User newUser = findByUserId("sanjigi");
-        Question question = new Question("제목입니다.", "내용입니다.");
-        String location = createResource(basicAuthTemplate(newUser), "/api/questions", question);
-        question = getResource(location, Question.class, newUser);
-        
-        ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.DELETE, null, Void.class);
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        String location = createResource(basicAuthTemplate(newUser), "/api/questions", newQuestion());
+        Question question = getResource(location, Question.class, newUser);
+
+        deleteResource(location, basicAuthTemplate(), HttpStatus.UNAUTHORIZED);
     }
     
     @Test
     public void delete_no_login() {
         User newUser = defaultUser();
-        Question question = new Question("제목입니다.", "내용입니다.");
-        String location = createResource(basicAuthTemplate(newUser), "/api/questions", question);
-        question = getResource(location, Question.class, newUser);
-        
-        ResponseEntity<Void> responseEntity = template().exchange(location, HttpMethod.DELETE, null, Void.class);
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        String location = createResource(basicAuthTemplate(newUser), "/api/questions", newQuestion());
+        Question question = getResource(location, Question.class, newUser);
+
+        deleteResource(location, template(), HttpStatus.UNAUTHORIZED);
     }
 }
