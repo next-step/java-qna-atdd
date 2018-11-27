@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import nextstep.CannotDeleteException;
+import nextstep.AlreadyDeletedException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Answer;
 import nextstep.domain.AnswerRepository;
@@ -86,7 +86,7 @@ public class QnaServiceTest {
 		assertThat(question.isDeleted()).isTrue();
 	}
 
-	@Test(expected = CannotDeleteException.class)
+	@Test(expected = AlreadyDeletedException.class)
 	public void deleteAlreadyDeleted() throws Exception {
 		when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
 
@@ -110,7 +110,7 @@ public class QnaServiceTest {
 		assertThat(answer.isDeleted()).isTrue();
 	}
 
-	@Test(expected = CannotDeleteException.class)
+	@Test(expected = AlreadyDeletedException.class)
 	public void deleteAnswerAlreadyDeleted() throws Exception {
 		when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));
 

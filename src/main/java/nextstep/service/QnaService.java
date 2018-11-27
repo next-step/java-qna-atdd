@@ -10,7 +10,6 @@ import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Answer;
 import nextstep.domain.AnswerRepository;
-import nextstep.domain.ContentType;
 import nextstep.domain.DeleteHistory;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
@@ -49,8 +48,8 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
     	Question savedQuestion = findById(id);
-		savedQuestion.delete(loginUser);
-		addDeleteHistory(ContentType.QUESTION, id, loginUser);
+		List<DeleteHistory> deleteHistories = savedQuestion.delete(loginUser);
+	    deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Question findById(long id) {
@@ -80,20 +79,15 @@ public class QnaService {
         return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+    public Answer deleteAnswer(User loginUser, long id) {
     	Answer answer = findAnswerById(id);
-    	answer.delete(loginUser);
-    	addDeleteHistory(ContentType.ANSWER, id, loginUser);
+	    DeleteHistory deleteHistory = answer.delete(loginUser);
+	    deleteHistoryService.saveAll(asList(deleteHistory));
 	    return answer;
     }
 
 	public Answer findAnswerById(long id) {
 		return answerRepository.findById(id)
 				.orElseThrow(NotFoundException::new);
-	}
-
-	private void addDeleteHistory(ContentType contentType, long id, User loginUser) {
-		DeleteHistory deleteHistory = new DeleteHistory(contentType, id, loginUser);
-		deleteHistoryService.saveAll(asList(deleteHistory));
 	}
 }

@@ -6,7 +6,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.Size;
-import nextstep.CannotDeleteException;
+import nextstep.AlreadyDeletedException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -33,6 +33,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer(User writer, String contents) {
         this.writer = writer;
         this.contents = contents;
+    }
+
+    public Answer(User writer, Question question, String contents) {
+        this.writer = writer;
+        this.question = question;
+        this.contents = contents;
+        this.deleted = false;
     }
 
     public Answer(Long id, User writer, Question question, String contents) {
@@ -76,15 +83,20 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) {
     	if (isDeleted()) {
-    	    throw new CannotDeleteException("삭제된 답변입니다.");
+    	    throw new AlreadyDeletedException("삭제된 답변입니다.");
         }
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("작성자만 변경할 수 있습니다.");
         }
 
         deleted = true;
+        return generateDeleteHistory();
+    }
+
+    private DeleteHistory generateDeleteHistory() {
+        return new DeleteHistory(ContentType.ANSWER, getId(), writer);
     }
 
     public boolean equalsContents(Answer answer) {

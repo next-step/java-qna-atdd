@@ -1,7 +1,10 @@
 package nextstep.domain;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+import nextstep.AlreadyDeletedException;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.junit.Before;
@@ -10,11 +13,13 @@ import org.junit.Test;
 public class QuestionTest {
 
 	public static Question newQuestion() {
-		return new Question("질문 제목", "질문 내용");
+		return newQuestion("질문 제목", "질문 내용");
 	}
 
 	public static Question newQuestion(String title, String contents) {
-		return new Question(title, contents);
+		Question question = new Question(title, contents);
+		question.writeBy(UserTest.JAVAJIGI);
+		return question;
 	}
 
 	private Question question;
@@ -57,7 +62,7 @@ public class QuestionTest {
 		assertThat(question.isDeleted()).isTrue();
 	}
 
-	@Test(expected = CannotDeleteException.class)
+	@Test(expected = AlreadyDeletedException.class)
 	public void deleteAlreadyDeleted() throws Exception {
 		question.delete(UserTest.JAVAJIGI);
 		question.delete(UserTest.JAVAJIGI);
@@ -66,5 +71,32 @@ public class QuestionTest {
 	@Test(expected = UnAuthorizedException.class)
 	public void deleteFailByNoOwner() throws Exception {
 		question.delete(UserTest.SANJIGI);
+	}
+
+	@Test
+	public void deleteWhenAnswerIsEmpty() throws Exception {
+		List<DeleteHistory> deleteHistories = question.delete(UserTest.JAVAJIGI);
+
+		assertThat(deleteHistories).hasSize(1);
+	}
+
+	@Test
+	public void deleteOnlyAnswerOfSameWriter() throws Exception {
+		Answer answer1 = AnswerTest.newAnswer(UserTest.JAVAJIGI, "답변1");
+		Answer answer2 = AnswerTest.newAnswer(UserTest.JAVAJIGI, "답변2");
+		question.addAnswers(asList(answer1, answer2));
+
+		List<DeleteHistory> deleteHistories = question.delete(UserTest.JAVAJIGI);
+
+		assertThat(deleteHistories).hasSize(3);
+	}
+
+	@Test(expected = CannotDeleteException.class)
+	public void deleteWhenHasAnswerOfOtherWriter() throws Exception {
+		Answer answer1 = AnswerTest.newAnswer(UserTest.SANJIGI, "답변1");
+		Answer answer2 = AnswerTest.newAnswer(UserTest.JAVAJIGI, "답변2");
+		question.addAnswers(asList(answer1, answer2));
+
+		question.delete(UserTest.JAVAJIGI);
 	}
 }

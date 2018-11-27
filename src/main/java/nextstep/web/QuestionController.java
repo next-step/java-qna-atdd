@@ -1,7 +1,9 @@
 package nextstep.web;
 
 import javax.annotation.Resource;
+import nextstep.AlreadyDeletedException;
 import nextstep.CannotDeleteException;
+import nextstep.NotFoundException;
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
@@ -76,15 +78,27 @@ public class QuestionController {
 
 	@DeleteMapping("/{questionId}/answers/{id}")
 	public String deleteAnswer(@LoginUser User loginUser, @PathVariable long questionId,
-			@PathVariable long id, Model model) throws CannotDeleteException {
+			@PathVariable long id, Model model) {
 		qnaService.deleteAnswer(loginUser, id);
 		model.addAttribute("question", qnaService.findById(questionId));
 		return HTML_QNA_SHOW;
 	}
 
-	@ExceptionHandler(Exception.class)
+	@ExceptionHandler(NotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public String handleException() {
+		return REDIRECT_TO_LIST;
+	}
+
+	@ExceptionHandler(AlreadyDeletedException.class)
+	@ResponseStatus(HttpStatus.GONE)
+	public String handleAlreadyDeletedException() {
+		return REDIRECT_TO_LIST;
+	}
+
+	@ExceptionHandler(CannotDeleteException.class)
+	@ResponseStatus(HttpStatus.FORBIDDEN)
+	public String handleCannotDeleteException() {
 		return REDIRECT_TO_LIST;
 	}
 }
