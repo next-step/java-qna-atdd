@@ -2,7 +2,6 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -27,10 +26,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -64,6 +61,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
+    public Answers getAnswers() {
+        return this.answers;
+    }
+
     public void writeBy(User loginUser) {
         this.writer = loginUser;
     }
@@ -83,7 +84,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("작성자만 지울 수 있음");
         }
 
-        isAnswerExists(loginUser);
+        answers.isAnswerExists(loginUser);
         this.deleted = true;
 
         return addToDeleteHistory();
@@ -93,22 +94,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         List<DeleteHistory> histories = new ArrayList<>();
         histories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer, LocalDateTime.now()));
 
-        answers.stream()
-                .map(answer -> new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter(), LocalDateTime.now()))
-                .forEach(histories::add);
+        answers.addToDeleteHistory(histories);
 
         return histories;
     }
 
-    private void isAnswerExists(User loginUser) throws CannotDeleteException {
-        for(Answer answer : answers) {
-            answer.delete(loginUser);
-        }
-    }
-
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
-        answers.add(answer);
+        answers.addAnswer(answer);
     }
 
     public boolean isOwner(User loginUser) {
