@@ -38,7 +38,6 @@ public class QuestionController {
     @GetMapping
     public String list(Model model, Pageable pageable) {
         List<Question> questions = qnaService.findAll(pageable);
-        log.debug("questions size : {}", questions.size());
         model.addAttribute("question", questions);
         return "/qna/show";
     }
