@@ -1,5 +1,6 @@
 package nextstep.security;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.slf4j.Logger;
@@ -34,5 +35,11 @@ public class RestSecurityControllerAdvice {
     public ErrorMessage unAuthentication(UnAuthenticationException e) {
         log.debug("JSON API UnAuthenticationException is happened!");
         return new ErrorMessage(e.getMessage());
+    }
+    
+    @ExceptionHandler(CannotDeleteException.class)
+    @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+    public void cannotDelete() {
+        log.debug("CannotDeleteException is happened!");
     }
 }
