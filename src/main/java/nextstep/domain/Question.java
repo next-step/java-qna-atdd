@@ -107,6 +107,18 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.deleted = true;
     }
 
+    public boolean eqTitleAndContents(final Question question) {
+        return this.eqTitle(question) && this.eqContent(question);
+    }
+
+    private boolean eqTitle(final Question question) {
+        return this.title.equals(question.getTitle());
+    }
+
+    private boolean eqContent(final Question question) {
+        return this.contents.equals(question.getContents());
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
