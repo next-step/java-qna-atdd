@@ -37,8 +37,11 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question existing = findById(id)
+            .orElseThrow(IllegalArgumentException::new);
+
+        existing.update(loginUser, updatedQuestion);
+        return existing;
     }
 
     @Transactional

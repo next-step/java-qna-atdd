@@ -43,12 +43,39 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 내_질문_수정() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("_method", "put");
+        params.add("title", "질문이 있습니다");
+        params.add("contents", "답변해주세요.");
+
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity(String.format("/questions/%d", 1), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith(String.format("/questions/%d", 1));
     }
 
     @Test
     public void 내_질문이_아니면_수정할_수_없다() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.TEXT_HTML));
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("_method", "put");
+        params.add("title", "질문이 있습니다");
+        params.add("contents", "답변해주세요.");
+
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<String> response = basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/questions/%d", 1), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
