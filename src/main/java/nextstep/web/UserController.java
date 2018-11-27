@@ -1,6 +1,8 @@
 package nextstep.web;
 
+import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.security.HttpSessionUtils;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
 import org.slf4j.Logger;
@@ -10,7 +12,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/users")
@@ -49,6 +53,18 @@ public class UserController {
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
         return "redirect:/users";
+    }
+
+    @PostMapping("/login")
+    public String login(String userId, String password, HttpSession httpSession) throws UnAuthenticationException {
+        Optional<User> user = Optional.ofNullable(userService.login(userId, password));
+
+        if(user.isPresent()) {
+            httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, user);
+            return "redirect:/users";
+        }
+
+        return "/user/login_failed.html";
     }
 
 }
