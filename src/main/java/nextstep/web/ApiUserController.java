@@ -15,25 +15,31 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/users")
 public class ApiUserController {
+
     @Resource(name = "userService")
     private UserService userService;
 
     @PostMapping("")
-    public ResponseEntity<Void> create(@Valid @RequestBody User user) {
-        User savedUser = userService.add(user);
+    public final ResponseEntity<Void> create(@Valid @RequestBody final User user) {
 
-        HttpHeaders headers = new HttpHeaders();
+        final User savedUser = userService.add(user);
+
+        final HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/users/" + savedUser.getId()));
-        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
-    public User show(@LoginUser User loginUser, @PathVariable long id) {
+    public final User detail(@LoginUser final User loginUser,
+                       @PathVariable final long id) {
         return userService.findById(loginUser, id);
     }
 
     @PutMapping("{id}")
-    public User update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody User updatedUser) {
+    public final User update(@LoginUser final User loginUser,
+                       @PathVariable final long id,
+                       @Valid @RequestBody final User updatedUser) {
         return userService.update(loginUser, id, updatedUser);
     }
+
 }
