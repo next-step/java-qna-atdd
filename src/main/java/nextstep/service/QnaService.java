@@ -65,18 +65,26 @@ public class QnaService {
     @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
-        answer.toQuestion(questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new));
+        Question question = questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new);
+        answer.toQuestion(question);
         log.debug("answer : {}", answer);
-        return answerRepository.save(answer);
+        Answer save = answerRepository.save(answer);
+        question.addAnswer(save);
+        question.addAnswer(answer);
+        questionRepository.save(question);
+
+        return save;
     }
 
     @Transactional
-    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+    public void deleteAnswer(User loginUser, long questionId, long id) throws CannotDeleteException {
+        Question question = questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new);
         Answer answer = answerRepository.findById(id).orElseThrow(IllegalArgumentException::new);
         if(!answer.isOwner(loginUser)) {
             throw new CannotDeleteException("본인이 작성한 답변만 삭제할 수 있습니다.");
         }
-
+        question.deleteAnswer(answer);
         answerRepository.deleteById(id);
+        questionRepository.save(question);
     }
 }

@@ -72,6 +72,12 @@ public class Question extends AbstractEntity implements UrlGeneratable, Serializ
         this.title = target.title;
     }
 
+    public void deleteAnswer(Answer answer) {
+        answers.removeIf(a-> {
+            return a.equals(answer);
+        });
+    }
+
     public String getTitle() {
         return title;
     }
@@ -118,7 +124,13 @@ public class Question extends AbstractEntity implements UrlGeneratable, Serializ
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+        return "Question{" +
+                "title='" + title + '\'' +
+                ", contents='" + contents + '\'' +
+                ", writer=" + writer +
+                ", answers=" + answers +
+                ", deleted=" + deleted +
+                '}';
     }
 
     public List<Answer> getAnswers() {

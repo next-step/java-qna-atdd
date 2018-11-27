@@ -1,6 +1,7 @@
 package support.test;
 
 import nextstep.domain.*;
+import nextstep.helper.HtmlFormDataBuilder;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -93,5 +94,9 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected <T> ResponseEntity<T> getExchange(String location, Object body, User loginUser, Class<T> responseType) {
         return getExchange(basicAuthTemplate(loginUser), location, body, responseType);
+    }
+
+    protected void delete(String location, User loginUser) {
+        basicAuthTemplate(loginUser).delete(location);
     }
 }

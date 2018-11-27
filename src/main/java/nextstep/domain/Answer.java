@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -14,6 +15,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
+    @JsonBackReference
     private Question question;
 
     @Size(min = 5)

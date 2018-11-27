@@ -71,7 +71,7 @@ public class QuestionController {
 
     @DeleteMapping("/{questionId}/answers/{id}")
     public String deleteAnswer(@LoginUser User loginUser,@PathVariable long questionId,@PathVariable long id) throws CannotDeleteException {
-        qnaService.deleteAnswer(loginUser, id);
+        qnaService.deleteAnswer(loginUser, questionId, id);
         return REDIRECT_QUESTIONS+questionId;
     }
 }
