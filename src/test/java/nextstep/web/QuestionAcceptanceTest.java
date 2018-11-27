@@ -34,7 +34,7 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     }
 
     @Test
-    public void createForm_no_login() throws Exception {
+    public void createForm_no_login() {
         //when
         ResponseEntity<String> response = template()
                 .getForEntity("/questions/form", String.class);
@@ -43,20 +43,21 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     }
 
     @Test
-    public void createQuestion_no_login() throws Exception {
-        ResponseEntity<String> response = template().postForEntity("/questions", null, String.class);
+    public void createQuestion_no_login() {
+        ResponseEntity<String> response = template()
+                .postForEntity("/questions", null, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    public void createQuestion() throws Exception {
+    public void createQuestion() {
 
         //given
         User loginUser = defaultUser();
 
-        String title = "동해물과백두산이";
-        String contents = "contents::동해물과백두산이";
+        String title = "title";
+        String contents = "contents::title";
 
         MultiValueMap<String, Object> params = builder()
                 .add("title", title)
@@ -103,8 +104,8 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     @Test
     public void modifyQuestion() {
 
-        String title = "동해물과백두산이";
-        String contents = "contents::동해물과백두산이";
+        String title = "title";
+        String contents = "contents::title";
 
         MultiValueMap<String, Object> params = builder()
                 .add("title", title)

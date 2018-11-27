@@ -13,7 +13,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
 
     @Test
-    public void create() throws Exception {
+    public void create() {
         User newUser = newUser("testuser1");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -24,7 +24,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void show_다른_사람() throws Exception {
+    public void show_다른_사람() {
         User newUser = newUser("testuser2");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -35,7 +35,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update() throws Exception {
+    public void update() {
         User newUser = newUser("testuser3");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         String location = response.getHeaders().getLocation().getPath();
@@ -84,11 +84,5 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> responseEntity =
                 basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-    }
-
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
     }
 }

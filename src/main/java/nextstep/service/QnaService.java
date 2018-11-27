@@ -41,25 +41,42 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long questionId, Question updatedQuestion) {
+    public Question updateQuestion(User loginUser, long questionId, Question updatedQuestion) {
         Question original = findOne(questionId);
         original.update(loginUser, updatedQuestion);
         return original;
     }
 
     @Transactional
-    public void delete(User loginUser, long questionId) throws CannotDeleteException {
+    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question original = findOne(questionId);
         original.delete(loginUser);
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer createAnswer(User loginUser, long questionId, Answer answer) {
+        Question original = findOne(questionId);
+        answer.writeBy(loginUser);
+        original.addAnswer(answer);
+        return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer findAnswer(long id) {
+        return answerRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional
+    public Answer updateAnswer(User loginUser, long questionId, long answerId, Answer updatedAnswer) {
+        Question original = findOne(questionId);
+        Answer answer = original.findAnswer(answerId);
+        answer.update(loginUser, updatedAnswer);
+        return answer;
+    }
+
+    @Transactional
+    public void deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException {
+        Question original = findOne(questionId);
+        Answer answer = original.findAnswer(answerId);
+        answer.delete(loginUser);
     }
 }
