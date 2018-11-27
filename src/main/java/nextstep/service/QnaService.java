@@ -48,8 +48,9 @@ public class QnaService {
 
     @Transactional
     public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = findById(questionId).orElseThrow(UnAuthorizedException::new);
-        question.delete(loginUser);
+        Question question = findById(questionId).orElseThrow(QuestionNotFoundException::new);
+        List<DeleteHistory> histories = question.delete(loginUser);
+        deleteHistoryService.saveAll(histories);
         return question;
     }
 

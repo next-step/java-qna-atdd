@@ -3,6 +3,7 @@ package nextstep.web;
 import nextstep.CannotDeleteException;
 import nextstep.QuestionNotFoundException;
 import nextstep.UnAuthorizedException;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -72,5 +73,33 @@ public class QuestionController {
         }
         model.addAttribute("question", question);
         return "/qna/updateForm";
+    }
+
+    @PostMapping("{id}/answers")
+    public String createAnswer(@LoginUser User loginUser, @PathVariable long id, Answer answer){
+        qnaService.addAnswer(loginUser, id, answer.getContents());
+        return "redirect:/questions";
+    }
+
+    @DeleteMapping("/answers/{id}")
+    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
+        qnaService.deleteAnswer(loginUser, id);
+        return "redirect:/questions";
+    }
+
+    @GetMapping("/answers/{id}/form")
+    public String answerUpdateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        Answer answer = qnaService.findAnswerById(id);
+        if(!answer.isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        model.addAttribute("answer", answer);
+        return "/qna/answerUpdateForm";
+    }
+
+    @PostMapping("/answers/{id}")
+    public String updateAnswer(@LoginUser User loginUser, @PathVariable long id, Answer answer) {
+        qnaService.updateAnswer(loginUser, id, answer.getContents());
+        return "redirect:/questions";
     }
 }

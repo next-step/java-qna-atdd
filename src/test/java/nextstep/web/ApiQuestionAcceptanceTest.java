@@ -67,9 +67,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문_삭제() {
-        User loginUser = defaultUser();
+        User loginUser = findByUserId("sanjigi");
 
-        basicAuthTemplate(loginUser).delete("/api/questions/1");
-        softly.assertThat(questionRepository.findById(1L).orElseThrow(QuestionNotFoundException::new).isDeleted()).isTrue();
+        basicAuthTemplate(loginUser).delete("/api/questions/2");
+        softly.assertThat(questionRepository.findById(2L).orElseThrow(QuestionNotFoundException::new).isDeleted()).isTrue();
     }
 }
