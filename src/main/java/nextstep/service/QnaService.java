@@ -87,4 +87,8 @@ public class QnaService {
         answerRepository.deleteById(id);
         questionRepository.save(question);
     }
+
+    public Answer findAnswerById(long id) {
+        return answerRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+    }
 }

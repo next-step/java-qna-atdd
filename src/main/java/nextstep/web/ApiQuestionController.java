@@ -55,6 +55,11 @@ public class ApiQuestionController {
 		return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
 	}
 
+	@GetMapping("/{questionId}/answers/{id}")
+	public Answer createAnswer(@LoginUser User loginUser, @PathVariable long id) {
+		return qnaService.findAnswerById(id);
+	}
+
 	@DeleteMapping("/{questionId}/answers/{id}")
 	public void deleteAnswer(@LoginUser User loginUser, @PathVariable long questionId, @PathVariable long id) throws CannotDeleteException {
 		qnaService.deleteAnswer(loginUser, questionId, id);
