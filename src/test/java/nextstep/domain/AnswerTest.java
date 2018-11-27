@@ -8,44 +8,35 @@ import support.test.BaseTest;
 import static nextstep.domain.UserTest.JAVAJIGI;
 import static nextstep.domain.UserTest.SANJIGI;
 
-public class QuestionTest extends BaseTest {
+public class AnswerTest extends BaseTest {
 
-    public static Question newQuestion() {
-        return newQuestion("제목1", "내용1");
+    public static Answer newAnswer(User user) {
+        return new Answer(user, "테스트답변1");
     }
 
-    public static Question newQuestion(User user) {
-        Question question = new Question("제목1", "내용1");
-        question.writeBy(user);
-        return question;
+    public static Answer newAnswer(User user, String contents) {
+        return new Answer(user, contents);
     }
 
-    public static Question newQuestion(String title, String contents) {
-        return new Question(title, contents);
-    }
-
-    public static Question newQuestionByDeleted() {
-        Question question = new Question("제목1", "내용1", true);
-        question.writeBy(JAVAJIGI);
-        return question;
+    public static Answer newAnswerByDeleted() {
+        return new Answer(JAVAJIGI, "테스트답변1", true);
     }
 
     @Test
     public void update_owner() throws Exception {
         User loginUser = JAVAJIGI;
-        Question origin = newQuestion(loginUser);
-        Question target = newQuestion("제목2", "내용2");
+        Answer origin = newAnswer(loginUser);
+        Answer target = newAnswer(loginUser, "테스트입니다2");
 
         origin.update(loginUser, target);
-        softly.assertThat(origin.getTitle()).isEqualTo(target.getTitle());
-        softly.assertThat(origin.getContents()).isEqualTo(target.getContents());
+        softly.assertThat(origin.equalsContents(target)).isTrue();
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() throws Exception {
-        Question origin = newQuestion(JAVAJIGI);
+        Answer origin = newAnswer(JAVAJIGI);
         User loginUser = SANJIGI;
-        Question target = newQuestion("제목2", "내용2");
+        Answer target = newAnswer(SANJIGI, "테스트입니다2");
 
         origin.update(loginUser, target);
     }
@@ -53,7 +44,7 @@ public class QuestionTest extends BaseTest {
     @Test
     public void delete_owner() throws Exception {
         User loginUser = JAVAJIGI;
-        Question origin = newQuestion(loginUser);
+        Answer origin = newAnswer(loginUser);
 
         origin.delete(loginUser);
         softly.assertThat(origin.isDeleted()).isTrue();
@@ -61,7 +52,7 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_not_owner() throws Exception {
-        Question origin = newQuestion(JAVAJIGI);
+        Answer origin = newAnswer(JAVAJIGI);
         User loginUser = SANJIGI;
 
         origin.delete(loginUser);
@@ -69,7 +60,7 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void can_not_delete() throws Exception {
-        Question origin = newQuestionByDeleted();
+        Answer origin = newAnswerByDeleted();
         User loginUser = JAVAJIGI;
         origin.delete(loginUser);
     }
