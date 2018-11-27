@@ -48,9 +48,9 @@ public class QnaService {
 
     @Transactional
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
-		Question savedQuestion = findById(id);
+    	Question savedQuestion = findById(id);
 		savedQuestion.delete(loginUser);
-	    addDeleteHistory(ContentType.QUESTION, id, loginUser);
+		addDeleteHistory(ContentType.QUESTION, id, loginUser);
     }
 
     public Question findById(long id) {
@@ -73,17 +73,17 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) {
+	    answer.writeBy(loginUser);
     	Question question = findById(questionId);
-	    Answer answer = new Answer(loginUser, contents);
 	    question.addAnswer(answer);
         return answer;
     }
 
     public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
-		Answer answer = findAnswerById(id);
-		answer.delete(loginUser);
-	    addDeleteHistory(ContentType.ANSWER, id, loginUser);
+    	Answer answer = findAnswerById(id);
+    	answer.delete(loginUser);
+    	addDeleteHistory(ContentType.ANSWER, id, loginUser);
 	    return answer;
     }
 

@@ -64,6 +64,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.question = question;
     }
 
+    public void writeBy(User loginUser) {
+        this.writer = loginUser;
+    }
+
     public boolean isOwner(User loginUser) {
         return writer.equals(loginUser);
     }
@@ -83,6 +87,9 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         deleted = true;
     }
 
+    public boolean equalsContents(Answer answer) {
+        return this.contents.equals(answer.contents);
+    }
 
     @Override
     public String generateUrl() {

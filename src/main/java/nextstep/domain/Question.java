@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -110,6 +111,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this.title.equals(question.title) && this.contents.equals(question.contents);
     }
 
+    @JsonIgnore
     public List<Answer> getAnswers() {
         return answers;
     }

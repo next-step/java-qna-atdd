@@ -69,7 +69,7 @@ public class QuestionController {
 
 	@PostMapping("/{questionId}/answers")
 	public String addAnswer(@LoginUser User loginUser, @PathVariable long questionId, Answer answer, Model model) {
-		qnaService.addAnswer(loginUser, questionId, answer.getContents());
+		qnaService.addAnswer(loginUser, questionId, answer);
 		model.addAttribute("question", qnaService.findById(questionId));
 		return HTML_QNA_SHOW;
 	}
