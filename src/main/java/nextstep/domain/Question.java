@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -76,6 +77,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public boolean equalsTitleAndContents(Question target) {
+        if (Objects.isNull(target)) {
+            return false;
+        }
+
+        return this.title.equals(target.title) &&
+                this.contents.equals(target.contents);
     }
 
     @Override

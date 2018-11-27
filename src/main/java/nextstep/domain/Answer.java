@@ -76,4 +76,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public String toString() {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
+
+    public boolean update(User loginUser, Answer updateAnswer) {
+        if (this.isOwner(loginUser)) {
+            this.contents = updateAnswer.getContents();
+            return true;
+        }
+        return false;
+    }
+
 }
