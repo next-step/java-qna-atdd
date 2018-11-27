@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -15,40 +16,39 @@ import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/questions")
-public class ApiQuestionController {
+@RequestMapping("/api/answers")
+public class ApiAnswerController {
 
     @Resource(name = "qnaService")
     private QnaService qnaService;
 
-    @PostMapping("")
-    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
-        Question makedQuestion = qnaService.create(loginUser, question);
+    @PostMapping("{id}")
+    public ResponseEntity<Void> addAnswer(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Answer answer) {
+        Answer makedAnswer = qnaService.addAnswer(loginUser, id, answer.getContents());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/api/questions/" + makedQuestion.getId()));
+        headers.setLocation(URI.create("/api/answers/" + makedAnswer.getId()));
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")
-    public Question readQuestion(@PathVariable long id) {
-        return qnaService.findById(id).get();
+    public Answer readAnswer(@PathVariable long id) {
+        return qnaService.findAnswerById(id);
     }
 
     @PutMapping("{id}")
-    public Question updateQuestion(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question question) {
-        return qnaService.update(loginUser, id, question);
+    public Answer updateAnswer(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Answer answer) {
+        return qnaService.updateAnswer(loginUser, id, answer);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<Void> deleteQuestion(@LoginUser User loginUser, @PathVariable long id) {
         HttpHeaders headers = new HttpHeaders();
         try {
-            qnaService.deleteQuestion(loginUser, id);
+            qnaService.deleteAnswer(loginUser, id);
         } catch (CannotDeleteException e) {
             return new ResponseEntity<Void>(headers, HttpStatus.FORBIDDEN);
         }
         return new ResponseEntity<Void>(headers, HttpStatus.OK);
     }
-
 }

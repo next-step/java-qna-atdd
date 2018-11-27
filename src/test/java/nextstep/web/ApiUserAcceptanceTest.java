@@ -19,7 +19,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
 
-        User dbUser = basicAuthTemplate(findByUserId(newUser.getUserId())).getForObject(location, User.class);
+        User dbUser = getResource(location, User.class, newUser);
         softly.assertThat(dbUser).isNotNull();
     }
 
@@ -40,7 +40,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         String location = response.getHeaders().getLocation().getPath();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+        User original = getResource(location, User.class, newUser);
 
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
@@ -59,7 +59,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         String location = response.getHeaders().getLocation().getPath();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+        User original = getResource(location, User.class, newUser);
 
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),

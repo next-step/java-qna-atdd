@@ -64,17 +64,35 @@ public class QnaService {
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현
-        return null;
+        Question question = questionRepository.findById(questionId).get();
+        Answer answer = new Answer(loginUser, contents);
+        question.addAnswer(answer);
+        answerRepository.save(answer);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        // TODO 답변 삭제 기능 구현
+        Answer targetAnswer = answerRepository.findById(id)
+                .filter(answer -> answer.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
+        answerRepository.delete(targetAnswer);
     }
 
     public Question findByIdForUpdate(User loginUser, long id) {
         return questionRepository.findById(id)
                 .filter(question -> question.isOwner(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
+    }
+
+    public Answer findAnswerById(long id) {
+        return answerRepository.findById(id).get();
+    }
+
+    @Transactional
+    public Answer updateAnswer(User loginUser, long id, Answer updateAnswer) {
+        Answer originAnswer = answerRepository.findById(id).get();
+        originAnswer.update(loginUser, updateAnswer);
+        return originAnswer;
     }
 }
