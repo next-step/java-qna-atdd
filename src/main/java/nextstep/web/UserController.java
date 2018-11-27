@@ -1,6 +1,8 @@
 package nextstep.web;
 
+import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.security.HttpSessionUtils;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
@@ -35,7 +38,7 @@ public class UserController {
     public String list(Model model) {
         List<User> users = userService.findAll();
         log.debug("user size : {}", users.size());
-        model.addAttribute("users", users);
+            model.addAttribute("users", users);
         return "/user/list";
     }
 
@@ -48,6 +51,24 @@ public class UserController {
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
+        return "redirect:/users";
+    }
+
+    @PostMapping("/login")
+    public String login(String userId, String password, HttpSession httpSession) throws UnAuthenticationException {
+        User user =userService.login(userId,password);
+        System.out.println(user.getUserId() + " : " + user.getPassword());
+
+        if(!user.matchPassword(password)){
+            log.debug("Password misamtched");
+            return "/user/login_failed.html";
+        }
+
+        if(user == null){
+            log.debug("There is no Uesr ID");
+            return "/user/login_failed.html";
+        }
+        httpSession.setAttribute("HttpSessionUtils.USER_SESSION_KEY",user);
         return "redirect:/users";
     }
 

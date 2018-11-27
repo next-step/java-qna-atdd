@@ -42,7 +42,8 @@ public class UserService {
         // TODO 로그인 기능 구현
         //Optional -> 한 라인으로 구현
         return userRepository.findByUserId(userId)
-                .filter(p -> p.getPassword().equals( password))
+                .filter(p -> p.matchPassword( password))
+                //.filter(p -> p.getPassword().equals( password))
                 .orElseThrow(UnAuthenticationException::new);
     }
 }
