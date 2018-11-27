@@ -18,7 +18,7 @@ public class QuestionTest extends BaseTest {
             ,UserTest.SANJIGI
     );
 
-    public Question newQuestion(User user, long id) {
+    public static Question newQuestion(User user) {
         return new Question("타이틀", "본문", user);
     }
 
