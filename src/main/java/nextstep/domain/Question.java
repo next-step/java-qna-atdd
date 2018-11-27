@@ -1,15 +1,26 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
-import support.domain.AbstractEntity;
-import support.domain.UrlGeneratable;
-
-import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.validation.constraints.Size;
+
+import org.hibernate.annotations.Where;
+
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
+import support.domain.AbstractEntity;
+import support.domain.UrlGeneratable;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -36,12 +47,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
+        this(title, contents, null);
     }
 
     public Question(String title, String contents, User writer) {
-        this(title, contents);
+        this(0L, title, contents, writer);
+    }
+
+    public Question(long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
         this.writer = writer;
     }
 
@@ -107,5 +123,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("질문을 삭제할 수 없습니다.");
         }
         this.deleted = true;
+    }
+
+    public boolean equalsTitleAndContentsAndWriter(Question otherQuestion) {
+        if (Objects.isNull(otherQuestion)) {
+            return false;
+        }
+        return title.equals(otherQuestion.title) 
+                && contents.equals(otherQuestion.contents)
+                && writer. equals(otherQuestion.writer);
     }
 }
