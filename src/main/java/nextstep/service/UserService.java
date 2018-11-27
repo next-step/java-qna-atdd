@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 @Service("userService")
 public class UserService {
@@ -25,6 +25,10 @@ public class UserService {
         User original = findById(loginUser, id);
         original.update(loginUser, updatedUser);
         return original;
+    }
+    public User findById(long id) {
+        return userRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public User findById(User loginUser, long id) {

@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -94,17 +95,19 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
 
-    public void update(Answer updateAnswer) {
-        if(!updateAnswer.isOwner(this.writer)){
-            throw new UnAuthorizedException();
-        }
-        this.contents = updateAnswer.getContents();
-    }
-
-    public void delete(User loginUser) {
+    public Answer update(User loginUser, String contents) {
         if(!writer.equals(loginUser)){
             throw new UnAuthorizedException();
         }
+        this.contents = contents;
+        return this;
+    }
+
+    public Answer delete(User loginUser) throws CannotDeleteException {
+        if (!isOwner(loginUser)) {
+            throw new CannotDeleteException("삭제권한없습니다.");
+        }
         this.deleted = true;
+        return this;
     }
 }

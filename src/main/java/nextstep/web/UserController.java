@@ -12,21 +12,24 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/users")
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
+    private final String USER_UPDATE_VIEW = "/user/updateForm";
+    private final String REDIRECT_USERS = "redirect:/users";
+    private final String USER_HOME_VIEW = "/user/form";
+    private final String USER_LIST_VIEW = "/user/list";
+    private final String USER_PROFILE_VIEW = "/user/profile";
     @Resource(name = "userService")
     private UserService userService;
 
     @GetMapping("/form")
     public String form() {
-        return "/user/form";
+        return USER_HOME_VIEW;
     }
 
     @PostMapping("")
@@ -40,28 +43,25 @@ public class UserController {
         List<User> users = userService.findAll();
         log.debug("user size : {}", users.size());
         model.addAttribute("users", users);
-        return "/user/list";
+        return USER_LIST_VIEW;
+    }
+
+    @GetMapping("/{id}")
+    public String showUser(@PathVariable long id, Model model) {
+        model.addAttribute("user", userService.findById(id));
+        return USER_PROFILE_VIEW;
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("user", userService.findById(loginUser, id));
-        return "/user/updateForm";
+        return USER_UPDATE_VIEW;
     }
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
-        return "redirect:/users";
+        return REDIRECT_USERS;
     }
 
-    @PostMapping("/login")
-    public String login(String userId, String password, HttpSession httpSession) throws UnAuthenticationException {
-        // TODO 로그인 기능 구현 및 세션에 User 정보 저장
-        if(Optional.ofNullable(userService.login(userId,password)).isPresent()){
-            httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, userService.login(userId,password));
-            return  "redirect:/users";
-        }
-        return "/user/login_failed";
-    }
 }
