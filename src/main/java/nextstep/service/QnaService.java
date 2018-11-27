@@ -41,7 +41,6 @@ public class QnaService {
     public Question update(User loginUser, long id, Question updatedQuestion) throws CannotUpdateException {
         Question question = findById(id).orElseThrow(IllegalArgumentException::new);
         question.update(updatedQuestion, loginUser);
-
         return question;
     }
 

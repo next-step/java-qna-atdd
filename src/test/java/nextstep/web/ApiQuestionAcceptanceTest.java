@@ -12,17 +12,54 @@ import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
-	public static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
-	
-	@Test
-	public void create() {
-		User loginUser = defaultUser();
-		Question question = QuestionTest.newQuestion(loginUser);
-		ResponseEntity<Void> response = basicAuthTemplate(loginUser).postForEntity("/api/questions", question, Void.class);
-		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-		String location = response.getHeaders().getLocation().getPath();
-		
-		ResponseEntity<Question> dbQuestion = basicAuthTemplate(loginUser).getForEntity(location, Question.class);
-		softly.assertThat(dbQuestion).isNotNull();
-	}
+    public static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
+
+    @Test
+    public void create() {
+        User loginUser = defaultUser();
+        Question question = QuestionTest.newQuestion(loginUser);
+        Question newQuestion = getResource(createResource("/api/questions", question, loginUser), Question.class, loginUser);
+
+        softly.assertThat(newQuestion).isNotNull();
+        softly.assertThat(question.getTitle()).isEqualTo(question.getTitle());
+        softly.assertThat(question.getContents()).isEqualTo(question.getContents());
+    }
+
+    @Test
+    public void update() throws Exception {
+        User loginUser = defaultUser();
+        Question newQuestion = QuestionTest.newQuestion(loginUser);
+        String location = createResource("/api/questions", newQuestion, loginUser);
+        Question original = getResource(location, Question.class, loginUser);
+        Question updateQuestion = new Question(original.getId(), "wwwwwww", "eeeeeee", loginUser);
+        ResponseEntity<Question> responseEntity = getExchange(location, updateQuestion, loginUser, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(updateQuestion.equals(responseEntity.getBody())).isTrue();
+
+    }
+
+    @Test
+    public void update_no_login() throws Exception {
+        User loginUser = defaultUser();
+        Question newQuestion = QuestionTest.newQuestion(loginUser);
+        String location = createResource("/api/questions", newQuestion, loginUser);
+        Question original = getResource(location, Question.class, loginUser);
+        Question updateQuestion = new Question(original.getId(), "wwwwwww", "eeeeeee", loginUser);
+        ResponseEntity<Question> responseEntity = getExchange(template(), location, updateQuestion, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void update_not_equal_writer() throws Exception {
+        User loginUser = defaultUser();
+        Question newQuestion = QuestionTest.newQuestion(loginUser);
+        String location = createResource("/api/questions", newQuestion, loginUser);
+        Question original = getResource(location, Question.class, loginUser);
+        Question updateQuestion = new Question(original.getId(), "wwwwwww", "eeeeeee", loginUser);
+        ResponseEntity<Question> responseEntity = getExchange(location, updateQuestion, UserTest.SANJIGI, Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 }
