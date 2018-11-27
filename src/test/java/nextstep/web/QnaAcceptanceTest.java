@@ -80,14 +80,14 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 	}
 
 	@Test
-	public void test_질문삭제() {
+	public void test_질문삭제_불가능() {
 		TestRestTemplate template = basicAuthTemplate();
 
 		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
 		ResponseEntity<String> response = template.postForEntity(String.format("/questions/1"), request, String.class);
 
-		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-		softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isTrue();
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isFalse();
 	}
 
 	@Test

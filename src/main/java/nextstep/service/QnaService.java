@@ -43,14 +43,15 @@ public class QnaService {
 
 	public Question update(User loginUser, long id, Question updatedQuestion)  {
 		Question question = questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-		question.update(loginUser,updatedQuestion);
+		question.update(loginUser, updatedQuestion);
 		return question;
 	}
 
 	public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
 		Question targetQuestion = questionRepository.findByIdAndDeletedFalse(questionId)
-			.orElseThrow(() -> new CannotDeleteException("지울 대상이 없습니다."));
-		targetQuestion.delete(loginUser);
+			.orElseThrow(() -> new EntityNotFoundException("지울 대상이 없습니다."));
+		List<DeleteHistory> deleteHistories = targetQuestion.delete(loginUser);
+		deleteHistoryService.saveAll(deleteHistories);
 	}
 
     public Iterable<Question> findAll() {
@@ -63,20 +64,21 @@ public class QnaService {
 
 
 	public Answer addAnswer(User loginUser, long questionId, String contents) {
-		Question question = questionRepository.findByIdAndDeletedFalse(questionId).orElseThrow(IllegalArgumentException::new);
+		Question question = questionRepository.findByIdAndDeletedFalse(questionId).orElseThrow(EntityNotFoundException::new);
 		Answer answer = new Answer(loginUser, contents);
 		question.addAnswer(answer);
 		return answer;
 	}
 
-	public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+	public void deleteAnswer(User loginUser, long id) {
 		Answer targetAnswer = answerRepository.findById(id).filter(answer -> !answer.isDeleted()).orElseThrow(
-			() -> new CannotDeleteException("지울 대상이 없습니다."));
-		targetAnswer.delete(loginUser);
+			() -> new EntityNotFoundException("지울 대상이 없습니다."));
+		DeleteHistory deleteHistory = targetAnswer.delete(loginUser);
+		deleteHistoryService.save(deleteHistory);
 	}
 
 	public Answer updateAnswer(User loginUser, long id, String updateContents) {
-		Answer targetAnswer = answerRepository.findById(id).filter(answer -> !answer.isDeleted()).orElseThrow(EntityNotFoundException::new);
+		Answer targetAnswer = answerRepository.findByIdAndDeletedFalse(id).orElseThrow(EntityNotFoundException::new);
 		targetAnswer.update(loginUser, updateContents);
 		return targetAnswer;
 	}
