@@ -80,14 +80,26 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
+
+        answer.writeBy(loginUser);
+
+        final Question question = findNotDeletedQuestionById(questionId);
+        question.addAnswer(answer);
+
+        return answer;
     }
 
     @Transactional
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer deleteAnswer(User loginUser, Long questionId, Long id) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
+
+        final Answer answer = answerRepository.findAnswerByIdAndDeleted(id, false).orElseThrow(EntityNotFoundException::new);
+        answer.delete(loginUser, questionId);
+
+        deleteHistoryService.saveAll(ImmutableList.of(new DeleteHistory(ContentType.ANSWER, id, loginUser, LocalDateTime.now())));
+
+        return answer;
     }
 }

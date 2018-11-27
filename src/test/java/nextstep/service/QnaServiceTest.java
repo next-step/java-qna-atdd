@@ -2,10 +2,7 @@ package nextstep.service;
 
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
-import nextstep.domain.AnswerRepository;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import org.junit.Before;
 import org.junit.Test;
 import support.test.BaseTest;
@@ -171,11 +168,105 @@ public class QnaServiceTest extends BaseTest {
         final User anotherUser = new User(9L, "id", "pwd", "nm", "em");
         final Question findedQuestion = new Question();
         findedQuestion.writeBy(anotherUser);
-
-
         when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(findedQuestion));
 
 
         qnaService.deleteQuestion(loginUser, questionId);
     }
+
+    @Test
+    public void addAnswer() throws UnAuthenticationException {
+        final Long questionId = 1L;
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Answer answer = new Answer("answer!!");
+        final Question mockQuestion = mock(Question.class);
+        when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(mockQuestion));
+
+
+        final Answer addAnswer = qnaService.addAnswer(loginUser, questionId, answer);
+
+
+        verify(mockQuestion, times(1)).addAnswer(any(Answer.class));
+        softly.assertThat(addAnswer).isEqualTo(answer);
+        softly.assertThat(addAnswer.isOwner(loginUser)).isTrue();
+    }
+
+    @Test(expected = UnAuthenticationException.class)
+    public void addAnswer_로그인_안했을때() throws UnAuthenticationException {
+        final Long questionId = 1L;
+        final User guest = User.GUEST_USER;
+        final Answer answer = new Answer("answer!!");
+
+
+        qnaService.addAnswer(guest, questionId, answer);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void addAnswer_질문_없을때() throws UnAuthenticationException {
+        final Long questionId = Long.MAX_VALUE;
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Answer answer = new Answer("answer!!");
+        when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.empty());
+
+
+        qnaService.addAnswer(loginUser, questionId, answer);
+    }
+
+    @Test
+    public void deleteAnswer() throws UnAuthenticationException {
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Long answerId = 1L;
+        final Long questionId = 1L;
+        final Answer mockAnswer = mock(Answer.class);
+        when(answerRepository.findAnswerByIdAndDeleted(answerId, false)).thenReturn(Optional.of(mockAnswer));
+
+        qnaService.deleteAnswer(loginUser, questionId, answerId);
+
+        verify(mockAnswer, times(1)).delete(loginUser, questionId);
+        verify(deleteHistoryService, times(1)).saveAll(anyList());
+    }
+
+    @Test(expected = UnAuthenticationException.class)
+    public void deleteAnswer_로그인_안했을때() throws UnAuthenticationException {
+        final User guest = User.GUEST_USER;
+        final Long questionId = 1L;
+        final Long answerId = 1L;
+
+        qnaService.deleteAnswer(guest, questionId, answerId);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void deleteAnswer_작성자_다를때() throws UnAuthenticationException {
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final User anotherUser = new User(9L, "id", "pwd", "nm", "em");
+        final Long questionId = 1L;
+        final Long answerId = 1L;
+        final Answer findedAnswer = new Answer(loginUser, "contents!!");
+        when(answerRepository.findAnswerByIdAndDeleted(answerId, false)).thenReturn(Optional.of(findedAnswer));
+
+        qnaService.deleteAnswer(anotherUser, questionId, answerId);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void deleteAnswer_questionId_다를때() throws UnAuthenticationException {
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Question question = new Question(1L, "title", "contents");
+        final Long answerId = 1L;
+        final Answer findedAnswer = new Answer(loginUser, "contents!!");
+        findedAnswer.toQuestion(question);
+        when(answerRepository.findAnswerByIdAndDeleted(answerId, false)).thenReturn(Optional.of(findedAnswer));
+
+        qnaService.deleteAnswer(loginUser, question.getId() + 1, answerId);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void deleteAnswer_답변_없을때() throws UnAuthenticationException {
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Long questionId = 1L;
+        final Long answerId = Long.MAX_VALUE;
+        when(answerRepository.findAnswerByIdAndDeleted(answerId, false)).thenReturn(Optional.empty());
+
+        qnaService.deleteAnswer(loginUser, questionId, answerId);
+    }
+
 }

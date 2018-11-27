@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -12,6 +14,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
     private Question question;
@@ -23,6 +26,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     private boolean deleted = false;
 
     public Answer() {
+    }
+
+    public Answer(String contents) {
+        this.contents = contents;
     }
 
     public Answer(User writer, String contents) {
@@ -65,6 +72,38 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void delete(User loginUser, Long questionId) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        if (!questionId.equals(this.question.getId())) {
+            throw new UnAuthorizedException();
+        }
+
+        this.deleted = true;
+    }
+
+    public void writeBy(User loginUser) {
+        this.writer = loginUser;
+    }
+
+    public boolean isEqualAnswer(Answer other) {
+        if (!this.contents.equals(other.contents)) {
+            return false;
+        }
+
+        if (!this.writer.equals(other.writer)) {
+            return false;
+        }
+
+        if (!this.question.equals(other.question)) {
+            return false;
+        }
+
+        return this.equals(other);
     }
 
     @Override
