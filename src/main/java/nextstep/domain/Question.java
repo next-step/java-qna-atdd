@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -23,6 +25,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
     @OrderBy("id ASC")
@@ -34,6 +37,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question(String title, String contents) {
+        this(0L, title, contents);
+    }
+
+    public Question(Long id, String title, String contents) {
+        super(id);
         this.title = title;
         this.contents = contents;
     }
@@ -65,8 +73,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void addAnswer(Answer answer) {
+        if (this.answers.contains(answer)) {
+            return;
+        }
         answer.toQuestion(this);
         answers.add(answer);
+    }
+
+    public List<Answer> getAnswers() {
+        return this.answers;
     }
 
     public boolean isOwner(User loginUser) {
@@ -77,8 +92,37 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete() {
+    public void delete(User loginUser) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
         this.deleted = true;
+    }
+
+    public Question update(User loginUser, Question target) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        this.title = target.title;
+        this.contents = target.contents;
+
+        return this;
+    }
+
+    public boolean isEqualQuestion(Question other) {
+        if (!this.equals(other)) {
+            return false;
+        }
+
+        if (this.title != other.title) {
+            return false;
+        }
+
+        return this.contents == other.contents;
+    }
+
+    public boolean containsAnswer(Answer answer) {
+        return this.answers.contains(answer);
     }
 
     @Override

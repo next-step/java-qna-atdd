@@ -56,16 +56,7 @@ public class QnaService {
 
         Question findedQuestion = findNotDeletedQuestionById(id);
 
-        checkOwner(loginUser, findedQuestion);
-
-        return findedQuestion.setTitle(updatedQuestion.getTitle()).setContents(updatedQuestion.getContents());
-    }
-
-    private void checkOwner(User loginUser,
-                            Question findedQuestion) {
-        if (!findedQuestion.isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
+        return findedQuestion.update(loginUser, updatedQuestion);
     }
 
     @Transactional
@@ -74,9 +65,7 @@ public class QnaService {
 
         Question findedQuestion = findNotDeletedQuestionById(questionId);
 
-        checkOwner(loginUser, findedQuestion);
-
-        findedQuestion.delete();
+        findedQuestion.delete(loginUser);
 
         DeleteHistory deleteHistory = new DeleteHistory(ContentType.QUESTION, questionId, loginUser, LocalDateTime.now());
         deleteHistoryService.saveAll(ImmutableList.of(deleteHistory));
@@ -91,14 +80,26 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
+
+        answer.writeBy(loginUser);
+
+        final Question question = findNotDeletedQuestionById(questionId);
+        question.addAnswer(answer);
+
+        return answer;
     }
 
     @Transactional
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer deleteAnswer(User loginUser, Long questionId, Long id) throws UnAuthenticationException {
+        LoginChecker.check(loginUser);
+
+        final Answer answer = answerRepository.findAnswerByIdAndDeleted(id, false).orElseThrow(EntityNotFoundException::new);
+        answer.delete(loginUser, questionId);
+
+        deleteHistoryService.saveAll(ImmutableList.of(new DeleteHistory(ContentType.ANSWER, id, loginUser, LocalDateTime.now())));
+
+        return answer;
     }
 }

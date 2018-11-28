@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RequestMapping("/questions")
 @Controller
 public class QuestionController {
@@ -35,7 +37,7 @@ public class QuestionController {
     }
 
     @PostMapping
-    public String create(@LoginUser User loginUser, Question question, Model model) throws UnAuthenticationException {
+    public String create(@LoginUser User loginUser, @Valid Question question, Model model) throws UnAuthenticationException {
 
         final Question created = qnaService.create(loginUser, question);
 
@@ -53,7 +55,7 @@ public class QuestionController {
     }
 
     @PutMapping("/{questionId}")
-    public String update(@LoginUser User loginUser, @PathVariable Long questionId, Question updatedQuestion, Model model) throws UnAuthenticationException {
+    public String update(@LoginUser User loginUser, @PathVariable Long questionId, @Valid Question updatedQuestion, Model model) throws UnAuthenticationException {
 
         qnaService.update(loginUser, questionId, updatedQuestion);
 
