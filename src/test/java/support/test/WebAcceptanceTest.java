@@ -3,6 +3,7 @@ package support.test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 
 import static java.util.Arrays.asList;
@@ -15,5 +16,9 @@ public abstract class WebAcceptanceTest extends AcceptanceTest {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         return new HttpEntity<>(params, headers);
+    }
+
+    public static String getResponseLocationPath(ResponseEntity<Void> response) {
+        return response.getHeaders().getLocation().getPath();
     }
 }

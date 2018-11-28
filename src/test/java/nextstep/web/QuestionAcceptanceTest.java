@@ -55,10 +55,8 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
 
         //given
         User loginUser = defaultUser();
-
-        String title = "title";
-        String contents = "contents::title";
-
+        String title = "동해물과백두산이";
+        String contents = "contents::동해물과백두산이";
         MultiValueMap<String, Object> params = builder()
                 .add("title", title)
                 .add("contents", contents)
@@ -71,7 +69,7 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
 
         //then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findTopByTitle(title).isPresent()).isTrue();
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
     @Test
@@ -104,8 +102,8 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     @Test
     public void modifyQuestion() {
 
-        String title = "title";
-        String contents = "contents::title";
+        String title = "동해물과백두산이";
+        String contents = "contents::동해물과백두산이";
 
         MultiValueMap<String, Object> params = builder()
                 .add("title", title)
@@ -119,8 +117,9 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .exchange(String.format("/questions/%d", questionId), HttpMethod.PUT, request, String.class);
 
+        //then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findTopByTitle(title).isPresent()).isTrue();
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
     @Test

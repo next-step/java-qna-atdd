@@ -16,21 +16,22 @@ import support.test.AcceptanceTest;
 import java.text.MessageFormat;
 
 import static nextstep.domain.AnswerTest.newAnswer;
+import static support.test.WebAcceptanceTest.getResponseLocationPath;
 
-@Transactional
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiAnswerAcceptanceTest.class);
 
     @Test
+    @Transactional
     public void create() {
         User loginUser = defaultUser();
-        String location = createAnswer(loginUser);
-        Answer dbAnswer = selectAnswer(location);
+        ResponseEntity<Void> createResponseEntity = createAnswer(loginUser);
+        Answer dbAnswer = selectAnswer(getResponseLocationPath(createResponseEntity));
 
         softly.assertThat(dbAnswer).isNotNull();
     }
 
-    private String createAnswer(User loginUser) {
+    private ResponseEntity<Void> createAnswer(User loginUser) {
         Question question = defaultQuestion();
         Answer newAnswer = newAnswer(loginUser);
 
@@ -39,8 +40,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> response = basicAuthTemplate(loginUser)
                                         .postForEntity(url, newAnswer, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
-        return response.getHeaders().getLocation().getPath();
+        return response;
     }
 
     private Answer selectAnswer(String location) {
@@ -48,6 +48,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    @Transactional
     public void create_no_login() {
         Question newQuestion = QuestionTest.newTestQuestion();
 
@@ -58,9 +59,12 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    @Transactional
     public void update() {
         User loginUser = defaultUser();
-        String location = createAnswer(loginUser);
+        ResponseEntity<Void> createResponseEntity = createAnswer(loginUser);
+        String location = getResponseLocationPath(createResponseEntity);
+        log.info("location::{}",location);
 
         Answer original = selectAnswer(location);
         Answer updateAnswer = new Answer(original.getId(), "변경된답변");
@@ -75,7 +79,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_no_login() {
         User loginUser = defaultUser();
-        String location = createAnswer(loginUser);
+        ResponseEntity<Void> createResponseEntity = createAnswer(loginUser);
+        String location = getResponseLocationPath(createResponseEntity);
+
 
         Answer original = selectAnswer(location);
         Answer updateAnswer = new Answer(original.getId(), "변경된답변");
@@ -84,16 +90,15 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
                 .exchange(location, HttpMethod.PUT, createHttpEntity(updateAnswer), String.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("error message : {}", responseEntity.getBody());
     }
 
     @Test
     public void delete() {
         User loginUser = defaultUser();
-        String location = createAnswer(loginUser);
+        ResponseEntity<Void> createResponseEntity = createAnswer(loginUser);
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .exchange(location, HttpMethod.DELETE, null, String.class);
+                .exchange(getResponseLocationPath(createResponseEntity), HttpMethod.DELETE, null, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -101,10 +106,10 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_no_login() {
         User loginUser = defaultUser();
-        String location = createAnswer(loginUser);
+        ResponseEntity<Void> createResponseEntity = createAnswer(loginUser);
 
         ResponseEntity<String> response = template()
-                .exchange(location, HttpMethod.DELETE, null, String.class);
+                .exchange(getResponseLocationPath(createResponseEntity), HttpMethod.DELETE, null, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
