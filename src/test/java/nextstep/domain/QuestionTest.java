@@ -30,4 +30,26 @@ public class QuestionTest extends BaseTest {
         Question target = new Question("수정 제목", "수정 내용");
         existing.update(new User(), target);
     }
+
+    @Test
+    public void 질문_삭제처리가_잘_된다() {
+        User writer = new User(1L, "dicorndl", "password", "dicorndl", "dicorndl@gmail.com");
+
+        Question existing = new Question("기존 제목", "기존 내용");
+        existing.writeBy(writer);
+
+        existing.delete(writer);
+
+        softly.assertThat(existing.isDeleted()).isTrue();
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void 내_질문이_아니면_삭제할_수_없다() {
+        User writer = new User(1L, "dicorndl", "password", "dicorndl", "dicorndl@gmail.com");
+
+        Question existing = new Question("기존 제목", "기존 내용");
+        existing.writeBy(writer);
+
+        existing.delete(new User());
+    }
 }

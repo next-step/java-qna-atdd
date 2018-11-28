@@ -75,17 +75,33 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         ResponseEntity<String> response = basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/questions/%d", 1), request, String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     public void 내_질문_삭제() {
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("_method", "DELETE");
 
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params);
+
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity(String.format("/questions/%d", 1), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+        softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isTrue();
     }
 
     @Test
     public void 내_질문이_아니면_삭제할_수_없다() {
+        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
+        params.add("_method", "DELETE");
 
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params);
+
+        ResponseEntity<String> response = basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/questions/%d", 1), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private ResponseEntity<String> createQuestion(TestRestTemplate template) {

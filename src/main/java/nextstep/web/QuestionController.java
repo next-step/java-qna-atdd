@@ -37,4 +37,10 @@ public class QuestionController {
         Question updated = qnaService.update(loginUser, id, question);
         return "redirect:/questions/" + updated.getId();
     }
+
+    @DeleteMapping("/{id}")
+    public String delete(@LoginUser User loginUser, @PathVariable long id) {
+        qnaService.delete(loginUser, id);
+        return "redirect:/";
+    }
 }

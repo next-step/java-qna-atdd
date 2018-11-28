@@ -37,11 +37,17 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question existing = findById(id)
-            .orElseThrow(IllegalArgumentException::new);
+        Question existing = findById(id).orElseThrow(IllegalArgumentException::new);
 
         existing.update(loginUser, updatedQuestion);
         return existing;
+    }
+
+    @Transactional
+    public void delete(User loginUser, long id) {
+        Question existing = findById(id).orElseThrow(IllegalAccessError::new);
+
+        existing.delete(loginUser);
     }
 
     @Transactional
