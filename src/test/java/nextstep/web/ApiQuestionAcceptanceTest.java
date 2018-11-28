@@ -55,7 +55,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         String location = createQuestion(loginUser);
 
         Question original = selectQuestion(location);
-        Question updateQuestion = new Question(original.getId(), "제목2", "내용2");
+        Question updateQuestion = new Question("제목2", "내용2")
+                .setId(original.getId());
 
         ResponseEntity<Question> responseEntity = basicAuthTemplate(loginUser)
                 .exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), Question.class);
@@ -70,7 +71,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         String location = createQuestion(loginUser);
 
         Question original = selectQuestion(location);
-        Question updateQuestion = new Question(original.getId(), "제목2", "내용2");
+        Question updateQuestion = new Question("제목2", "내용2")
+                .setId(original.getId());
 
         ResponseEntity<String> responseEntity = template()
                 .exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), String.class);

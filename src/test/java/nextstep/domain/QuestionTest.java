@@ -5,6 +5,7 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import static nextstep.domain.AnswerTest.newAnswer;
 import static nextstep.domain.UserTest.JAVAJIGI;
 import static nextstep.domain.UserTest.SANJIGI;
 
@@ -14,10 +15,9 @@ public class QuestionTest extends BaseTest {
         return newQuestion("제목1", "내용1");
     }
 
-    public static Question newQuestion(User user) {
-        Question question = new Question("제목1", "내용1");
-        question.writeBy(user);
-        return question;
+    public static Question newQuestionByWriter(User user) {
+        return new Question("제목1", "내용1")
+                .writeBy(user);
     }
 
     public static Question newQuestion(String title, String contents) {
@@ -25,15 +25,15 @@ public class QuestionTest extends BaseTest {
     }
 
     public static Question newQuestionByDeleted() {
-        Question question = new Question("제목1", "내용1", true);
-        question.writeBy(JAVAJIGI);
-        return question;
+        return new Question("제목1", "내용1")
+                .writeBy(JAVAJIGI)
+                .setDeleted(true);
     }
 
     @Test
     public void update_owner() throws Exception {
         User loginUser = JAVAJIGI;
-        Question origin = newQuestion(loginUser);
+        Question origin = newQuestionByWriter(loginUser);
         Question target = newQuestion("제목2", "내용2");
 
         origin.update(loginUser, target);
@@ -43,7 +43,7 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() throws Exception {
-        Question origin = newQuestion(JAVAJIGI);
+        Question origin = newQuestionByWriter(JAVAJIGI);
         User loginUser = SANJIGI;
         Question target = newQuestion("제목2", "내용2");
 
@@ -53,7 +53,7 @@ public class QuestionTest extends BaseTest {
     @Test
     public void delete_owner() throws Exception {
         User loginUser = JAVAJIGI;
-        Question origin = newQuestion(loginUser);
+        Question origin = newQuestionByWriter(loginUser);
 
         origin.delete(loginUser);
         softly.assertThat(origin.isDeleted()).isTrue();
@@ -61,9 +61,16 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_not_owner() throws Exception {
-        Question origin = newQuestion(JAVAJIGI);
+        Question origin = newQuestionByWriter(JAVAJIGI);
         User loginUser = SANJIGI;
 
+        origin.delete(loginUser);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_has_answers_of_other() throws Exception {
+        Question origin = newQuestionByDeleted();
+        User loginUser = JAVAJIGI;
         origin.delete(loginUser);
     }
 

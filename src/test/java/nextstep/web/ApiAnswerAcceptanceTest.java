@@ -14,6 +14,7 @@ import support.test.AcceptanceTest;
 import java.text.MessageFormat;
 
 import static nextstep.domain.AnswerTest.newAnswer;
+import static nextstep.domain.AnswerTest.newAnswerByWriter;
 import static nextstep.domain.QuestionTest.newQuestion;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
@@ -30,7 +31,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     private String createAnswer(User loginUser) {
         Question question = defaultQuestion();
-        Answer newAnswer = newAnswer(loginUser);
+        Answer newAnswer = newAnswerByWriter(loginUser);
 
         String url = MessageFormat.format("/api/questions/{0}/answers", question.getId());
         log.info("url: {}", url);
@@ -66,7 +67,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         String location = createAnswer(loginUser);
 
         Answer original = selectAnswer(location);
-        Answer updateAnswer = new Answer(original.getId(), "테스트답변2");
+        Answer updateAnswer = new Answer("테스트답변2").setId(original.getId());
 
         ResponseEntity<Answer> responseEntity = basicAuthTemplate(loginUser)
                 .exchange(location, HttpMethod.PUT, createHttpEntity(updateAnswer), Answer.class);
@@ -81,7 +82,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         String location = createAnswer(loginUser);
 
         Answer original = selectAnswer(location);
-        Answer updateAnswer = new Answer(original.getId(), "테스트답변2");
+        Answer updateAnswer = new Answer("테스트답변2").setId(original.getId());
 
         ResponseEntity<String> responseEntity = template()
                 .exchange(location, HttpMethod.PUT, createHttpEntity(updateAnswer), String.class);

@@ -42,15 +42,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public Question(long id, String title, String contents) {
-        super(id);
-        this.title = title;
-        this.contents = contents;
-    }
-
-    public Question(String title, String contents, boolean deleted) {
-        this(title, contents);
-        this.deleted = deleted;
+    @Override
+    public Question setId(long id) {
+        super.setId(id);
+        return this;
     }
 
     public String getTitle() {
@@ -71,12 +66,26 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public Question setDeleted(boolean deleted) {
+        this.deleted = deleted;
+        return this;
+    }
+
+    public boolean isOwner(User loginUser) {
+        return writer.equals(loginUser);
+    }
+
     public User getWriter() {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
+    public Question writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void addAnswer(Answer answer) {
@@ -89,14 +98,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
                 .filter(answer -> answer.equalsId(answerId))
                 .findFirst()
                 .orElseThrow(NotFoundException::new);
-    }
-
-    public boolean isOwner(User loginUser) {
-        return writer.equals(loginUser);
-    }
-
-    public boolean isDeleted() {
-        return deleted;
     }
 
     public void update(User loginUser, Question target) {
@@ -117,7 +118,24 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("이미 삭제된 질문입니다.");
         }
 
+        if(hasAnswersOfOther(loginUser)) {
+            throw new CannotDeleteException("다른사람의 답변이 있어 삭제할 수 없습니다.");
+        }
+
         this.deleted = true;
+        this.deleteAnswers(loginUser);
+    }
+
+    private void deleteAnswers(User loginUser) throws CannotDeleteException {
+        for (int i = 0; i < answers.size(); i++) {
+            Answer answer = answers.get(i);
+            answer.delete(loginUser);
+        }
+    }
+
+    public boolean hasAnswersOfOther(User loginUser) {
+        return answers.stream()
+                .anyMatch(answer -> !answer.isOwner(loginUser));
     }
 
     public boolean equalsTitleAndContents(Question target) {
