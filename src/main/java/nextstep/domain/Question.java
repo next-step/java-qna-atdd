@@ -4,14 +4,13 @@ import nextstep.CannotDeleteException;
 import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
+import org.springframework.util.CollectionUtils;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static nextstep.CannotDeleteException.ALREADY_DELETED_EXCEPTION;
 import static nextstep.CannotDeleteException.HAS_ANSWERS_OF_OTHER_EXCEPTION;
@@ -113,7 +112,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+        List<DeleteHistory> questionDeleteHistories = Arrays.asList(this.deleteQuestion(loginUser));
+        List<DeleteHistory> answersDeleteHistories = this.deleteAnswers(loginUser);
+
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.addAll(questionDeleteHistories);
+        deleteHistories.addAll(answersDeleteHistories);
+        return deleteHistories;
+    }
+
+    public DeleteHistory deleteQuestion(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
@@ -127,14 +136,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
-        this.deleteAnswers(loginUser);
+        return DeleteHistory.from(this, loginUser);
     }
 
-    private void deleteAnswers(User loginUser) throws CannotDeleteException {
+    private List<DeleteHistory> deleteAnswers(User loginUser) throws CannotDeleteException {
+        List<DeleteHistory> histories = new ArrayList<>();
         for (int i = 0; i < answers.size(); i++) {
             Answer answer = answers.get(i);
-            answer.delete(loginUser);
+            histories.add(answer.delete(loginUser));
         }
+        return histories;
     }
 
     public boolean hasAnswersOfOther(User loginUser) {
