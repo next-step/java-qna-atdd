@@ -32,7 +32,7 @@ public class QnaService {
     }
 
     public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+        return questionRepository.findByIdAndDeleted(id, false);
     }
 
     @Transactional
