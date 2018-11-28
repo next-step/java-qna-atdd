@@ -13,8 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static nextstep.CannotDeleteException.ALREADY_DELETED_EXCEPTION;
+import static nextstep.CannotDeleteException.HAS_ANSWERS_OF_OTHER_EXCEPTION;
+
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
+
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -115,11 +119,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         if(isDeleted()) {
-            throw new CannotDeleteException("이미 삭제된 질문입니다.");
+            throw new CannotDeleteException(ALREADY_DELETED_EXCEPTION);
         }
 
         if(hasAnswersOfOther(loginUser)) {
-            throw new CannotDeleteException("다른사람의 답변이 있어 삭제할 수 없습니다.");
+            throw new CannotDeleteException(HAS_ANSWERS_OF_OTHER_EXCEPTION);
         }
 
         this.deleted = true;
