@@ -1,12 +1,9 @@
 package nextstep.web;
 
-import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
-import nextstep.service.UserService;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -18,11 +15,8 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     private static final Logger log = LoggerFactory.getLogger(LoginAcceptanceTest.class);
 
-    @Autowired
-    private UserService userService;
-
     @Test
-    public void loginForm() throws Exception {
+    public void loginForm() {
         ResponseEntity<String> response = template().getForEntity("/login", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.info("body : {}", response.getBody());
@@ -45,7 +39,6 @@ public class LoginAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         log.info("body : {}", response.getHeaders());
     }
-
 
     @Test
     public void loginFailed() {

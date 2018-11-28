@@ -4,14 +4,13 @@ import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.security.HttpSessionUtils;
 import nextstep.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -19,7 +18,7 @@ import javax.servlet.http.HttpSession;
 @RequestMapping("/login")
 public class LoginController {
 
-    @Autowired
+    @Resource(name = "userService")
     UserService userService;
 
     @GetMapping("")
@@ -29,7 +28,7 @@ public class LoginController {
 
     @PostMapping("")
     public String login(String userId, String password, HttpServletResponse response,
-                        HttpSession httpSession) throws UnAuthenticationException {
+                        HttpSession httpSession) {
         try {
             User user = userService.login(userId, password);
             HttpSessionUtils.setUserFormSession(httpSession, user);
