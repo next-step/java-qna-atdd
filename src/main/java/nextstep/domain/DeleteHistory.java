@@ -20,19 +20,26 @@ public class DeleteHistory {
 
     private LocalDateTime createDate = LocalDateTime.now();
 
-    public DeleteHistory() {
+    private DeleteHistory() {
     }
 
-    public DeleteHistory(ContentType contentType, Long contentId, User deletedBy, LocalDateTime createDate) {
+    private DeleteHistory(ContentType contentType, Long contentId, User deletedBy) {
         this.contentType = contentType;
         this.contentId = contentId;
         this.deletedBy = deletedBy;
-        this.createDate = createDate;
     }
 
     @Override
     public String toString() {
         return "DeleteHistory [id=" + id + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="
                 + deletedBy + ", createDate=" + createDate + "]";
+    }
+
+    public static DeleteHistory fromAnswer(Answer answer) {
+        return new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter());
+    }
+
+    public static DeleteHistory fromQuestion(Question question) {
+        return new DeleteHistory(ContentType.ANSWER, question.getId(), question.getWriter());
     }
 }

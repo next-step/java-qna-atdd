@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -14,6 +16,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
     private Question question;
@@ -69,11 +72,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("답변을 삭제할 수 없습니다.");
         }
         this.deleted = true;
+        return DeleteHistory.fromAnswer(this);
     }
     
     @Override

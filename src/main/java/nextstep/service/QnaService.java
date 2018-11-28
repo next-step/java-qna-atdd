@@ -1,22 +1,16 @@
 package nextstep.service;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-import javax.persistence.EntityNotFoundException;
-
+import nextstep.CannotDeleteException;
+import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import nextstep.CannotDeleteException;
-import nextstep.domain.Answer;
-import nextstep.domain.AnswerRepository;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
+import java.util.List;
 
 @Service("qnaService")
 public class QnaService {
@@ -30,6 +24,9 @@ public class QnaService {
 
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
+
+    @Resource(name = "deleteQuestionPolicy")
+    private DeletePolicy deleteQuestionPolicy;
 
     @Transactional
     public Question create(User loginUser, Question question) {
@@ -53,7 +50,11 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question foundQuestion = findById(questionId);
-        foundQuestion.delete(loginUser);
+        saveDeleteHistories(foundQuestion.delete(loginUser, deleteQuestionPolicy));
+    }
+
+    private void saveDeleteHistories(List<DeleteHistory> deleteHistories) throws CannotDeleteException {
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Iterable<Question> findAll() {
@@ -74,7 +75,7 @@ public class QnaService {
     @Transactional
     public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
         Answer foundAnswer = getAnswer(id);
-        foundAnswer.delete(loginUser);
+        deleteHistoryService.save(foundAnswer.delete(loginUser));
         return foundAnswer;
     }
 

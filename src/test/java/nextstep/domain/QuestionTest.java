@@ -51,13 +51,13 @@ public class QuestionTest extends BaseTest {
     
     @Test
     public void delete_owner() throws CannotDeleteException {
-        question.delete(origin);
+        question.delete(origin, (a, b) -> {return true;});
         assertThat(question.isDeleted()).isTrue();
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_not_owner() throws CannotDeleteException {
         User loginUser = UserTest.newUser("korkorna");
-        question.delete(loginUser);
+        question.delete(loginUser, (a, b) -> {return false;});
     }
 }
