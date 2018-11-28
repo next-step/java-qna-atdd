@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.CannotUpdateException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -8,6 +10,7 @@ import javax.validation.constraints.Size;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
+
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;
@@ -67,6 +70,44 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public void delete(final User loginUser) {
+
+        if (isDeleted()) {
+            throw new CannotDeleteException("Deleted answer.");
+        }
+
+        if (!isOwner(loginUser)) {
+            throw new CannotDeleteException("Not the author of the answer");
+        }
+
+        this.deleted = true;
+    }
+
+    public void update(final User loginUser, final Answer answer) {
+
+        if (isDeletedQuestion()) {
+            throw new CannotUpdateException("Deleted questions.");
+        }
+
+        if (isDeleted()) {
+            throw new CannotUpdateException("Deleted answer.");
+        }
+
+        if (!isOwner(loginUser)) {
+            throw new CannotUpdateException("Not the author of the answer");
+        }
+
+        this.contents = answer.contents;
+    }
+
+    public boolean isDeletedQuestion() {
+        return this.question.isDeleted();
+    }
+
+    public boolean eqContents(final Answer answer) {
+        return this.contents.equals(answer.getContents());
+    }
+
     @Override
     public String generateUrl() {
         return String.format("%s/answers/%d", question.generateUrl(), getId());
@@ -76,4 +117,5 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public String toString() {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
+
 }

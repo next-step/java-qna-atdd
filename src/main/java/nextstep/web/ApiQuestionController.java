@@ -27,8 +27,8 @@ public class ApiQuestionController {
     private QnaService qnaService;
 
     @PostMapping
-    public final ResponseEntity<Void> create(@LoginUser final User loginUser,
-                                             @Valid @RequestBody final Question question) {
+    public ResponseEntity<Void> create(@LoginUser final User loginUser,
+                                       @Valid @RequestBody final Question question) {
 
         final Question saveQuestion = qnaService.create(loginUser, question);
 
@@ -38,15 +38,14 @@ public class ApiQuestionController {
     }
 
     @GetMapping("/{id}")
-    public final Question detail(@LoginUser final User loginUser,
-                                 @PathVariable final long id) {
-        return qnaService.findById(loginUser, id);
+    public Question detail(@PathVariable final long id) {
+        return qnaService.findById(id);
     }
 
     @PutMapping("/{id}")
-    public final Question update(@LoginUser final User loginUser,
-                                 @PathVariable final long id,
-                                 @Valid @RequestBody final Question question) {
+    public Question update(@LoginUser final User loginUser,
+                           @PathVariable final long id,
+                           @Valid @RequestBody final Question question) {
         return qnaService.update(loginUser, id, question);
     }
 

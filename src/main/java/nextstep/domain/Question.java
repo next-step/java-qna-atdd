@@ -107,6 +107,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.deleted = true;
     }
 
+    public boolean hasAnswers() {
+        return getAnswersCount() > 0;
+    }
+
+    private long getAnswersCount() {
+        return this.answers.stream().filter(answer -> !answer.isDeleted()).count();
+    }
+
     public boolean eqTitleAndContents(final Question question) {
         return this.eqTitle(question) && this.eqContent(question);
     }
