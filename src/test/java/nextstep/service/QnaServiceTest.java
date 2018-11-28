@@ -64,7 +64,7 @@ public class QnaServiceTest extends BaseTest {
         String contents = "댓글입";
         Answer answer = new Answer(user, contents);
         answer.toQuestion(question1);
-
+        when(questionRepository.findById(question1.getId())).thenReturn(Optional.of(question1));
         when(answerRepository.save(answer)).thenReturn(answer);
 
         qnaService.addAnswer(user, question1.getId(), contents).equals(answer);
@@ -78,7 +78,7 @@ public class QnaServiceTest extends BaseTest {
         long answerId = 1L;
         Answer answer = new Answer(answerId, user, question1, contents);
 
-
+        when(questionRepository.findById(question1.getId())).thenReturn(Optional.of(question1));
         when(answerRepository.findById(answerId)).thenReturn(Optional.of(answer));
         qnaService.deleteAnswer(user, question1.getId(), answerId);
     }
@@ -91,7 +91,7 @@ public class QnaServiceTest extends BaseTest {
         long answerId = 1L;
         Answer answer = new Answer(answerId, user, question1, contents);
 
-
+        when(questionRepository.findById(question1.getId())).thenReturn(Optional.of(question1));
         when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
         qnaService.deleteAnswer(UserTest.JAVAJIGI, question1.getId(), answerId);
     }

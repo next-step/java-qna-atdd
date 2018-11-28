@@ -69,9 +69,6 @@ public class QnaService {
         answer.toQuestion(question);
         log.debug("answer : {}", answer);
         Answer save = answerRepository.save(answer);
-        question.addAnswer(save);
-        question.addAnswer(answer);
-        questionRepository.save(question);
 
         return save;
     }
@@ -83,9 +80,7 @@ public class QnaService {
         if(!answer.isOwner(loginUser)) {
             throw new CannotDeleteException("본인이 작성한 답변만 삭제할 수 있습니다.");
         }
-        question.deleteAnswer(answer);
         answerRepository.deleteById(id);
-        questionRepository.save(question);
     }
 
     public Answer findAnswerById(long id) {

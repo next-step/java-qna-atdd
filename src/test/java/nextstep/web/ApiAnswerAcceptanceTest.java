@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import support.test.AcceptanceTest;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
@@ -34,15 +36,19 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         User loginUser = defaultUser();
 
         String location = "/api/questions/1";
-        Question question = getResource(location, Question.class, loginUser);
+        String contents ="답변이니다다다2";
 
-        Answer answer = question.getAnswers().get(0);
+        createResource(location +"/answers", contents, loginUser);
+        Question question = getResource(location, Question.class, loginUser);
+        List<Answer> answers = question.getAnswers();
+        Answer answer = answers.get(question.getAnswers().size()-1);
+
         softly.assertThat(question).isNotNull();
         softly.assertThat(answer).isNotNull();
 
         delete(location+"/answers/"+answer.getId(), loginUser);
         Question updateQuestion = getResource(location, Question.class, loginUser);
 
-        softly.assertThat(updateQuestion.getAnswers().size()).isNotEqualTo(question.getAnswers().size());
+        softly.assertThat(updateQuestion.getAnswers().size()).isNotEqualTo(answers.size());
     }
 }
