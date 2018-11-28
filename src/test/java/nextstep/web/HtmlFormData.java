@@ -50,9 +50,18 @@ public class HtmlFormData {
             return this;
         }
 
+        HtmlFormDataBuilder put() {
+            params.add("_method", "put");
+            return this;
+        }
+
+        HtmlFormDataBuilder delete() {
+            params.add("_method", "delete");
+            return this;
+        }
+
         HtmlFormData build() {
             return new HtmlFormData(headers, params);
         }
-
     }
 }

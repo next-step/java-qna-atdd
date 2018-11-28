@@ -1,7 +1,6 @@
 package nextstep.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
@@ -65,13 +64,22 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Answer answer = answerRepository.save(new Answer(loginUser, contents));
+        findById(questionId).addAnswer(answer);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer foundAnswer = getAnswer(id);
+        foundAnswer.delete(loginUser);
+        return foundAnswer;
+    }
+
+    private Answer getAnswer(long id) {
+        return answerRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
     }
 }

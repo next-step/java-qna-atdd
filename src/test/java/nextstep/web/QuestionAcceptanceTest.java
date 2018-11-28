@@ -118,6 +118,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template, long id) {
         HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
+                .put()
                 .addParameter("title", "국내에서 Ruby on Rails와 Play가 활성화되기 힘든 이유는 뭘까?")
                 .addParameter("contents", "음.. 그건 ")
                 .build();
@@ -127,7 +128,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     
     private ResponseEntity<String> delete(TestRestTemplate template, long id) {
         HtmlFormData htmlFormData = HtmlFormData.urlEncodedFormBuilder()
-                .addParameter("_method", "DELETE")
+                .delete()
                 .build();
 
         return template

@@ -12,6 +12,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionTest extends BaseTest {
 
+    public static Question newQuestion() {
+        return newQuestion(UserTest.JAVAJIGI);
+    }
+
+    public static Question newQuestion(User writer) {
+        return new Question("타이틀입니다.", "내용입니다.", writer);
+    }
+
+    public static Question newQuestion(String title, String contents, User writer) {
+        return new Question("타이틀입니다.", "내용입니다.", writer);
+    }
+
     private User origin;
     private Question question;
     private Question updatedQuestion;
@@ -19,8 +31,8 @@ public class QuestionTest extends BaseTest {
     @Before
     public void setup() {
         origin = UserTest.JAVAJIGI;
-        question = new Question("하이 뜻은?", "한국어 뜻은?", origin);
-        updatedQuestion = new Question( "Hi 뜻은?", "한국어 뜻은?");
+        question = newQuestion();
+        updatedQuestion = newQuestion( "Hi 뜻은?", "한국어 뜻은?", origin);
     }
     
     @Test
@@ -39,8 +51,7 @@ public class QuestionTest extends BaseTest {
     
     @Test
     public void delete_owner() throws CannotDeleteException {
-        User loginUser = origin;
-        question.delete(loginUser);
+        question.delete(origin);
         assertThat(question.isDeleted()).isTrue();
     }
 
