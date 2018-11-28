@@ -42,8 +42,10 @@ public class QnaController {
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable("id") long questionId, Model model) {
+        Question byIdWithAuthorized = qnaService.findByIdWithAuthorized(loginUser, questionId);
+        System.out.println(byIdWithAuthorized);
         model.addAttribute("question", qnaService.findByIdWithAuthorized(loginUser, questionId));
-        return "/user/updateForm";
+        return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")
