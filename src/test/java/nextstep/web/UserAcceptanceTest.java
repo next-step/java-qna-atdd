@@ -35,7 +35,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
                 .addParameter("userId", userId)
                 .addParameter("password", "password")
                 .addParameter("name", "자바지기")
-                .addParameter("email", "javajigi@slipp.net").build()
+                .addParameter("email", "javajigi@slipp.net").build();
 
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
