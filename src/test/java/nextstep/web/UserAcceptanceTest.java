@@ -77,14 +77,13 @@ public class UserAcceptanceTest extends WebAcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template) {
         MultiValueMap<String, Object> params = builder()
-                .add("_method", "put")
                 .add("password", "test")
                 .add("name", "자바지기2")
                 .add("email", "javajigi@slipp.net")
                 .build();
         HttpEntity request = createWebRequestEntity(params);
 
-        return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
+        return template.exchange(String.format("/users/%d", defaultUser().getId()), HttpMethod.PUT, request, String.class);
     }
 
     @Test

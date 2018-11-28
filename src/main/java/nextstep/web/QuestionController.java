@@ -38,7 +38,6 @@ public class QuestionController {
     @GetMapping
     public String list(Model model, Pageable pageable) {
         List<Question> questions = qnaService.findAll(pageable);
-        log.debug("questions size : {}", questions.size());
         model.addAttribute("question", questions);
         return "/qna/show";
     }
@@ -50,13 +49,13 @@ public class QuestionController {
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
-        qnaService.update(loginUser, id, target);
+        qnaService.updateQuestion(loginUser, id, target);
         return "redirect:/questions";
     }
 
     @DeleteMapping("/{id}")
     public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
-        qnaService.delete(loginUser, id);
+        qnaService.deleteQuestion(loginUser, id);
         return "redirect:/questions";
     }
 }

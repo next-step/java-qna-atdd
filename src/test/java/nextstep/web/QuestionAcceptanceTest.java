@@ -34,7 +34,7 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     }
 
     @Test
-    public void createForm_no_login() throws Exception {
+    public void createForm_no_login() {
         //when
         ResponseEntity<String> response = template()
                 .getForEntity("/questions/form", String.class);
@@ -43,21 +43,20 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     }
 
     @Test
-    public void createQuestion_no_login() throws Exception {
-        ResponseEntity<String> response = template().postForEntity("/questions", null, String.class);
+    public void createQuestion_no_login() {
+        ResponseEntity<String> response = template()
+                .postForEntity("/questions", null, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    public void createQuestion() throws Exception {
+    public void createQuestion() {
 
         //given
         User loginUser = defaultUser();
-
         String title = "동해물과백두산이";
         String contents = "contents::동해물과백두산이";
-
         MultiValueMap<String, Object> params = builder()
                 .add("title", title)
                 .add("contents", contents)
@@ -70,7 +69,7 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
 
         //then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findTopByTitle(title).isPresent()).isTrue();
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
     @Test
@@ -118,8 +117,9 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .exchange(String.format("/questions/%d", questionId), HttpMethod.PUT, request, String.class);
 
+        //then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findTopByTitle(title).isPresent()).isTrue();
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
     @Test

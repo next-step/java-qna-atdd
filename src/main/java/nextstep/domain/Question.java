@@ -1,6 +1,7 @@
 package nextstep.domain;
 
 import nextstep.CannotDeleteException;
+import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -10,6 +11,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -38,6 +41,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(long id, String title, String contents) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+    }
+
+    public Question(String title, String contents, boolean deleted) {
+        this(title, contents);
+        this.deleted = deleted;
     }
 
     public String getTitle() {
@@ -71,6 +85,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         answers.add(answer);
     }
 
+    public Answer findAnswer(long answerId) {
+        return answers.stream()
+                .filter(answer -> answer.equals(answer))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
+    }
+
     public boolean isOwner(User loginUser) {
         return writer.equals(loginUser);
     }
@@ -90,12 +111,20 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public void delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser))
             throw new UnAuthorizedException("삭제 권한이 없습니다.");
-
         if(isDeleted())
-            throw new CannotDeleteException("이미 삭제된 질문입니다.");
-
+            throw new CannotDeleteException("삭제된 질문입니다.");
         this.deleted = true;
     }
+
+    public boolean equalsTitleAndContents(Question target) {
+        if (Objects.isNull(target)) {
+            return false;
+        }
+
+        return title.equals(target.title) &&
+                contents.equals(target.contents);
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
@@ -105,4 +134,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
+
+
 }
