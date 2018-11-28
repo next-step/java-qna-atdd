@@ -20,4 +20,5 @@ public class DeleteHistoryService {
             deleteHistoryRepository.save(deleteHistory);
         }
     }
+
 }

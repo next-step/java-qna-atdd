@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthenticationException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +30,7 @@ public class QnaService {
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
-        log.debug("question : {}", question);
+        log.debug("question : {}",  question.generateUrl());
         return questionRepository.save(question);
     }
 
@@ -36,14 +39,36 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
         // TODO 수정 기능 구현
-        return null;
+       Question original = findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthenticationException::new);
+
+       original.setTitle(updatedQuestion.getTitle());
+       original.setContents(updatedQuestion.getContents());
+
+       return original;
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException, UnAuthenticationException {
         // TODO 삭제 기능 구현
+        Question original = findById(questionId)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthenticationException::new);
+
+        if (original.isDeleted()) {
+
+            List<DeleteHistory> deleteHistory = new ArrayList<DeleteHistory>();
+            deleteHistory.add(new DeleteHistory(ContentType.QUESTION, questionId, loginUser, LocalDateTime.now()));
+            try {
+                deleteHistoryService.saveAll(deleteHistory);
+            } catch (Exception e) {
+                throw new CannotDeleteException(deleteHistory.toString());
+            }
+        }
+
     }
 
     public Iterable<Question> findAll() {
@@ -56,6 +81,7 @@ public class QnaService {
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현
+
         return null;
     }
 
