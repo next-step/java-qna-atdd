@@ -30,6 +30,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public Answer(User writer, Question question, String contents) {
+        this.writer = writer;
+        this.question = question;
+        this.contents = contents;
+        this.deleted = false;
+    }
+
     public Answer(Long id, User writer, Question question, String contents) {
         super(id);
         this.writer = writer;
