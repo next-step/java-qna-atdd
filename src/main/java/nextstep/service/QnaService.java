@@ -1,6 +1,5 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 @Service("qnaService")
 public class QnaService {
@@ -31,28 +30,23 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) {
+        return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question existing = findById(id).orElseThrow(IllegalArgumentException::new);
+        Question existing = findById(id);
 
         existing.update(loginUser, updatedQuestion);
         return existing;
     }
 
     @Transactional
-    public void delete(User loginUser, long id) {
-        Question existing = findById(id).orElseThrow(IllegalAccessError::new);
+    public void deleteQuestion(User loginUser, long questionId) {
+        Question existing = findById(questionId);
 
         existing.delete(loginUser);
-    }
-
-    @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
     }
 
     public Iterable<Question> findAll() {

@@ -19,7 +19,7 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String get(@PathVariable long id, Model model) {
-        Question question = qnaService.findById(id).get();
+        Question question = qnaService.findById(id);
         model.addAttribute("question", question);
         return "/qna/show";
     }
@@ -40,7 +40,7 @@ public class QuestionController {
 
     @DeleteMapping("/{id}")
     public String delete(@LoginUser User loginUser, @PathVariable long id) {
-        qnaService.delete(loginUser, id);
+        qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }
 }
