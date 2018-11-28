@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.sun.xml.internal.ws.developer.Serialization;
 import nextstep.CannotUpdateException;
 import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
@@ -8,11 +9,15 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Question extends AbstractEntity implements UrlGeneratable {
+
+public class Question extends AbstractEntity implements UrlGeneratable, Serializable {
+
+
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -67,6 +72,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.title = target.title;
     }
 
+    public void deleteAnswer(Answer answer) {
+        answers.removeIf(a-> {
+            return a.equals(answer);
+        });
+    }
+
     public String getTitle() {
         return title;
     }
@@ -113,9 +124,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+        return "Question{" +
+                "title='" + title + '\'' +
+                ", contents='" + contents + '\'' +
+                ", writer=" + writer +
+                ", answers=" + answers +
+                ", deleted=" + deleted +
+                '}';
     }
-    
+
     public List<Answer> getAnswers() {
         return answers;
     }

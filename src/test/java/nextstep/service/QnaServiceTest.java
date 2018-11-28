@@ -79,8 +79,8 @@ public class QnaServiceTest extends BaseTest {
         Answer answer = new Answer(answerId, user, question1, contents);
 
 
-        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
-        qnaService.deleteAnswer(user, question1.getId());
+        when(answerRepository.findById(answerId)).thenReturn(Optional.of(answer));
+        qnaService.deleteAnswer(user, question1.getId(), answerId);
     }
 
     @Test (expected = CannotDeleteException.class)
@@ -93,6 +93,6 @@ public class QnaServiceTest extends BaseTest {
 
 
         when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
-        qnaService.deleteAnswer(UserTest.JAVAJIGI, question1.getId());
+        qnaService.deleteAnswer(UserTest.JAVAJIGI, question1.getId(), answerId);
     }
 }
