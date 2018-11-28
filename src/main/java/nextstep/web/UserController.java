@@ -1,6 +1,8 @@
 package nextstep.web;
 
+import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.security.HttpSessionUtils;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
 import org.slf4j.Logger;
@@ -17,12 +19,17 @@ import java.util.List;
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
+    private final String USER_UPDATE_VIEW = "/user/updateForm";
+    private final String REDIRECT_USERS = "redirect:/users";
+    private final String USER_HOME_VIEW = "/user/form";
+    private final String USER_LIST_VIEW = "/user/list";
+    private final String USER_PROFILE_VIEW = "/user/profile";
     @Resource(name = "userService")
     private UserService userService;
 
     @GetMapping("/form")
     public String form() {
-        return "/user/form";
+        return USER_HOME_VIEW;
     }
 
     @PostMapping("")
@@ -36,19 +43,25 @@ public class UserController {
         List<User> users = userService.findAll();
         log.debug("user size : {}", users.size());
         model.addAttribute("users", users);
-        return "/user/list";
+        return USER_LIST_VIEW;
+    }
+
+    @GetMapping("/{id}")
+    public String showUser(@PathVariable long id, Model model) {
+        model.addAttribute("user", userService.findById(id));
+        return USER_PROFILE_VIEW;
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("user", userService.findById(loginUser, id));
-        return "/user/updateForm";
+        return USER_UPDATE_VIEW;
     }
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
-        return "redirect:/users";
+        return REDIRECT_USERS;
     }
 
 }

@@ -3,6 +3,7 @@ package nextstep.domain;
 import nextstep.UnAuthorizedException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import support.domain.AbstractEntity;
+import support.domain.UrlGeneratable;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,7 +11,7 @@ import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Entity
-public class User extends AbstractEntity {
+public class User extends AbstractEntity  implements UrlGeneratable {
     public static final GuestUser GUEST_USER = new GuestUser();
 
     @Size(min = 3, max = 20)
@@ -92,7 +93,7 @@ public class User extends AbstractEntity {
         this.email = target.email;
     }
 
-    private boolean matchUserId(String userId) {
+    public boolean matchUserId(String userId) {
         return this.userId.equals(userId);
     }
 
@@ -112,6 +113,11 @@ public class User extends AbstractEntity {
     @JsonIgnore
     public boolean isGuestUser() {
         return false;
+    }
+
+    @Override
+    public String generateUrl() {
+        return String.format("/users/%d", getId());
     }
 
     private static class GuestUser extends User {
