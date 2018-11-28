@@ -65,10 +65,9 @@ public class QnaService {
 
         Question findedQuestion = findNotDeletedQuestionById(questionId);
 
-        findedQuestion.delete(loginUser);
+        final List<DeleteHistory> deleteHistories = findedQuestion.delete(loginUser);
 
-        DeleteHistory deleteHistory = new DeleteHistory(ContentType.QUESTION, questionId, loginUser, LocalDateTime.now());
-        deleteHistoryService.saveAll(ImmutableList.of(deleteHistory));
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Iterable<Question> findAll() {

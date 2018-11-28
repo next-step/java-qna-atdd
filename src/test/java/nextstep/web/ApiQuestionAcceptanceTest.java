@@ -1,6 +1,8 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
+import nextstep.domain.User;
 import org.junit.Test;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -105,7 +107,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete() {
+    public void delete_답변없을때() {
         final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
 
         final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
@@ -115,6 +117,47 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         final ResponseEntity<Question> findResponse = basicAuthTemplate().getForEntity(resource, Question.class);
 
         softly.assertThat(findResponse.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_동일_작성자_답변만_있을때() {
+        final User defaultUser = defaultUser();
+        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        Question question = getResource(resource, Question.class, defaultUser);
+
+        final String answerUrl = CONTEXT + "/{questionId}/answers";
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+
+
+        final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
+
+        softly.assertThat(response.getStatusCode()).isSameAs(HttpStatus.NO_CONTENT);
+
+        final ResponseEntity<Question> findResponse = basicAuthTemplate().getForEntity(resource, Question.class);
+
+        softly.assertThat(findResponse.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_다른_작성자_답변_있을때() {
+        final User defaultUser = defaultUser();
+        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        Question question = getResource(resource, Question.class, defaultUser);
+
+        final String answerUrl = CONTEXT + "/{questionId}/answers";
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+        requestAddAnswer(answerUrl, basicAuthTemplate(anotherUser()), question.getId());
+
+
+        final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
+
+        softly.assertThat(response.getStatusCode()).isSameAs(HttpStatus.FORBIDDEN);
+    }
+
+    private void requestAddAnswer(String answerUrl, TestRestTemplate testRestTemplate, Long questionId) {
+        testRestTemplate.postForEntity(answerUrl, new Answer("contents!!"), Void.class, questionId);
     }
 
     @Test

@@ -5,7 +5,10 @@ import org.junit.Before;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,7 +39,7 @@ public class QuestionTest extends BaseTest {
     }
 
     @Test
-    public void delete() {
+    public void delete_답변_없을때() {
         final boolean beforeState = question.isDeleted();
         final User writer = new User(1L, "id", "password", "name", "email");
         question.writeBy(writer);
@@ -45,6 +48,46 @@ public class QuestionTest extends BaseTest {
 
         softly.assertThat(beforeState).isFalse();
         softly.assertThat(question.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void delete_동일_작성자_답변만_있을때() {
+        final User writer = new User(1L, "id", "password", "name", "email");
+        question.writeBy(writer);
+        final List<Answer> answers = createSameWriterAnswers(writer);
+        question.addAllAnswer(answers);
+
+        final List<DeleteHistory> deleteHistories = question.delete(writer);
+        final Map<ContentType, List<DeleteHistory>> historyMap = deleteHistories.stream().collect(Collectors.groupingBy(DeleteHistory::getContentType, Collectors.toList()));
+
+        softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(question.getAnswers()).allSatisfy(answer -> assertThat(answer.isDeleted()).isTrue());
+        softly.assertThat(historyMap.get(ContentType.QUESTION).size()).isEqualTo(1);
+        softly.assertThat(historyMap.get(ContentType.ANSWER).size()).isEqualTo(answers.size());
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_다른_작성자_답변_있을때() {
+        final User writer = new User(1L, "id", "password", "name", "email");
+        question.writeBy(writer);
+        final List<Answer> answers = createSameWriterAnswers(writer);
+        question.addAllAnswer(answers);
+        final User anotherWriter = new User(2L, "id", "password", "name", "email");
+        final Answer anotherWriterAnswer = new Answer((long) (answers.size() + 1), anotherWriter, question, "contents!!");
+        question.addAnswer(anotherWriterAnswer);
+
+
+        question.delete(writer);
+    }
+
+    private List<Answer> createSameWriterAnswers(User writer) {
+        List<Answer> answers = new ArrayList<>();
+        for (long i = 1; i <= 5; i++) {
+            Answer answer = new Answer(i, writer, null, "contents!!");
+            answers.add(answer);
+        }
+
+        return answers;
     }
 
     @Test(expected = UnAuthorizedException.class)

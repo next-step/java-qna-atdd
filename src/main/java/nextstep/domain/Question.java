@@ -8,7 +8,9 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -92,11 +94,34 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User loginUser) {
+    public List<DeleteHistory> delete(User loginUser) {
+        List<DeleteHistory> histories = new ArrayList<>();
+
+        DeleteHistory deleteHistory = deleteQuestion(loginUser);
+        histories.add(deleteHistory);
+
+        final List<DeleteHistory> deleteAnswerHistories = deleteAllAnswers(loginUser);
+        histories.addAll(deleteAnswerHistories);
+
+        return histories;
+    }
+
+    private DeleteHistory deleteQuestion(User loginUser) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.deleted = true;
+
+        return new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer, LocalDateTime.now());
+    }
+
+    private List<DeleteHistory> deleteAllAnswers(User loginUser) {
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        for (Answer answer : answers) {
+            final DeleteHistory deleteHistory = answer.delete(loginUser, this.getId());
+            deleteHistories.add(deleteHistory);
+        }
+        return deleteHistories;
     }
 
     public Question update(User loginUser, Question target) {
@@ -114,15 +139,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             return false;
         }
 
-        if (this.title != other.title) {
+        if (!this.title.equals(other.title)) {
             return false;
         }
 
-        return this.contents == other.contents;
+        return this.contents.equals(other.contents);
     }
 
     public boolean containsAnswer(Answer answer) {
         return this.answers.contains(answer);
+    }
+
+    public void addAllAnswer(Collection<Answer> answers) {
+        for (Answer answer : answers) {
+            this.addAnswer(answer);
+        }
     }
 
     @Override

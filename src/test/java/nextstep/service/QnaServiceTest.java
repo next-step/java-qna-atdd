@@ -5,9 +5,12 @@ import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.*;
@@ -128,18 +131,63 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void deleteQuestion() throws UnAuthenticationException {
+    public void deleteQuestion_답변_없을때() throws UnAuthenticationException {
         final Long questionId = 1L;
         final User loginUser = new User(1L,"userId", "pass", "name", "email");
-        final Question mockQuestion = mock(Question.class);
-        when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(mockQuestion));
+        final Question question = new Question(1L, "title", "contents");
+        question.writeBy(loginUser);
+        when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(question));
 
 
         qnaService.deleteQuestion(loginUser, questionId);
 
 
-        verify(mockQuestion, times(1)).delete(loginUser);
         verify(deleteHistoryService, times(1)).saveAll(anyList());
+    }
+
+    @Test
+    public void deleteQuestion_동일_작성자_답변만_있을때() throws UnAuthenticationException {
+        final Long questionId = 1L;
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Question question = new Question(1L, "title", "contents");
+        question.writeBy(loginUser);
+        final List<Answer> answers = createSameWriterAnswers(loginUser);
+        question.addAllAnswer(answers);
+        when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(question));
+
+        qnaService.deleteQuestion(loginUser, questionId);
+
+        verify(deleteHistoryService, times(1)).saveAll(anyList());
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void deleteQuestion_동일_작성자_다른_답변_있을때() throws UnAuthenticationException {
+        final Long questionId = 1L;
+        final User loginUser = new User(1L,"userId", "pass", "name", "email");
+        final Question question = new Question(1L, "title", "contents");
+        question.writeBy(loginUser);
+        final List<Answer> answers = createSameWriterAnswers(loginUser);
+        question.addAllAnswer(answers);
+        final User anotherUser = new User(2L,"userId", "pass", "name", "email");
+        Answer anotherUserAnswer = new Answer((long) (answers.size() + 1), anotherUser, question, "contents!!");
+        question.addAnswer(anotherUserAnswer);
+        when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(question));
+
+
+        qnaService.deleteQuestion(loginUser, questionId);
+
+
+        verify(deleteHistoryService, times(1)).saveAll(anyList());
+    }
+
+    private List<Answer> createSameWriterAnswers(User writer) {
+        List<Answer> answers = new ArrayList<>();
+        for (long i = 1; i <= 5; i++) {
+            Answer answer = new Answer(i, writer, null, "contents!!");
+            answers.add(answer);
+        }
+
+        return answers;
     }
 
     @Test(expected = UnAuthenticationException.class)
