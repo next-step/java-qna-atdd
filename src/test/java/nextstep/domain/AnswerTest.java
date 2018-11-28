@@ -2,7 +2,7 @@ package nextstep.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import nextstep.CannotDeleteException;
+import nextstep.AlreadyDeletedException;
 import nextstep.UnAuthorizedException;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +14,19 @@ public class AnswerTest {
 	}
 
 	public static Answer newAnswer(String contents) {
-		return new Answer(UserTest.JAVAJIGI, contents);
+		return newAnswer(UserTest.JAVAJIGI, contents);
+	}
+
+	public static Answer newAnswer(User writer, String contents) {
+		return newAnswer(writer, QuestionTest.newQuestion(), contents);
+	}
+
+	public static Answer newAnswer(User writer, Question question) {
+		return newAnswer(writer, question, "기본 답변 생성");
+	}
+
+	public static Answer newAnswer(User writer, Question question, String contents) {
+		return new Answer(writer, question, contents);
 	}
 
 	private Answer answer;
@@ -40,7 +52,7 @@ public class AnswerTest {
 		assertThat(answer.isDeleted()).isTrue();
 	}
 
-	@Test(expected = CannotDeleteException.class)
+	@Test(expected = AlreadyDeletedException.class)
 	public void deleteAlreadyDeleted() throws Exception {
 		answer.delete(UserTest.JAVAJIGI);
 		answer.delete(UserTest.JAVAJIGI);

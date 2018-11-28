@@ -1,8 +1,14 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
+import nextstep.domain.AnswerTest;
+import nextstep.domain.ContentType;
+import nextstep.domain.DeleteHistoryRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionTest;
+import nextstep.domain.User;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +17,9 @@ import support.test.AcceptanceTest;
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
 	public static final String API_QUESTIONS_PATH = "/api/questions";
+
+	@Autowired
+	private DeleteHistoryRepository deleteHistoryRepository;
 
 	@Test
 	public void create() {
@@ -95,6 +104,40 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 		ResponseEntity<Void> response = deleteResource(template(), location);
 
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	public void deleteWhenHasAnswerOfSameWriter() {
+		User user = defaultUser();
+		String questionLocation = createNewQuestion();
+		String answerLocation = createNewAnswer(user, questionLocation);
+
+		ResponseEntity<Void> response = deleteResource(basicAuthTemplate(), questionLocation);
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		Question savedQuestion = getResource(template(), questionLocation, Question.class);
+		Answer savedAnswer = getResource(template(), answerLocation, Answer.class);
+		softly.assertThat(deleteHistoryRepository.countByContentTypeAndContentId(
+				ContentType.QUESTION, savedQuestion.getId())).isEqualTo(1);
+		softly.assertThat(deleteHistoryRepository.countByContentTypeAndContentId(
+				ContentType.ANSWER, savedAnswer.getId())).isEqualTo(1);
+	}
+
+	@Test
+	public void deleteFailWhenHasAnswerOfOtherWriter() {
+		User user = findByUserId("sanjigi");
+		String questionLocation = createNewQuestion();
+		createNewAnswer(user, questionLocation);
+
+		ResponseEntity<Void> response = deleteResource(basicAuthTemplate(user), questionLocation);
+
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	private String createNewAnswer(User user, String questionLocation) {
+		ResponseEntity<Void> response = createResource(basicAuthTemplate(user), String.format("%s/answers" , questionLocation),
+				AnswerTest.newAnswer());
+		return response.getHeaders().getLocation().getPath();
 	}
 
 	private String createNewQuestion() {

@@ -57,7 +57,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
 		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		softly.assertThat(response.getBody()).contains(title, contents);
-		softly.assertThat(questionRepository.findByWriterAndTitle(loginUser, title)).isNotNull();
 	}
 
 	@Test
@@ -130,20 +129,29 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 	}
 
 	@Test
-	public void deleteQuestionByWriter() {
-		deleteQuestion(defaultUser(), 1);
+	public void deleteQuestionByOwner() {
+		long questionId = 2;
+
+		ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(findByUserId("sanjigi")), questionId);
+
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+		softly.assertThat(deleteHistoryRepository.countByContentTypeAndContentId(ContentType.QUESTION, questionId)).isEqualTo(1);
 	}
 
 	@Test
-	public void deleteQuestionByOtherUser() {
-		deleteQuestion(findByUserId("sanjigi"), 0);
+	public void deleteFailWhenHasAnswerOfOtherUser() {
+		long questionId = 1;
+
+		ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(), questionId);
+
+		softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
-	private void deleteQuestion(User loginUser, int size) {
-		basicAuthTemplate(loginUser).delete("/questions/1");
+	private ResponseEntity<String> deleteQuestion(TestRestTemplate template, long questionId) {
+		HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+				.delete().build();
 
-		softly.assertThat(questionRepository.findByDeleted(true)).hasSize(size);
-		softly.assertThat(deleteHistoryRepository.countByContentType(ContentType.QUESTION)).isEqualTo(size);
+		return template.postForEntity("/questions/" + questionId, request, String.class);
 	}
 
 	@Test
@@ -163,9 +171,10 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
 	@Test
 	public void deleteAnswer() {
-		basicAuthTemplate().delete("/questions/2/answers/1", String.class);
+		long answerId = 1;
+		basicAuthTemplate().delete("/questions/2/answers/" + answerId, String.class);
 
-		softly.assertThat(answerRepository.findByDeleted(true)).hasSize(1);
-		softly.assertThat(deleteHistoryRepository.countByContentType(ContentType.ANSWER)).isEqualTo(1);
+		softly.assertThat(deleteHistoryRepository.countByContentTypeAndContentId(
+				ContentType.ANSWER, answerId)).isEqualTo(1);
 	}
 }
