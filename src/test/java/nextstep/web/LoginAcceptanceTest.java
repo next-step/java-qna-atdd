@@ -5,11 +5,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import support.builder.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
-
-import java.util.Arrays;
 
 public class LoginAcceptanceTest extends AcceptanceTest {
 
@@ -24,14 +22,9 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void login() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", "javajigi");
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("userId", "javajigi")
+                .addParameter("password", "test").build();
 
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity("/login", request, String.class);
@@ -42,15 +35,9 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void loginFailed() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("id", "javajigi");
-        params.add("password", "test11");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        HttpEntity<MultiValueMap<String, Object>> request =  HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("userId", "javajigi")
+                .addParameter("password", "test11").build();
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity("/login", request, String.class);
 
