@@ -71,11 +71,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User requestUser) {
-        if(!this.isOwner(requestUser)) {
-        	throw new UnAuthorizedException();
-		}
-		this.deleted = true;
+    public DeleteHistory delete(User requestUser) {
+        if (!this.isOwner(requestUser)) {
+            throw new UnAuthorizedException();
+        }
+        this.deleted = true;
+        return DeleteHistory.newAnswerHistory(getId(), requestUser);
     }
 
     @Override
@@ -93,7 +94,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public void update(User loginUser, String contents) {
-        if(!isOwner(loginUser)) {
+        if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.contents = contents;

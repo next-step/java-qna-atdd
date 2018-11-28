@@ -35,4 +35,12 @@ public class DeleteHistory {
         return "DeleteHistory [id=" + id + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="
                 + deletedBy + ", createDate=" + createDate + "]";
     }
+
+    public static DeleteHistory newAnswerHistory(long answerId, User requestUser){
+        return new DeleteHistory(ContentType.ANSWER, answerId, requestUser, LocalDateTime.now());
+    }
+
+    public static DeleteHistory newQuestionHistory(long questionId, User requestUser){
+        return new DeleteHistory(ContentType.QUESTION, questionId, requestUser, LocalDateTime.now());
+    }
 }
