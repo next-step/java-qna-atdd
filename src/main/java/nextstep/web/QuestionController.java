@@ -38,7 +38,7 @@ public class QuestionController {
     public String updateForm(@LoginUser final User loginUser,
                              final Model model,
                              @PathVariable final long id) {
-        model.addAttribute("question", qnaService.findById(loginUser, id));
+        model.addAttribute("question", qnaService.findByUserAndId(loginUser, id));
         return "/qna/updateForm";
     }
 

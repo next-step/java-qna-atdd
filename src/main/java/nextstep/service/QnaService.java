@@ -29,11 +29,16 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question findById(final User user, final long id) {
+    public Question findByUserAndId(final User user, final long id) {
         final Question question = questionRepository.findById(id)
                 .orElseThrow(QnaService::resourceNotFoundException);
         return of(question).filter(q -> q.isOwner(user))
                 .orElseThrow(QnaService::questionPermissionException);
+    }
+
+    public Question findById(final long id) {
+        return questionRepository.findById(id)
+                .orElseThrow(QnaService::resourceNotFoundException);
     }
 
     public List<Question> findAll(final Pageable pageable) {
@@ -49,27 +54,38 @@ public class QnaService {
 
     @Transactional
     public Question update(final User loginUser, final long id, final Question updatedQuestion) {
-        final Question question = questionRepository.findById(id)
-                .orElseThrow(QnaService::resourceNotFoundException);
+        final Question question = findById(id);
         question.update(loginUser, updatedQuestion);
         return question;
     }
 
     @Transactional
     public void delete(final User loginUser, final long id) throws CannotDeleteException {
-        questionRepository.findById(id)
-                .orElseThrow(QnaService::resourceNotFoundException)
-                .delete(loginUser);
+        findById(id).delete(loginUser);
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    @Transactional
+    public Answer addAnswer(final User loginUser, final long questionId, final String contents) {
+        final Answer answer = answerRepository.save(new Answer(loginUser, contents));
+        final Question question = findById(questionId);
+        question.addAnswer(answer);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현
-        return null;
+    @Transactional
+    public Answer updateAnswer(final User loginUser, final Answer updateAnswer) {
+        final Answer savedAnswer = answerRepository.findById(updateAnswer.getId())
+                .orElseThrow(QnaService::resourceNotFoundException);
+        savedAnswer.update(loginUser, updateAnswer);
+        return savedAnswer;
+    }
+
+    @Transactional
+    public Answer deleteAnswer(final User loginUser, final long id) {
+        final Answer answer = answerRepository.findById(id)
+                .orElseThrow(QnaService::resourceNotFoundException);
+        answer.delete(loginUser);
+        return answer;
     }
 
     private static ResourceNotFoundException resourceNotFoundException() {
