@@ -5,11 +5,13 @@ import org.junit.Test;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
+import static nextstep.domain.QuestionTest.newQuestion;
+
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 생성() throws Exception {
-        Question newQuestion = defaultQuestion();
+        Question newQuestion = newQuestion();
         ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -20,7 +22,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 조회_상세() throws Exception {
-        Question newQuestion = defaultQuestion();
+        Question newQuestion = newQuestion();
         ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -33,7 +35,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 수정() throws Exception {
-        Question newQuestion = defaultQuestion();
+        Question newQuestion = newQuestion();
         ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -50,7 +52,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 수정_비로그인_사용자() throws Exception {
-        Question newQuestion = defaultQuestion();
+        Question newQuestion = newQuestion();
         ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -66,7 +68,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 수정_다른_사용자() throws Exception {
-        Question newQuestion = defaultQuestion();
+        Question newQuestion = newQuestion();
         ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -82,7 +84,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 삭제() throws Exception {
-        Question newQuestion = defaultQuestion();
+        Question newQuestion = newQuestion();
         ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
@@ -92,7 +94,21 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
                 basicAuthTemplate().exchange(location, HttpMethod.DELETE, createHttpEntity(original.getId()), Void.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(basicAuthTemplate().getForObject(location, Question.class).isDeleted()).isTrue();
+        softly.assertThat(basicAuthTemplate().getForObject(location, Question.class)).isNull();
+    }
+
+    @Test
+    public void 삭제_다른_사용자() throws Exception {
+        Question newQuestion = newQuestion();
+        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", newQuestion, Void.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String location = response.getHeaders().getLocation().getPath();
+        Question original = basicAuthTemplate().getForObject(location, Question.class);
+
+        ResponseEntity<Void> responseEntity =
+                basicAuthTemplate(findByUserId("sanjigi")).exchange(location, HttpMethod.DELETE, createHttpEntity(original.getId()), Void.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private HttpEntity createHttpEntity(Object body) {
