@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import support.domain.AbstractEntity;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.validation.constraints.Size;
 import java.util.Objects;
@@ -21,12 +23,8 @@ public class User extends AbstractEntity {
     @Column(nullable = false)
     private String password;
 
-    @Size(min = 3, max = 20)
-    @Column(nullable = false)
-    private String name;
-
-    @Size(max = 50)
-    private String email;
+    @Embedded
+    private UserProfile userProfile = new UserProfile();
 
     public User() {
     }
@@ -39,8 +37,7 @@ public class User extends AbstractEntity {
         super(id);
         this.userId = userId;
         this.password = password;
-        this.name = name;
-        this.email = email;
+        this.userProfile = new UserProfile(name, email);
     }
 
     public String getUserId() {
@@ -62,20 +59,20 @@ public class User extends AbstractEntity {
     }
 
     public String getName() {
-        return name;
+        return userProfile.getName();
     }
 
     public User setName(String name) {
-        this.name = name;
+        this.userProfile.setName(name);
         return this;
     }
 
     public String getEmail() {
-        return email;
+        return userProfile.getEmail();
     }
 
     public User setEmail(String email) {
-        this.email = email;
+        this.userProfile.setEmail(email);
         return this;
     }
 
@@ -88,8 +85,8 @@ public class User extends AbstractEntity {
             throw new UnAuthorizedException();
         }
 
-        this.name = target.name;
-        this.email = target.email;
+        this.userProfile.setName(target.getName())
+                .setEmail(target.getEmail());
     }
 
     private boolean matchUserId(String userId) {
@@ -101,12 +98,7 @@ public class User extends AbstractEntity {
     }
 
     public boolean equalsNameAndEmail(User target) {
-        if (Objects.isNull(target)) {
-            return false;
-        }
-
-        return name.equals(target.name) &&
-                email.equals(target.email);
+        return userProfile.equalsNameAndEmail(target);
     }
 
     @JsonIgnore
@@ -123,6 +115,6 @@ public class User extends AbstractEntity {
 
     @Override
     public String toString() {
-        return "User [userId=" + userId + ", password=" + password + ", name=" + name + ", email=" + email + "]";
+        return "User [userId=" + userId + ", password=" + password + ", profile=" + userProfile.toString() + "]";
     }
 }

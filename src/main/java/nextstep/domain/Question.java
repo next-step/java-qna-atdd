@@ -1,16 +1,16 @@
 package nextstep.domain;
 
 import nextstep.CannotDeleteException;
-import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
-import org.springframework.util.CollectionUtils;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 import static nextstep.CannotDeleteException.ALREADY_DELETED_EXCEPTION;
 import static nextstep.CannotDeleteException.HAS_ANSWERS_OF_OTHER_EXCEPTION;
@@ -30,10 +30,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -97,10 +95,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Answer findAnswer(long answerId) {
-        return answers.stream()
-                .filter(answer -> answer.equalsId(answerId))
-                .findFirst()
-                .orElseThrow(NotFoundException::new);
+        return answers.find(answerId);
     }
 
     public void update(User loginUser, Question target) {
@@ -112,14 +107,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistories delete(User loginUser) throws CannotDeleteException {
         List<DeleteHistory> questionDeleteHistories = Arrays.asList(this.deleteQuestion(loginUser));
-        List<DeleteHistory> answersDeleteHistories = this.deleteAnswers(loginUser);
+        List<DeleteHistory> answersDeleteHistories = answers.delete(loginUser);
 
         List<DeleteHistory> deleteHistories = new ArrayList<>();
         deleteHistories.addAll(questionDeleteHistories);
         deleteHistories.addAll(answersDeleteHistories);
-        return deleteHistories;
+        return DeleteHistories.create(deleteHistories);
     }
 
     public DeleteHistory deleteQuestion(User loginUser) throws CannotDeleteException {
@@ -131,26 +126,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException(ALREADY_DELETED_EXCEPTION);
         }
 
-        if(hasAnswersOfOther(loginUser)) {
+        if(answers.hasAnswersOfOther(loginUser)) {
             throw new CannotDeleteException(HAS_ANSWERS_OF_OTHER_EXCEPTION);
         }
 
         this.deleted = true;
         return DeleteHistory.from(this, loginUser);
-    }
-
-    private List<DeleteHistory> deleteAnswers(User loginUser) throws CannotDeleteException {
-        List<DeleteHistory> histories = new ArrayList<>();
-        for (int i = 0; i < answers.size(); i++) {
-            Answer answer = answers.get(i);
-            histories.add(answer.delete(loginUser));
-        }
-        return histories;
-    }
-
-    public boolean hasAnswersOfOther(User loginUser) {
-        return answers.stream()
-                .anyMatch(answer -> !answer.isOwner(loginUser));
     }
 
     public boolean equalsTitleAndContents(Question target) {
