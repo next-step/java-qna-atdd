@@ -1,12 +1,11 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-
-import nextstep.CannotDeleteException;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -69,11 +68,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("답변을 삭제할 수 없습니다.");
         }
         this.deleted = true;
+        return DeleteHistory.fromAnswer(this);
     }
     
     @Override

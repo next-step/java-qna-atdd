@@ -24,6 +24,12 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     private AnswerRepository answerRepository;
 
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
+
+    @Mock
+    private DeletePolicy deletePolicy;
+
     @InjectMocks
     private QnaService qnaService;
 
@@ -43,13 +49,17 @@ public class QnaServiceTest extends BaseTest {
     
     @Test
     public void delete_success() throws CannotDeleteException {
-        when(questionRepository.findById(questionId)).thenReturn(Optional.of(newQuestion(SANJIGI)));
+        Question question = newQuestion(SANJIGI);
+        when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
+        when(deletePolicy.canPermission(any(), any())).thenReturn(true);
         qnaService.deleteQuestion(SANJIGI, questionId);
+        softly.assertThat(question.isDeleted()).isTrue();
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_failed_when_not_owner() throws CannotDeleteException {
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(newQuestion(JAVAJIGI)));
+        when(deletePolicy.canPermission(any(), any())).thenReturn(false);
         qnaService.deleteQuestion(SANJIGI, questionId);
     }
 

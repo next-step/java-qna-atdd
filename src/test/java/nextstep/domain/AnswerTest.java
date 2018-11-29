@@ -1,12 +1,12 @@
 package nextstep.domain;
 
-import static nextstep.domain.UserTest.*;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import nextstep.CannotDeleteException;
+import org.junit.Test;
 import support.test.BaseTest;
+
+import static nextstep.domain.UserTest.JAVAJIGI;
+import static nextstep.domain.UserTest.SANJIGI;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnswerTest extends BaseTest {
 
