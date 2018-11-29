@@ -3,6 +3,9 @@ package nextstep.domain;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+import static nextstep.domain.ContentType.ANSWER;
+import static nextstep.domain.ContentType.QUESTION;
+
 @Entity
 public class DeleteHistory {
     @Id
@@ -28,6 +31,14 @@ public class DeleteHistory {
         this.contentId = contentId;
         this.deletedBy = deletedBy;
         this.createDate = createDate;
+    }
+
+    public static DeleteHistory from(Question question, User loginUser) {
+        return new DeleteHistory(QUESTION, question.getId(), loginUser, LocalDateTime.now());
+    }
+
+    public static DeleteHistory from(Answer answer, User loginUser) {
+        return new DeleteHistory(ANSWER, answer.getId(), loginUser, LocalDateTime.now());
     }
 
     @Override

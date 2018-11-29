@@ -2,9 +2,14 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import support.test.BaseTest;
 
+import static nextstep.CannotDeleteException.ALREADY_DELETED_EXCEPTION;
+import static nextstep.CannotDeleteException.HAS_ANSWERS_OF_OTHER_EXCEPTION;
+import static nextstep.domain.AnswerTest.newAnswer;
 import static nextstep.domain.UserTest.JAVAJIGI;
 import static nextstep.domain.UserTest.SANJIGI;
 
@@ -14,10 +19,9 @@ public class QuestionTest extends BaseTest {
         return newQuestion("제목1", "내용1");
     }
 
-    public static Question newQuestion(User user) {
-        Question question = new Question("제목1", "내용1");
-        question.writeBy(user);
-        return question;
+    public static Question newQuestionByWriter(User user) {
+        return new Question("제목1", "내용1")
+                .writeBy(user);
     }
 
     public static Question newQuestion(String title, String contents) {
@@ -25,15 +29,38 @@ public class QuestionTest extends BaseTest {
     }
 
     public static Question newQuestionByDeleted() {
-        Question question = new Question("제목1", "내용1", true);
-        question.writeBy(JAVAJIGI);
+        return new Question("제목1", "내용1")
+                .writeBy(JAVAJIGI)
+                .setDeleted(true);
+    }
+
+    public static Question newQuestionHasAnswersOfSelf(User loginUser) {
+        Answer answer = newAnswer(loginUser, "테스트입니다2");
+
+        Question question = new Question("제목1", "내용1")
+                .writeBy(loginUser);
+        question.addAnswer(answer);
+
         return question;
     }
+
+    public static Question newQuestionHasAnswersOfOther(User loginUser) {
+        Answer answer = newAnswer(SANJIGI, "테스트입니다2");
+
+        Question question = new Question("제목1", "내용1")
+                .writeBy(loginUser);
+        question.addAnswer(answer);
+
+        return question;
+    }
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void update_owner() throws Exception {
         User loginUser = JAVAJIGI;
-        Question origin = newQuestion(loginUser);
+        Question origin = newQuestionByWriter(loginUser);
         Question target = newQuestion("제목2", "내용2");
 
         origin.update(loginUser, target);
@@ -41,9 +68,11 @@ public class QuestionTest extends BaseTest {
         softly.assertThat(origin.getContents()).isEqualTo(target.getContents());
     }
 
-    @Test(expected = UnAuthorizedException.class)
+    @Test
     public void update_not_owner() throws Exception {
-        Question origin = newQuestion(JAVAJIGI);
+        thrown.expect(UnAuthorizedException.class);
+
+        Question origin = newQuestionByWriter(JAVAJIGI);
         User loginUser = SANJIGI;
         Question target = newQuestion("제목2", "내용2");
 
@@ -53,22 +82,44 @@ public class QuestionTest extends BaseTest {
     @Test
     public void delete_owner() throws Exception {
         User loginUser = JAVAJIGI;
-        Question origin = newQuestion(loginUser);
+        Question origin = newQuestionByWriter(loginUser);
 
         origin.delete(loginUser);
         softly.assertThat(origin.isDeleted()).isTrue();
     }
 
-    @Test(expected = UnAuthorizedException.class)
+    @Test
     public void delete_not_owner() throws Exception {
-        Question origin = newQuestion(JAVAJIGI);
+        thrown.expect(UnAuthorizedException.class);
+
+        Question origin = newQuestionByWriter(JAVAJIGI);
         User loginUser = SANJIGI;
 
         origin.delete(loginUser);
     }
 
-    @Test(expected = CannotDeleteException.class)
-    public void can_not_delete() throws Exception {
+    @Test
+    public void delete_has_answers_of_other() throws Exception {
+        thrown.expect(CannotDeleteException.class);
+        thrown.expectMessage(HAS_ANSWERS_OF_OTHER_EXCEPTION);
+
+        User loginUser = JAVAJIGI;
+        Question origin = newQuestionHasAnswersOfOther(loginUser);
+        origin.delete(loginUser);
+    }
+
+    @Test
+    public void delete_has_answers_of_self() throws Exception {
+        User loginUser = JAVAJIGI;
+        Question origin = newQuestionHasAnswersOfSelf(loginUser);
+        origin.delete(loginUser);
+    }
+
+    @Test
+    public void delete_already_deleted() throws Exception {
+        thrown.expect(CannotDeleteException.class);
+        thrown.expectMessage(ALREADY_DELETED_EXCEPTION);
+
         Question origin = newQuestionByDeleted();
         User loginUser = JAVAJIGI;
         origin.delete(loginUser);

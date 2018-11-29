@@ -28,31 +28,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer() {
     }
 
-    public Answer(User writer, String contents) {
-        this.writer = writer;
+    public Answer(String contents) {
         this.contents = contents;
     }
 
-    public Answer(long id, String contents) {
-        super(id);
-        this.contents = contents;
-    }
-
-    public Answer(User writer, String contents, boolean deleted) {
-        this(writer, contents);
-        this.deleted = deleted;
-    }
-
-    public Answer(Long id, User writer, Question question, String contents) {
-        super(id);
-        this.writer = writer;
-        this.question = question;
-        this.contents = contents;
-        this.deleted = false;
-    }
-
-    public User getWriter() {
-        return writer;
+    @Override
+    public Answer setId(long id) {
+        super.setId(id);
+        return this;
     }
 
     public Question getQuestion() {
@@ -68,8 +51,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void writeBy(User loginUser) {
+    public User getWriter() {
+        return writer;
+    }
+
+    public Answer writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void toQuestion(Question question) {
@@ -84,7 +72,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public Answer setDeleted(boolean deleted) {
+        this.deleted = deleted;
+        return this;
+    }
+
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
@@ -94,6 +87,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
+        return DeleteHistory.from(this, loginUser);
     }
 
     @Override
