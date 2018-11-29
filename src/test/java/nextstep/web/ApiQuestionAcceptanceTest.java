@@ -38,9 +38,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show() throws Exception {
-        Question question = Question.ofUser("test1", "contents1", defaultUser());
-        String location = createLoginResourceLocation(defaultUser(), API_QUESTIONS, question);
-        Question result = getResource(location, Question.class, defaultUser());
+        Question question = defaultQuestion();
+        Question result = getResource("/api"+question.generateUrl(), Question.class, defaultUser());
         softly.assertThat(result).isNotNull();
     }
 

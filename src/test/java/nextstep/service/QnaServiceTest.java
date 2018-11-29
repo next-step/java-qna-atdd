@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +41,7 @@ public class QnaServiceTest  {
     public static Answer answer;
     @Before
     public void setUp() throws Exception {
-        question = Question.ofUser("제목테스트","내용테스트", JAVAJIGI);
+        question = Question.ofList("제목테스트","내용테스트", JAVAJIGI, new ArrayList<>());
         answer = Answer.of(SANJIGI, "내용테스트");
     }
 
@@ -54,7 +55,7 @@ public class QnaServiceTest  {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         String title = "제목업데이트";
         String contents = "내용업데이트";
-        qnaService.updateQuestion(question.getWriter(), question.getId(), Question.ofUser(title, contents, JAVAJIGI));
+        qnaService.updateQuestion(question.getWriter(), question.getId(), Question.ofList(title, contents, JAVAJIGI, new ArrayList<>()));
         assertThat(question.getTitle()).isEqualTo(title);
         assertThat(question.getContents()).isEqualTo(contents);
 
@@ -65,7 +66,7 @@ public class QnaServiceTest  {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         String title = "제목업데이트";
         String contents = "내용업데이트";
-        qnaService.updateQuestion(SANJIGI, question.getId(),  Question.ofUser(title,contents,JAVAJIGI));
+        qnaService.updateQuestion(SANJIGI, question.getId(),  Question.ofList(title,contents,JAVAJIGI, new ArrayList<>()));
         assertThat(question.getTitle()).isEqualTo(title);
         assertThat(question.getContents()).isEqualTo(contents);
     }

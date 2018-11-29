@@ -40,13 +40,13 @@ public class QnaService {
     @Transactional
     public Question updateQuestion(User loginUser, long questionId, Question updatedQuestion) {
         // TODO 수정 기능 구현
-        return questionRepository.findById(questionId).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).update(updatedQuestion);
+        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).update(loginUser,updatedQuestion);
     }
 
     @Transactional
     public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
-        return questionRepository.findById(questionId).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).delete(loginUser);
+        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
     }
 
     public Iterable<Question> findAll() {

@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class AnswerTest extends BaseTest {
     public static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
 
     public static final Question newQuestion() {
-        return Question.ofUser("제목테스트", "내용테스트", JAVAJIGI);
+        return Question.ofList("제목테스트", "내용테스트", JAVAJIGI, new ArrayList<>());
     }
 
     public static Answer newAnswer() {

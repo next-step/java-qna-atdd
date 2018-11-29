@@ -32,18 +32,18 @@ public class ApiQuestionController {
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
-    @GetMapping("{id}")
-    public Question show(@LoginUser User loginUser, @PathVariable long id) {
+    @GetMapping("/{id}")
+    public Question show(@PathVariable long id) {
         return qnaService.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question updatedQuestion) {
         return qnaService.updateQuestion(loginUser, id, updatedQuestion);
     }
 
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public Question delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
         return qnaService.deleteQuestion(loginUser, id);
     }
