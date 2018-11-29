@@ -87,8 +87,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return false;
     }
 
-    public List<DeleteHistory> addDeleteHistory(List<DeleteHistory> deleteHistories) {
-        deleteHistories.add(new DeleteHistory(ContentType.ANSWER, this.getId(), this.writer, LocalDateTime.now()));
-        return deleteHistories;
+    public DeleteHistory getDeleteHistoryByAnswer() {
+        this.deleted = true;
+        return new DeleteHistory(ContentType.ANSWER, this.getId(), this.writer, LocalDateTime.now());
     }
 }

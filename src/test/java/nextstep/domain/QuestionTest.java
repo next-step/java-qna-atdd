@@ -60,8 +60,8 @@ public class QuestionTest {
         User user = userRepository.findByUserId("javajigi").get();
         newQuestion.writeBy(user);
 
-        List<DeleteHistory> deleteHistories = newQuestion.delete(user);
-        assertThat(deleteHistories.size()).isEqualTo(1);
+        DeleteHistories deleteHistories = newQuestion.delete(user);
+        assertThat(deleteHistories.askSize()).isEqualTo(1);
         assertThat(newQuestion.isDeleted()).isEqualTo(true);
     }
 
@@ -71,8 +71,8 @@ public class QuestionTest {
         newQuestion.writeBy(user);
         newQuestion.addAnswer(new Answer(user, "test answer contents"));
 
-        List<DeleteHistory> deleteHistories = newQuestion.delete(user);
-        assertThat(deleteHistories.size()).isEqualTo(2);
+        DeleteHistories deleteHistories = newQuestion.delete(user);
+        assertThat(deleteHistories.askSize()).isEqualTo(2);
         assertThat(newQuestion.isDeleted()).isEqualTo(true);
     }
 

@@ -1,9 +1,6 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
-import org.hibernate.sql.Delete;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -28,10 +25,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -71,7 +66,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
-        answers.add(answer);
+        answers.addAnswer(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -110,33 +105,26 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return false;
     }
 
-    public List<DeleteHistory> delete(User loginUser) {
-        if (!this.isOwner(loginUser)) {
+    public DeleteHistories delete(User loginUser) {
+        if (!validationCheck(loginUser)) {
             throw new UnAuthorizedException();
         }
-
-        answerConsistenceCheck(loginUser);
-
         this.deleted = true;
-        List<DeleteHistory> deleteHistories = new ArrayList<>();
-        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, LocalDateTime.now()));
-        deleteHistories = getDeleteHistories(deleteHistories);
 
-        return deleteHistories;
+        DeleteHistories deleteHistories = new DeleteHistories();
+        deleteHistories.addDeleteHistory(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, LocalDateTime.now()));
+        return answers.addDeleteHistories(deleteHistories);
     }
 
-    private List<DeleteHistory> getDeleteHistories(List<DeleteHistory> deleteHistories) {
-        for (Answer answer : answers) {
-            deleteHistories = answer.addDeleteHistory(deleteHistories);
+    private boolean validationCheck(User loginUser) {
+        if (!this.isOwner(loginUser)) {
+            return false;
         }
-        return deleteHistories;
+
+        if (!answers.isOwners(loginUser)) {
+            return false;
+        }
+        return true;
     }
 
-    private void answerConsistenceCheck(User loginUser) {
-        for (Answer answer : answers) {
-            if (!answer.isOwner(loginUser)) {
-                throw new UnAuthorizedException();
-            }
-        }
-    }
 }
