@@ -4,6 +4,7 @@ import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,5 +39,11 @@ public class ApiQuestionController {
         Question updated = qnaService.update(loginUser, id, updateQuestion);
 
         return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@LoginUser User loginUser, @PathVariable long id) {
+        qnaService.deleteQuestion(loginUser, id);
     }
 }

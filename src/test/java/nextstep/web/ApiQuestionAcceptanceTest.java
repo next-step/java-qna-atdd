@@ -72,12 +72,28 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 내_질문_삭제() {
+        Question target = questionRepository.findById(1L).get();
 
+        HttpEntity<Object> entity = new HttpEntity<>(new HttpHeaders());
+
+        ResponseEntity<Void> response = basicAuthTemplate(target.getWriter())
+            .exchange("/api" + target.generateUrl(), HttpMethod.DELETE, entity, Void.class);
+
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        softly.assertThat(questionRepository.findById(target.getId()).get().isDeleted()).isTrue();
     }
 
     @Test
     public void 내_질문이_아니면_삭제할_수_없다() {
+        Question target = questionRepository.findById(1L).get();
 
+        HttpEntity<Object> entity = new HttpEntity<>(new HttpHeaders());
+
+        ResponseEntity<Void> response = basicAuthTemplate(findByUserId("sanjigi"))
+            .exchange("/api" + target.generateUrl(), HttpMethod.DELETE, entity, Void.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private HttpEntity createHttpEntity(Object body) {
