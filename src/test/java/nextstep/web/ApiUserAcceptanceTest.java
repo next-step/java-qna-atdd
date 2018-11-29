@@ -8,46 +8,38 @@ import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
 import static nextstep.domain.UserTest.newUser;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiUserAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
+    private final String API_USERS = "/api/users";
 
     @Test
     public void create() throws Exception {
         User newUser = newUser("testuser1");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
-
-        User dbUser = basicAuthTemplate(findByUserId(newUser.getUserId())).getForObject(location, User.class);
-        softly.assertThat(dbUser).isNotNull();
+        String location = createResourceLocation(API_USERS, newUser);
+        User result = getResource(location, User.class, newUser);
+        softly.assertThat(result).isNotNull();
     }
 
     @Test
     public void show_다른_사람() throws Exception {
         User newUser = newUser("testuser2");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
-
-        response = basicAuthTemplate(defaultUser()).getForEntity(location, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        String location = createResourceLocation(API_USERS, newUser);
+        User result = getResource(location, User.class, defaultUser());
+        softly.assertThat(result).isNull();
     }
 
     @Test
     public void update() throws Exception {
         User newUser = newUser("testuser3");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+        String location = createResourceLocation(API_USERS, newUser);
+        User original = getResource(location, User.class, newUser);
 
-        User updateUser = new User
-                (original.getId(), original.getUserId(), original.getPassword(),
-                        "javajigi2", "javajigi2@slipp.net");
+        User updateUser = new User(original.getId(), original.getUserId(), original.getPassword(),
+                "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<User> responseEntity =
-                basicAuthTemplate(newUser).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), User.class);
+        ResponseEntity<User> responseEntity = putLoginResponseEntity(location, User.class, newUser, updateUser);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(updateUser.equalsNameAndEmail(responseEntity.getBody())).isTrue();
@@ -55,19 +47,14 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_no_login() throws Exception {
-        User newUser = newUser("testuser4");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+        User newUser = newUser("testuser44");
+        String location = createResourceLocation(API_USERS, newUser);
+        User original = getResource(location, User.class, newUser);
 
-        User updateUser = new User
-                (original.getId(), original.getUserId(), original.getPassword(),
-                        "javajigi2", "javajigi2@slipp.net");
+        User updateUser = new User(original.getId(), original.getUserId(), original.getPassword(),
+                "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<String> responseEntity =
-                template().exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
-
+        ResponseEntity<String> responseEntity = putResponseEntity(location, String.class, updateUser);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", responseEntity.getBody());
     }
@@ -75,20 +62,10 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_다른_사람() throws Exception {
         User newUser = newUser("testuser5");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
-
+        String location = createResourceLocation(API_USERS, newUser);
         User updateUser = new User(newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
-
-        ResponseEntity<Void> responseEntity =
-                basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), Void.class);
+        ResponseEntity<Void> responseEntity = putLoginResponseEntity(location, Void.class, defaultUser(), updateUser);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
-    }
 }

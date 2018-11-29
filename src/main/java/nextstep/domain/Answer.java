@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
@@ -12,10 +13,12 @@ import javax.validation.constraints.Size;
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
+    @JsonIgnore
     private User writer;
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
+    @JsonIgnore
     private Question question;
 
     @Size(min = 5)

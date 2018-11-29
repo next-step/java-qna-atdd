@@ -40,8 +40,7 @@ public class QnaServiceTest  {
     public static Answer answer;
     @Before
     public void setUp() throws Exception {
-        question = Question.of("제목테스트","내용테스트");
-        question.writeBy(JAVAJIGI);
+        question = Question.ofUser("제목테스트","내용테스트", JAVAJIGI);
         answer = Answer.of(SANJIGI, "내용테스트");
     }
 
@@ -55,7 +54,7 @@ public class QnaServiceTest  {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         String title = "제목업데이트";
         String contents = "내용업데이트";
-        qnaService.updateQuestion(question.getWriter(), question.getId(), Question.of(title, contents));
+        qnaService.updateQuestion(question.getWriter(), question.getId(), Question.ofUser(title, contents, JAVAJIGI));
         assertThat(question.getTitle()).isEqualTo(title);
         assertThat(question.getContents()).isEqualTo(contents);
 
@@ -66,7 +65,7 @@ public class QnaServiceTest  {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         String title = "제목업데이트";
         String contents = "내용업데이트";
-        qnaService.updateQuestion(SANJIGI, question.getId(),  Question.of(title,contents));
+        qnaService.updateQuestion(SANJIGI, question.getId(),  Question.ofUser(title,contents,JAVAJIGI));
         assertThat(question.getTitle()).isEqualTo(title);
         assertThat(question.getContents()).isEqualTo(contents);
     }
@@ -120,7 +119,7 @@ public class QnaServiceTest  {
     }
 
 
-    @Test(expected = CannotDeleteException.class)
+    @Test(expected = UnAuthorizedException.class)
     public void updateAnswer타인() {
         String contents = "답변내용올리기";
         when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));

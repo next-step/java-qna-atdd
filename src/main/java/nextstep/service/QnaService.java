@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,20 +33,20 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Optional<Question> findById(long questionId) {
+        return questionRepository.findById(questionId);
     }
 
     @Transactional
-    public Question updateQuestion(User loginUser, long id, Question updatedQuestion) {
+    public Question updateQuestion(User loginUser, long questionId, Question updatedQuestion) {
         // TODO 수정 기능 구현
-        return questionRepository.findById(id).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).update(loginUser, updatedQuestion);
+        return questionRepository.findById(questionId).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).update(updatedQuestion);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+    public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
-        questionRepository.findById(questionId).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).delete(loginUser);
+        return questionRepository.findById(questionId).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -65,22 +66,26 @@ public class QnaService {
         return  answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+    public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
         // TODO 답변 삭제 기능 구현 
-        return answerRepository.findById(id).filter(answer -> answer.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).delete(loginUser);
+        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
     }
 
-    public Answer updateAnswer(User loginUser, long id, String contents) {
-        return answerRepository.findById(id).filter(answer -> answer.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new).update(loginUser,contents);
+    public Answer updateAnswer(User loginUser, long answerId, String contents) {
+        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).update(loginUser,contents);
     }
 
-    public Question findByUserId(User loginUser, long id) {
-        return questionRepository.findById(id).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new);
+    public Question findByUserId(User loginUser, long questionId) {
+        return questionRepository.findById(questionId).filter(question -> question.isOwner(loginUser)).orElseThrow(UnAuthorizedException::new);
     }
 
-    public List<Answer> findByQuestionIdAll(long id) {
+    public List<Answer> findByQuestionIdAll(long questionId) {
 
-        return answerRepository.findAllByQuestionId(id);
+        return answerRepository.findAllByQuestionId(questionId);
 
+    }
+
+    public Answer findByAnswerId(long id) {
+        return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 }

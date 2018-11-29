@@ -19,6 +19,13 @@ public class AnswerTest extends BaseTest {
         return Question.ofUser("제목테스트", "내용테스트", JAVAJIGI);
     }
 
+    public static Answer newAnswer() {
+        return Answer.of(JAVAJIGI, "내용이 엉?");
+    }
+
+    public static Answer newAnswer(String contents) {
+        return Answer.of(JAVAJIGI, contents);
+    }
     //답변 CRUD
     String contents;
     @Before

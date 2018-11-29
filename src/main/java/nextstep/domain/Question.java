@@ -28,22 +28,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
     @OrderBy("id ASC")
-    public List<Answer> answers = new ArrayList<>();
+    private List<Answer> answers = new ArrayList<>();
 
     private boolean deleted = false;
 
-    public Question() {
+    private Question() {
     }
 
     private Question(String title, String contents) {
-        this.title = title;
+        this.title= title;
         this.contents = contents;
     }
 
+
     private Question(String title, String contents, User login) {
-        this.title = title;
-        this.contents = contents;
-        this.writeBy(login);
+        this(title, contents, login, new ArrayList<Answer>());
     }
 
     private Question(String title, String contents, User login, List<Answer> answers) {
@@ -51,10 +50,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
         this.writer = login;
         this.answers.addAll(answers);
-    }
-
-    public static Question of(String title, String contents) {
-        return new Question(title, contents);
     }
 
     public static Question ofUser(String title, String contents, User login) {
@@ -117,8 +112,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 
-    public Question update(User loginUser, Question question) {
-        if (!writer.equals(loginUser)) {
+    public Question update(Question question) {
+        if (!question.isOwner(writer)) {
             throw new UnAuthorizedException();
         }
         this.title = (question.getTitle());
