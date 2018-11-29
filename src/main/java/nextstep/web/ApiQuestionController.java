@@ -30,4 +30,13 @@ public class ApiQuestionController {
 
         return ResponseEntity.created(URI.create("/api" + created.generateUrl())).build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity update(@LoginUser User loginUser,
+                                 @PathVariable long id,
+                                 @Valid @RequestBody Question updateQuestion) {
+        Question updated = qnaService.update(loginUser, id, updateQuestion);
+
+        return ResponseEntity.ok(updated);
+    }
 }

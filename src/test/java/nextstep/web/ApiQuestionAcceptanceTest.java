@@ -4,8 +4,7 @@ import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
@@ -47,12 +46,28 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 내_질문_수정() {
+        Question original = template().getForObject("/api/questions/1", Question.class);
 
+        Question updateQuestion = new Question("질문수정", "수정했어요");
+
+        ResponseEntity<Question> response = basicAuthTemplate(original.getWriter())
+            .exchange("/api" + original.generateUrl(), HttpMethod.PUT, createHttpEntity(updateQuestion), Question.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody().getTitle()).isEqualTo(updateQuestion.getTitle());
+        softly.assertThat(response.getBody().getContents()).isEqualTo(updateQuestion.getContents());
     }
 
     @Test
     public void 내_질문이_아니면_수정할_수_없다() {
+        Question original = template().getForObject("/api/questions/1", Question.class);
 
+        Question updateQuestion = new Question("질문수정", "수정했어요");
+
+        ResponseEntity<Question> response = basicAuthTemplate(findByUserId("sanjigi"))
+            .exchange("/api" + original.generateUrl(), HttpMethod.PUT, createHttpEntity(updateQuestion), Question.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -63,5 +78,11 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void 내_질문이_아니면_삭제할_수_없다() {
 
+    }
+
+    private HttpEntity createHttpEntity(Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity(body, headers);
     }
 }
