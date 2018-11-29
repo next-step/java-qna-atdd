@@ -33,12 +33,11 @@ public class QnaServiceTest  {
 
     @Mock(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
-    public static final User JAVAJIGI = new User(1L, "javajigi", "password", "name", "javajigi@slipp.net");
-    public static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
+    private static final User JAVAJIGI = new User(1L, "javajigi", "password", "name", "javajigi@slipp.net");
+    private static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
 
-    public static User user ;
-    public static Question question;
-    public static Answer answer;
+    private static Question question;
+    private static Answer answer;
 
     @Before
     public void setUp() throws Exception {
@@ -79,62 +78,18 @@ public class QnaServiceTest  {
         assertThat(question.isDeleted()).isTrue();
     }
 
-    @Test(expected = UnAuthorizedException.class)
+    @Test(expected = CannotDeleteException.class)
     public void deleteQuestion타인() throws CannotDeleteException {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         qnaService.deleteQuestion(SANJIGI, question.getId());
         assertThat(question.isDeleted()).isTrue();
     }
 
-    @Test(expected = UnAuthorizedException.class)
+    @Test(expected = CannotDeleteException.class)
     public void deleteQuestion손님() throws CannotDeleteException {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         qnaService.deleteQuestion(User.GUEST_USER, question.getId());
         assertThat(question.isDeleted()).isTrue();
     }
 
-    @Test
-    public void addAnswer() {
-        when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
-        qnaService.addAnswer(JAVAJIGI, question.getId(), "답변내용올리기");
-    }
-    @Test
-    public void deleteAnswer() throws CannotDeleteException {
-        when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));
-        qnaService.deleteAnswer(SANJIGI,answer.getId());
-        assertThat(answer.isDeleted()).isTrue();
-    }
-
-    @Test(expected = CannotDeleteException.class)
-    public void deleteAnswer타인() throws CannotDeleteException {
-        when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));
-        qnaService.deleteAnswer(JAVAJIGI,answer.getId());
-        assertThat(answer.isDeleted()).isTrue();
-    }
-
-    @Test
-    public void updateAnswer() {
-        String contents = "답변내용올리기";
-        when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));
-        qnaService.updateAnswer(SANJIGI,answer.getId(),contents);
-        assertThat(answer.getContents()).isEqualTo(contents);
-    }
-
-
-    @Test(expected = UnAuthorizedException.class)
-    public void updateAnswer타인() {
-        String contents = "답변내용올리기";
-        when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));
-        qnaService.updateAnswer(JAVAJIGI,answer.getId(),contents);
-        assertThat(answer.getContents()).isEqualTo(contents);
-    }
-
-
-    @Test(expected = UnAuthorizedException.class)
-    public void updateAnswer손님() {
-        String contents = "답변내용올리기";
-        when(answerRepository.findById(any())).thenReturn(Optional.ofNullable(answer));
-        qnaService.updateAnswer(User.GUEST_USER,answer.getId(),contents);
-        assertThat(answer.getContents()).isEqualTo(contents);
-    }
 }

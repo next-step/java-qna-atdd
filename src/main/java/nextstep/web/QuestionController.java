@@ -5,6 +5,7 @@ import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
+import nextstep.service.AnswerService;
 import nextstep.service.QnaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,9 @@ public class QuestionController {
     private final String QNA_INSERT_VIEW = "/qna/form";
     @Resource(name = "qnaService")
     private QnaService qnaService;
+
+    @Resource(name = "answerService")
+    private AnswerService answerService;
 
     @GetMapping("/form")
     public String form() {
@@ -72,24 +76,5 @@ public class QuestionController {
         model.addAttribute("answers", qnaService.findByQuestionIdAll(id));
         model.addAttribute("size", qnaService.findByQuestionIdAll(id).size());
         return QNA_DETAIL_VIEW;
-    }
-
-    @PostMapping("/{id}/answers")
-    public String createAnswer(@LoginUser User loginUser, @PathVariable long id, String contents) {
-        Answer answer = qnaService.addAnswer(loginUser, id, contents);
-        return REDIRECT_QUESTIONS+"/"+id;
-    }
-
-    @PutMapping("/{id}/answers/{answerId}")
-    public String updateAnswer(@LoginUser User loginUser, @PathVariable long id, @PathVariable long answerId, String contents) {
-        qnaService.updateAnswer(loginUser, answerId, contents);
-        return REDIRECT_QUESTIONS+"/"+id;
-    }
-
-
-    @DeleteMapping("/{id}/answers/{answerId}")
-    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long id, @PathVariable long answerId) throws CannotDeleteException {
-        qnaService.deleteAnswer(loginUser, answerId);
-        return REDIRECT_QUESTIONS+"/"+id;
     }
 }
