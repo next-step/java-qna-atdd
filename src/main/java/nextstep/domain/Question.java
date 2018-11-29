@@ -49,10 +49,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question(long id, String title, String contents, User writer) {
-        super(id);
-        this.title = title;
-        this.contents = contents;
-        this.writer = writer;
+        this(id, title, contents, writer, new ArrayList<Answer>());
     }
 
     public String getTitle() {
