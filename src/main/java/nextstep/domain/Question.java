@@ -1,12 +1,15 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
+import org.hibernate.sql.Delete;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -107,10 +110,33 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return false;
     }
 
-    public void delete(User loginUser) {
+    public List<DeleteHistory> delete(User loginUser) {
         if (!this.isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
+
+        answerConsistenceCheck(loginUser);
+
         this.deleted = true;
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, LocalDateTime.now()));
+        deleteHistories = getDeleteHistories(deleteHistories);
+
+        return deleteHistories;
+    }
+
+    private List<DeleteHistory> getDeleteHistories(List<DeleteHistory> deleteHistories) {
+        for (Answer answer : answers) {
+            deleteHistories = answer.addDeleteHistory(deleteHistories);
+        }
+        return deleteHistories;
+    }
+
+    private void answerConsistenceCheck(User loginUser) {
+        for (Answer answer : answers) {
+            if (!answer.isOwner(loginUser)) {
+                throw new UnAuthorizedException();
+            }
+        }
     }
 }
