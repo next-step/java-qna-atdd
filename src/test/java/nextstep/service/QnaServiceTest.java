@@ -4,6 +4,7 @@ import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
 import nextstep.UnAuthenticationException;
 import nextstep.domain.*;
+import org.hibernate.sql.Delete;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -17,16 +18,21 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QnaServiceTest extends BaseTest {
-
+    
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
     @Mock
     private QuestionRepository questionRepository;
 
     @Mock
     private AnswerRepository answerRepository;
-
+    
+    @Mock
+    private DeleteHistoryRepository deleteHistoryRepository;
     @InjectMocks
     private QnaService qnaService;
-
+    
+    
     @Test
     public void update_equal_writer() throws CannotUpdateException {
         Question question1 = QuestionTest.QUESTION_1;
@@ -49,7 +55,36 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
         qnaService.deleteQuestion(UserTest.JAVAJIGI, question.getId());
     }
-
+    
+    @Test
+    public void deleteQuestion_has_answer() throws CannotDeleteException {
+        Question question = QuestionTest.QUESTION_1;
+        question.setId(5L);
+        User user = UserTest.JAVAJIGI;
+        String contents = "댓글입";
+        long answerId = 3L;
+        Answer answer = new Answer(answerId, user, question, contents);
+        question.addAnswer(answer);
+        
+        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+        
+        qnaService.deleteQuestion(UserTest.JAVAJIGI, question.getId());
+    }
+    
+    @Test(expected = CannotDeleteException.class)
+    public void deleteQuestion_not_eqaul_answer_writer() throws CannotDeleteException {
+        Question question = QuestionTest.QUESTION_1;
+        question.setId(6L);
+        User user = UserTest.JAVAJIGI;
+        String contents = "댓글입";
+        long answerId = 4L;
+        Answer answer = new Answer(answerId, UserTest.SANJIGI, question, contents);
+        question.addAnswer(answer);
+        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+    
+        qnaService.deleteQuestion(user, question.getId());
+    }
+    
     @Test(expected = CannotDeleteException.class)
     public void deleteQuestion_not_equal_writer() throws CannotDeleteException {
         Question question1 = QuestionTest.QUESTION_1;

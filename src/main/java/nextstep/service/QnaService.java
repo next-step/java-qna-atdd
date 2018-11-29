@@ -2,8 +2,12 @@ package nextstep.service;
 
 import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
-import nextstep.UnAuthenticationException;
-import nextstep.domain.*;
+import nextstep.domain.Answer;
+import nextstep.domain.AnswerRepository;
+import nextstep.domain.DeleteHistory;
+import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
+import nextstep.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -47,11 +51,11 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question question = questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new);
-        if(!question.isOwner(loginUser)) {
-            throw new CannotDeleteException("본인이 작성한 질문만 삭제할 수 있습니다.");
-        }
-
-        questionRepository.deleteById(questionId);
+        List<DeleteHistory> deleteHistories = question.delete(loginUser);
+        
+        questionRepository.save(question);
+        answerRepository.saveAll(question.getAnswers());
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Iterable<Question> findAll() {

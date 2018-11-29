@@ -1,11 +1,9 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
-import nextstep.UnAuthenticationException;
 import org.junit.Test;
 import support.test.BaseTest;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionTest extends BaseTest {
     public static final Question QUESTION_1 = new Question(1L,"국내에서 Ruby on Rails와 Play가 활성화되기 힘든 이유는 뭘까?"
@@ -49,8 +47,40 @@ public class QuestionTest extends BaseTest {
         softly.assertThat((origin.getTitle())).isEqualTo(target.getTitle());
         softly.assertThat((origin.getWriter())).isEqualTo(target.getWriter());
     }
-
-
-
+    
+    @Test
+    public void delete_succes_has_not_answer() throws CannotDeleteException {
+        User loginUser = UserTest.JAVAJIGI;
+        Question question = new Question("신규타이틀", "내용내용내용", loginUser);
+        question.delete(loginUser);
+    }
+    
+    @Test
+    public void delete_succes_has_answer() throws CannotDeleteException {
+        User loginUser = UserTest.JAVAJIGI;
+        Question question = new Question("신규타이틀", "내용내용내용", loginUser);
+        Answer answer = new Answer(loginUser, "응답응답응답");
+        question.addAnswer(answer);
+        question.delete(loginUser);
+    }
+    
+    @Test(expected = CannotDeleteException.class)
+    public void delete_not_eqaul_answer_writer() throws CannotDeleteException {
+        User loginUser = UserTest.JAVAJIGI;
+        Question question = new Question("신규타이틀", "내용내용내용", loginUser);
+        Answer answer = new Answer(UserTest.SANJIGI, "응답응답응답");
+        question.addAnswer(answer);
+        question.delete(loginUser);;
+    }
+    
+    @Test(expected = CannotDeleteException.class)
+    public void delete_not_eqaul_writer() throws CannotDeleteException {
+        User loginUser = UserTest.JAVAJIGI;
+        Question question = new Question("신규타이틀", "내용내용내용", loginUser);
+        Answer answer = new Answer(loginUser, "응답응답응답");
+        question.addAnswer(answer);
+        question.delete(UserTest.SANJIGI);;
+    }
+ 
 
 }
