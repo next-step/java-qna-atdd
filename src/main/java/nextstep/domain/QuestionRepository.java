@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     Iterable<Question> findByDeleted(boolean deleted);
+
     Optional<Question> findByTitleAndDeletedFalse(String title);
 }

@@ -50,9 +50,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         String location = createLoginResourceLocation(defaultUser(), API_QUESTIONS, question);
 
         Question updateQuestion = QuestionTest.newQuestion("수정제목", "수정내용입니다.");
-
         ResponseEntity<Question> responseEntity = putLoginResponseEntity(location, Question.class, defaultUser(), updateQuestion);
-
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(updateQuestion.getTitle()).isEqualTo(responseEntity.getBody().getTitle());
     }
@@ -63,9 +61,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         String location = createLoginResourceLocation(defaultUser(), API_QUESTIONS, question);
 
         Question updateQuestion = QuestionTest.newQuestion("수정제목", "수정내용입니다.");
-
         ResponseEntity<Question> responseEntity = putLoginResponseEntity(location, Question.class, User.GUEST_USER, updateQuestion);
-
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 

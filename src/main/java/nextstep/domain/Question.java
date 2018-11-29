@@ -35,12 +35,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     private Question() {
     }
 
-    private Question(String title, String contents) {
-        this.title= title;
-        this.contents = contents;
-    }
-
-
     private Question(String title, String contents, User login) {
         this(title, contents, login, new ArrayList<Answer>());
     }
