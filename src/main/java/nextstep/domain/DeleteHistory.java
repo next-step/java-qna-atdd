@@ -36,7 +36,7 @@ public class DeleteHistory {
     }
 
     public static DeleteHistory fromAnswer(Answer answer) {
-        return new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter());
+        return new DeleteHistory(ContentType.QUESTION, answer.getId(), answer.getWriter());
     }
 
     public static DeleteHistory fromQuestion(Question question) {
