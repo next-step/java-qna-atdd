@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -43,5 +44,13 @@ public class ApiQuestionController {
     @DeleteMapping("/{id}")
     public void delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
         qnaService.deleteQuestion(loginUser, id);
+    }
+
+    @PostMapping("/{questionId}/answers")
+    public ResponseEntity<Void> createAnswer(@LoginUser User loginUser, @PathVariable long questionId, @Valid @RequestBody String contetns) {
+        Answer savedAnswer = qnaService.addAnswer(loginUser, questionId, contetns);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/api" + savedAnswer.generateUrl()));
+        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 }
