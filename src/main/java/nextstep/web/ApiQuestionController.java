@@ -41,10 +41,9 @@ public class ApiQuestionController {
     public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question updatedQuestion) {
         return qnaService.updateQuestion(loginUser, id, updatedQuestion);
     }
-
-
     @DeleteMapping("/{id}")
     public Question delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
         return qnaService.deleteQuestion(loginUser, id);
     }
+
 }

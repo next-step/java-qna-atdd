@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionTest;
 import nextstep.domain.User;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
 import static nextstep.domain.UserTest.JAVAJIGI;
+import static nextstep.domain.UserTest.SANJIGI;
 import static nextstep.domain.UserTest.newUser;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +41,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void show() throws Exception {
         Question question = defaultQuestion();
-        Question result = getResource("/api"+question.generateUrl(), Question.class, defaultUser());
+        Question result = getResource("/api" + question.generateUrl(), Question.class, defaultUser());
         softly.assertThat(result).isNotNull();
     }
 
@@ -78,10 +80,17 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    public void delete타인답변있음() {
+        Question question = findById(1L);
+        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity("/api" + question.generateUrl(), Question.class, defaultUser(), question);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
     public void delete() throws Exception {
-        Question question = QuestionTest.newQuestion();
-        String location = createLoginResourceLocation(defaultUser(), API_QUESTIONS, question);
-        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity(location, Question.class, defaultUser(), question);
+        Question question = findById(2L);
+        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity("/api" + question.generateUrl(), Question.class, SANJIGI, question);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(responseEntity.getBody().isDeleted()).isTrue();

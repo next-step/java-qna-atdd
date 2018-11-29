@@ -43,10 +43,20 @@ public class QnaService {
         return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).update(loginUser,updatedQuestion);
     }
 
+//    @Transactional
+//    public Question deleteQuestion2(User loginUser, long questionId) throws CannotDeleteException {
+//        // TODO 삭제 기능 구현
+//        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
+//    }
+
     @Transactional
     public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
-        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
+        Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
+
+       List<DeleteHistory> deleteHistories =  question.delete(loginUser);
+       deleteHistoryService.saveAll(deleteHistories);
+       return question;
     }
 
     public Iterable<Question> findAll() {
@@ -66,9 +76,17 @@ public class QnaService {
         return  answer;
     }
 
+//    public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
+//        // TODO 답변 삭제 기능 구현
+//        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
+//    }
+
     public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
-        // TODO 답변 삭제 기능 구현 
-        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
+        // TODO 답변 삭제 기능 구현
+        Answer answer = answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new);
+        DeleteHistory deleteHistory = answer.delete(loginUser);
+        deleteHistoryService.save(deleteHistory);
+        return answer;
     }
 
     public Answer updateAnswer(User loginUser, long answerId, String contents) {

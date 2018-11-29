@@ -8,6 +8,8 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -26,6 +28,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     private String contents;
 
     private boolean deleted = false;
+
+    @Transient
+    @JsonIgnore
+    private DeleteHistory deleteHistory;
 
     public Answer() {
     }
@@ -107,11 +113,19 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Answer delete(User loginUser) throws CannotDeleteException {
+//    public Answer delete(User loginUser) throws CannotDeleteException {
+//        if (!isOwner(loginUser)) {
+//            throw new CannotDeleteException("삭제권한없습니다.");
+//        }
+//        this.deleted = true;
+//        return this;
+//    }
+
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("삭제권한없습니다.");
         }
         this.deleted = true;
-        return this;
+        return DeleteHistory.of(ContentType.ANSWER, getId(), loginUser);
     }
 }

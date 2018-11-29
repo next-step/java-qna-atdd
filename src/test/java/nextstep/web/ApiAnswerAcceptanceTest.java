@@ -89,7 +89,6 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Answer> responseEntity = deleteLoginResponseEntity(location, Answer.class, defaultUser(), answer);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(responseEntity.getBody().isDeleted()).isTrue();
     }
 
     @Test

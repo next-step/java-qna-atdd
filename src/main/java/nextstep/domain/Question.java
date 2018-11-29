@@ -116,15 +116,45 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws CannotDeleteException {
+//    public Question delete(User loginUser) throws CannotDeleteException {
+//        if (!isOwner(loginUser)) {
+//            throw new CannotDeleteException("삭제권한없습니다.");
+//        }
+//        if(isEmptyAnswers(loginUser)){
+//            throw new CannotDeleteException("답변이 남아있습니다.");
+//        }
+//
+//        for (Answer answer : answers) {
+//            answer.delete(loginUser);
+//        }
+//
+//        this.deleted = Boolean.TRUE;
+//        return this;
+//    }
+
+    private boolean isEmptyAnswers(User loginUser) {
+        return answers.stream().anyMatch(answer->!answer.isOwner(loginUser));
+    }
+
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("삭제권한없습니다.");
         }
+        if(isEmptyAnswers(loginUser)){
+            throw new CannotDeleteException("답변이 남아있습니다.");
+        }
+
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        for (Answer answer : answers) {
+            deleteHistories.add(answer.delete(loginUser));
+        }
+
         this.deleted = Boolean.TRUE;
-        return this;
+        deleteHistories.add(DeleteHistory.of(ContentType.QUESTION, getId(), loginUser));
+        return deleteHistories;
     }
 
-    public int getAnswerSize() {
-        return answers.size();
-    }
+//    public int getAnswerSize() {
+//        return answers.size();
+//    }
 }
