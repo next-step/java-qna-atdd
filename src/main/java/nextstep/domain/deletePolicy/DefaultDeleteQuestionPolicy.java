@@ -9,21 +9,17 @@ import org.springframework.stereotype.Component;
 public class DefaultDeleteQuestionPolicy implements DeletePolicy<Question> {
     @Override
     public boolean canPermission(Question target, User user) {
-        if (isOwner(target, user) && isAnswersOwner(target, user)) {
+        if (isOwner(target, user) && isAnswersOfOwner(target, user)) {
             return true;
         }
         return false;
     }
 
-    private boolean isAnswersOwner(Question target, User user) {
-        if (target.hasaAnswers() && hasaAnswerOfOtherUser(target, user)) {
+    private boolean isAnswersOfOwner(Question target, User user) {
+        if (target.hasaAnswers() && target.isAnswersOfOwner(user)) {
             return false;
         }
         return true;
-    }
-
-    private boolean hasaAnswerOfOtherUser(Question target, User user) {
-        return target.getAnswers().stream().filter(answer -> !answer.isOwner(user)).count() > 0;
     }
 
     private boolean isOwner(Question target, User user) {

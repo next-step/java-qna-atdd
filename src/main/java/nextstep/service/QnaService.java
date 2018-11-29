@@ -53,7 +53,7 @@ public class QnaService {
         saveDeleteHistories(foundQuestion.delete(loginUser, deleteQuestionPolicy));
     }
 
-    private void saveDeleteHistories(List<DeleteHistory> deleteHistories) throws CannotDeleteException {
+    private void saveDeleteHistories(DeleteHistories deleteHistories) throws CannotDeleteException {
         deleteHistoryService.saveAll(deleteHistories);
     }
 

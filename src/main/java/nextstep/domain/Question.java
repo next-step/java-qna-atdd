@@ -1,16 +1,14 @@
 package nextstep.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,11 +26,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @JsonBackReference
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -76,24 +71,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
-    public boolean hasaAnswers() {
-        return !answers.isEmpty();
-    }
-
-    public List<Answer> getAnswers() {
-        return Collections.unmodifiableList(answers);
-    }
-
     public void writeBy(User loginUser) {
         this.writer = loginUser;
     }
 
-    public Answer addAnswer(Answer answer) {
-        if (!answers.contains(answer)) {
-            answer.toQuestion(this);
-            answers.add(answer);
-        }
-        return answer;
+    public boolean hasaAnswers() {
+        return answers.hasaAnswers();
+    }
+
+    public boolean isAnswersOfOwner(User loginUser) {
+        return answers.isAnswersOfOwner(loginUser);
+    }
+
+    public void addAnswer(Answer answer) {
+        answer.toQuestion(this);
+        answers.addAnswer(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -122,25 +114,18 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedQuestion.contents;
     }
 
-    public List<DeleteHistory> delete(User loginUser, DeletePolicy deletePolicy) throws CannotDeleteException {
+    public DeleteHistories delete(User loginUser, DeletePolicy deletePolicy) throws CannotDeleteException {
         if (!deletePolicy.canPermission(this, loginUser)) {
             throw new CannotDeleteException("질문을 삭제할 수 없습니다.");
         }
-        List<DeleteHistory> histories = new ArrayList<>();
-        return delete(deleteAnswers(histories));
+        return DeleteHistories
+                .of(answers.deleteAll(loginUser))
+                .add(delete());
     }
 
-    private List<DeleteHistory> delete(List<DeleteHistory> histories) {
+    private DeleteHistory delete() {
         this.deleted = true;
-        histories.add(DeleteHistory.fromQuestion(this));
-        return histories;
-    }
-
-    private List<DeleteHistory> deleteAnswers(List<DeleteHistory> histories) throws CannotDeleteException {
-        for (Answer answer : answers) {
-            histories.add(answer.delete(writer));
-        }
-        return histories;
+        return DeleteHistory.fromQuestion(this);
     }
 
     public boolean equalsTitleAndContentsAndWriter(Question otherQuestion) {
