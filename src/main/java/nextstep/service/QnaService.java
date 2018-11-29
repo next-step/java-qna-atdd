@@ -3,6 +3,7 @@ package nextstep.service;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
+import org.hibernate.sql.Delete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -48,10 +49,9 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
-        Question targetQuestion = questionRepository.findById(questionId)
-                .filter(question -> question.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
-        questionRepository.delete(targetQuestion);
+        Question targetQuestion = questionRepository.findById(questionId).get();
+//        List<DeleteHistory> deleteHistories = targetQuestion.delete(loginUser);
+        deleteHistoryService.saveAll(targetQuestion.delete(loginUser));
     }
 
     public Iterable<Question> findAll() {

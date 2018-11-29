@@ -5,6 +5,8 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -85,4 +87,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return false;
     }
 
+    public DeleteHistory getDeleteHistoryByAnswer() {
+        this.deleted = true;
+        return new DeleteHistory(ContentType.ANSWER, this.getId(), this.writer, LocalDateTime.now());
+    }
 }

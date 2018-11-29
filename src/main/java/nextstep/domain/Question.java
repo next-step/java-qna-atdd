@@ -1,12 +1,12 @@
 package nextstep.domain;
 
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,10 +25,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -68,7 +66,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
-        answers.add(answer);
+        answers.addAnswer(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -106,4 +104,27 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
         return false;
     }
+
+    public DeleteHistories delete(User loginUser) {
+        if (!validationCheck(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        this.deleted = true;
+
+        DeleteHistories deleteHistories = new DeleteHistories();
+        deleteHistories.addDeleteHistory(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, LocalDateTime.now()));
+        return answers.addDeleteHistories(deleteHistories);
+    }
+
+    private boolean validationCheck(User loginUser) {
+        if (!this.isOwner(loginUser)) {
+            return false;
+        }
+
+        if (!answers.isOwners(loginUser)) {
+            return false;
+        }
+        return true;
+    }
+
 }

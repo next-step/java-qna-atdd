@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import nextstep.domain.DeleteHistories;
 import nextstep.domain.DeleteHistory;
 import nextstep.domain.DeleteHistoryRepository;
 import org.springframework.stereotype.Service;
@@ -15,8 +16,8 @@ public class DeleteHistoryService {
     private DeleteHistoryRepository deleteHistoryRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveAll(List<DeleteHistory> deleteHistories) {
-        for (DeleteHistory deleteHistory : deleteHistories) {
+    public void saveAll(DeleteHistories deleteHistories) {
+        for (DeleteHistory deleteHistory : deleteHistories.getDeleteHistories()) {
             deleteHistoryRepository.save(deleteHistory);
         }
     }

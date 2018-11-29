@@ -83,9 +83,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void delete_my_question() throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = getMultiValueMapDeleteHttpEntity();
 
-        User loginUser = defaultUser();
+        User loginUser = findByUserId("sanjigi");
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d/", defaultUser().getId()), request, String.class);
+                .postForEntity(String.format("/questions/%d/", 2), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
@@ -96,7 +96,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d/", 2), request, String.class);
+                .postForEntity(String.format("/questions/%d/", 1), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
