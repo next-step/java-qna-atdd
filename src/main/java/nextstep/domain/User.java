@@ -11,7 +11,7 @@ import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Entity
-public class User extends AbstractEntity  implements UrlGeneratable {
+public class User extends AbstractEntity implements UrlGeneratable {
     public static final GuestUser GUEST_USER = new GuestUser();
 
     @Size(min = 3, max = 20)

@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -44,6 +47,7 @@ public abstract class AcceptanceTest extends BaseTest {
     protected User defaultUser() {
         return findByUserId(DEFAULT_LOGIN_USER);
     }
+
     protected User otherUser() {
         return findByUserId(OTHER_LOGIN_USER);
     }
@@ -66,5 +70,39 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected Answer findByAnswerId(long id) {
         return answerRepository.findById(id).get();
+    }
+
+    protected String createResourceLocation(String path, Object bodyPayload) {
+        ResponseEntity<String> response = template().postForEntity(path, bodyPayload, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return response.getHeaders().getLocation().getPath();
+    }
+
+    protected String createLoginResourceLocation(User loginUser, String path, Object bodyPayload) {
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(path, bodyPayload, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return response.getHeaders().getLocation().getPath();
+    }
+
+    protected <T> T getResource(String location, Class<T> responseType, User loginUser) {
+        return basicAuthTemplate(loginUser).getForObject(location, responseType);
+    }
+
+    protected <T> ResponseEntity<T> putLoginResponseEntity(String location, Class<T> responseType, User loginUser, Object updateObject) {
+        return basicAuthTemplate(loginUser).exchange(location, HttpMethod.PUT, createHttpEntity(updateObject), responseType);
+    }
+
+    protected <T> ResponseEntity<T> putResponseEntity(String location, Class<T> responseType, Object updateObject) {
+        return template().exchange(location, HttpMethod.PUT, createHttpEntity(updateObject), responseType);
+    }
+
+    protected <T> ResponseEntity<T> deleteLoginResponseEntity(String location, Class<T> responseType, User loginUser, Object deleteObject) {
+        return basicAuthTemplate(loginUser).exchange(location, HttpMethod.DELETE, createHttpEntity(deleteObject), responseType);
+    }
+
+    private HttpEntity createHttpEntity(Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity(body, headers);
     }
 }

@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
@@ -12,10 +13,12 @@ import javax.validation.constraints.Size;
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
+    @JsonIgnore
     private User writer;
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
+    @JsonIgnore
     private Question question;
 
     @Size(min = 5)
@@ -40,17 +43,18 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.deleted = false;
     }
 
-    public static Answer of(User writer, String contents){
-        if(writer == null || writer.isGuestUser()){
+    public static Answer of(User writer, String contents) {
+        if (writer == null || writer.isGuestUser()) {
             throw new UnAuthorizedException();
         }
         return new Answer(writer, contents);
     }
-    public static Answer ofQuestion(Long id, User writer, Question question, String contents){
-        if(writer == null || writer.isGuestUser()){
+
+    public static Answer ofQuestion(Long id, User writer, Question question, String contents) {
+        if (writer == null || writer.isGuestUser()) {
             throw new UnAuthorizedException();
         }
-        if(question == null){
+        if (question == null) {
             throw new UnAuthorizedException();
         }
         return new Answer(id, writer, question, contents);
@@ -96,7 +100,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public Answer update(User loginUser, String contents) {
-        if(!writer.equals(loginUser)){
+        if (!writer.equals(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.contents = contents;

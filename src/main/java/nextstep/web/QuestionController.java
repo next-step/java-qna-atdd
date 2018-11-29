@@ -80,16 +80,16 @@ public class QuestionController {
         return REDIRECT_QUESTIONS+"/"+id;
     }
 
-    @PutMapping("/{id}/answers/{answer_id}")
-    public String updateAnswer(@LoginUser User loginUser, @PathVariable long answer_id, String contents) {
-        qnaService.updateAnswer(loginUser, answer_id, contents);
-        return REDIRECT_QUESTIONS;
+    @PutMapping("/{id}/answers/{answerId}")
+    public String updateAnswer(@LoginUser User loginUser, @PathVariable long id, @PathVariable long answerId, String contents) {
+        qnaService.updateAnswer(loginUser, answerId, contents);
+        return REDIRECT_QUESTIONS+"/"+id;
     }
 
 
-    @DeleteMapping("/{id}/answers/{answer_id}")
-    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
-        qnaService.deleteAnswer(loginUser, id);
-        return REDIRECT_QUESTIONS;
+    @DeleteMapping("/{id}/answers/{answerId}")
+    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long id, @PathVariable long answerId) throws CannotDeleteException {
+        qnaService.deleteAnswer(loginUser, answerId);
+        return REDIRECT_QUESTIONS+"/"+id;
     }
 }
