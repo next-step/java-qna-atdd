@@ -1,9 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionTest;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +37,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         createResource(location +"/answers", contents, loginUser);
         Question question = getResource(location, Question.class, loginUser);
-        List<Answer> answers = question.getAnswers();
-        Answer answer = answers.get(question.getAnswers().size()-1);
+
+        Answers answers = question.getAnswers();
+        Answer answer = answers.get(answers.size()-1);
 
         softly.assertThat(question).isNotNull();
         softly.assertThat(answer).isNotNull();

@@ -6,15 +6,7 @@ import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
+import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -37,11 +29,9 @@ public class Question extends AbstractEntity implements UrlGeneratable, Serializ
 	@ManyToOne
 	@JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
 	private User writer;
-	
-	@OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-	@Where(clause = "deleted = false")
-	@OrderBy("id ASC")
-	private List<Answer> answers = new ArrayList<>();
+
+	@Embedded
+	private Answers answers;
 	
 	private boolean deleted = false;
 	
@@ -64,13 +54,16 @@ public class Question extends AbstractEntity implements UrlGeneratable, Serializ
 		this.writer = writer;
 	}
 	
-	public Question(String title, String contents, User writer, List<Answer> answers) {
-		this.title = title;
-		this.contents = contents;
-		this.writer = writer;
+	public Question(String title, String contents, User writer, Answers answers) {
+		this(title, contents, writer);
 		this.answers = answers;
 	}
-	
+
+	public Question(long id, String title, String contents, User writer, Answers answers) {
+		this(id, title, contents, writer);
+		this.answers = answers;
+	}
+
 	public void update(Question target, User loginUser) throws CannotUpdateException {
 		if (!this.writer.matchUser(loginUser)) {
 			throw new CannotUpdateException("본인이 작성한 질문만 변경할 수 있습니다.");
@@ -92,28 +85,14 @@ public class Question extends AbstractEntity implements UrlGeneratable, Serializ
 		
 		this.deleted = true;
 		
-		List<DeleteHistory> deleteHistories = deleteAnswers(loginUser);
+		List<DeleteHistory> deleteHistories = answers.deleteAnswers(loginUser);
+
 		deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
 		
 		return deleteHistories;
 	}
-	
-	/**
-	 * 답변 삭제
-	 * @param loginUser
-	 * @return
-	 * @throws CannotDeleteException
-	 */
-	private List<DeleteHistory> deleteAnswers(User loginUser) throws CannotDeleteException {
-		List<DeleteHistory> deleteHistories = new ArrayList<>();
-		
-		for (Answer answer : answers) {
-			answer.delete(loginUser);
-		}
-		
-		return deleteHistories;
-	}
-	
+
+
 	public String getTitle() {
 		return title;
 	}
@@ -168,8 +147,12 @@ public class Question extends AbstractEntity implements UrlGeneratable, Serializ
 				", deleted=" + deleted +
 				'}';
 	}
-	
-	public List<Answer> getAnswers() {
+
+	public Answers getAnswers() {
 		return answers;
+	}
+
+	public void setAnswers(Answers answers) {
+		this.answers = answers;
 	}
 }

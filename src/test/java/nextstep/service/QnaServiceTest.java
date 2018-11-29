@@ -51,15 +51,14 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void deleteQuestion() throws CannotDeleteException {
-        Question question = QuestionTest.QUESTION_1;
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        Question question = QuestionTest.QUESTION_3;
+        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
         qnaService.deleteQuestion(UserTest.JAVAJIGI, question.getId());
     }
     
     @Test
     public void deleteQuestion_has_answer() throws CannotDeleteException {
-        Question question = QuestionTest.QUESTION_1;
-        question.setId(5L);
+        Question question = QuestionTest.QUESTION_4;
         User user = UserTest.JAVAJIGI;
         String contents = "댓글입";
         long answerId = 3L;
@@ -73,14 +72,15 @@ public class QnaServiceTest extends BaseTest {
     
     @Test(expected = CannotDeleteException.class)
     public void deleteQuestion_not_eqaul_answer_writer() throws CannotDeleteException {
-        Question question = QuestionTest.QUESTION_1;
-        question.setId(6L);
+        Question question = QuestionTest.QUESTION_5;
         User user = UserTest.JAVAJIGI;
         String contents = "댓글입";
         long answerId = 4L;
+        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+
         Answer answer = new Answer(answerId, UserTest.SANJIGI, question, contents);
         question.addAnswer(answer);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+
     
         qnaService.deleteQuestion(user, question.getId());
     }
