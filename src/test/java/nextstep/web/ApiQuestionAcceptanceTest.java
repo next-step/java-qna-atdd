@@ -16,7 +16,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void 질문_조회() {
         Question existing = questionRepository.findById(1L).get();
 
-        Question question = template().getForObject("/api" + existing.generateUrl(), Question.class);
+        Question question = getResource("/api" + existing.generateUrl(), Question.class, defaultUser());
 
         softly.assertThat(question.getTitle()).isEqualTo(existing.getTitle());
         softly.assertThat(question.getContents()).isEqualTo(existing.getContents());
@@ -25,12 +25,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void 질문하기_로그인_유저() {
         Question question = new Question("질문하기", "질문 내용");
-        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", question, Void.class);
+        String location = createResource("/api/questions", question, defaultUser());
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
-
-        Question retrieved = template().getForObject(location, Question.class);
+        Question retrieved = getResource(location, Question.class, defaultUser());
 
         softly.assertThat(retrieved.getTitle()).isEqualTo(question.getTitle());
         softly.assertThat(retrieved.getContents()).isEqualTo(question.getContents());
