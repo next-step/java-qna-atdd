@@ -39,6 +39,7 @@ public class QnaServiceTest  {
     public static User user ;
     public static Question question;
     public static Answer answer;
+
     @Before
     public void setUp() throws Exception {
         question = Question.ofList("제목테스트","내용테스트", JAVAJIGI, new ArrayList<>());

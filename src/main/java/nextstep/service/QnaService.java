@@ -40,23 +40,17 @@ public class QnaService {
     @Transactional
     public Question updateQuestion(User loginUser, long questionId, Question updatedQuestion) {
         // TODO 수정 기능 구현
-        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).update(loginUser,updatedQuestion);
+        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).update(loginUser, updatedQuestion);
     }
-
-//    @Transactional
-//    public Question deleteQuestion2(User loginUser, long questionId) throws CannotDeleteException {
-//        // TODO 삭제 기능 구현
-//        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
-//    }
 
     @Transactional
     public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
         Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
 
-       List<DeleteHistory> deleteHistories =  question.delete(loginUser);
-       deleteHistoryService.saveAll(deleteHistories);
-       return question;
+        List<DeleteHistory> deleteHistories = question.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistories);
+        return question;
     }
 
     public Iterable<Question> findAll() {
@@ -73,13 +67,8 @@ public class QnaService {
         Answer answer = new Answer(loginUser, contents);
         question.addAnswer(answer);
         answerRepository.save(answer);
-        return  answer;
+        return answer;
     }
-
-//    public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
-//        // TODO 답변 삭제 기능 구현
-//        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).delete(loginUser);
-//    }
 
     public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
         // TODO 답변 삭제 기능 구현
@@ -90,7 +79,7 @@ public class QnaService {
     }
 
     public Answer updateAnswer(User loginUser, long answerId, String contents) {
-        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).update(loginUser,contents);
+        return answerRepository.findById(answerId).orElseThrow(EntityNotFoundException::new).update(loginUser, contents);
     }
 
     public Question findByUserId(User loginUser, long questionId) {
@@ -98,9 +87,7 @@ public class QnaService {
     }
 
     public List<Answer> findByQuestionIdAll(long questionId) {
-
         return answerRepository.findAllByQuestionId(questionId);
-
     }
 
     public Answer findByAnswerId(long id) {

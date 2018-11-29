@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionTest;
 import nextstep.domain.User;
@@ -19,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     private final String API_QUESTIONS = "/api/questions";
-
+    private final String API_PREFIX = "/api";
 
     @Test
     public void create() throws Exception {
@@ -41,7 +40,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void show() throws Exception {
         Question question = defaultQuestion();
-        Question result = getResource("/api" + question.generateUrl(), Question.class, defaultUser());
+        Question result = getResource(API_PREFIX + question.generateUrl(), Question.class, defaultUser());
         softly.assertThat(result).isNotNull();
     }
 
@@ -82,7 +81,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete타인답변있음() {
         Question question = findById(1L);
-        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity("/api" + question.generateUrl(), Question.class, defaultUser(), question);
+        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity(API_PREFIX + question.generateUrl(), Question.class, defaultUser(), question);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -90,7 +89,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete() throws Exception {
         Question question = findById(2L);
-        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity("/api" + question.generateUrl(), Question.class, SANJIGI, question);
+        ResponseEntity<Question> responseEntity = deleteLoginResponseEntity(API_PREFIX + question.generateUrl(), Question.class, SANJIGI, question);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(responseEntity.getBody().isDeleted()).isTrue();
