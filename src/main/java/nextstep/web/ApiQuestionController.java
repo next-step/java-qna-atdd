@@ -11,14 +11,22 @@ import nextstep.service.QnaService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/questions")
+@RequestMapping(ApiQuestionController.API_QUESTIONS)
 public class ApiQuestionController {
+	public static final String API_QUESTIONS = "/api/questions";
 	@javax.annotation.Resource(name ="qnaService")
 	private QnaService qnaService;
 	
@@ -30,7 +38,7 @@ public class ApiQuestionController {
 		headers.setLocation(URI.create("/api/questions/"+savedQuestion.getId()));
 		return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
 	}
-
+	
 	@GetMapping("/{id}")
 	public Question find(@LoginUser User loginUser, @PathVariable long id) {
 		return qnaService.findById(id).orElseThrow(IllegalArgumentException::new);

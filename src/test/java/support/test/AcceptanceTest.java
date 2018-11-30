@@ -1,7 +1,6 @@
 package support.test;
 
 import nextstep.domain.*;
-import nextstep.helper.HtmlFormDataBuilder;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -81,6 +80,9 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected <T> T getResource(String location, Class<T> responseType, User loginUser) {
         return basicAuthTemplate(loginUser).getForObject(location, responseType);
+    }
+    protected <T> ResponseEntity<T> getResourceEntity(String location, Class<T> responseType, User loginUser) {
+        return basicAuthTemplate(loginUser).getForEntity(location, responseType);
     }
 
     private HttpEntity createHttpEntity(Object body) {
