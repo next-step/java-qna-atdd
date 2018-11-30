@@ -22,6 +22,8 @@ public class LoginUserHandlerMethodArgumentResolver implements HandlerMethodArgu
             return user;
         }
 
+        // 이 코드는 guest user를 처리하는 부분
+        // LoginUser 어노테이션의 required가 false 이면 guest user로 받아서 처리하겠다는 뜻임.
         LoginUser loginUser = parameter.getParameterAnnotation(LoginUser.class);
         if (loginUser.required()) {
             throw new UnAuthenticationException("You're required Login!");
