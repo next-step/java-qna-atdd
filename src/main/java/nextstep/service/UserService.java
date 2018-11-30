@@ -41,5 +41,6 @@ public class UserService {
         return userRepository.findByUserId(userId)
                 .filter(user -> user.matchPassword(password))
                 .orElseThrow(() -> new UnAuthenticationException());
+
     }
 }
