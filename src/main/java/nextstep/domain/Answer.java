@@ -55,6 +55,11 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public boolean delete() {
+        this.deleted = true;
+        return deleted;
+    }
+
     public void toQuestion(Question question) {
         this.question = question;
     }
