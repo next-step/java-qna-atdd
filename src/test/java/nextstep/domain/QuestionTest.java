@@ -7,6 +7,8 @@ import support.test.BaseTest;
 
 import java.util.List;
 
+import static nextstep.domain.UserTest.JAVAJIGI;
+import static nextstep.domain.UserTest.SANJIGI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionTest extends BaseTest {
@@ -20,28 +22,24 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void isOwner() {
-        final User writer = new User(1L, "id", "password", "name", "email");
-        question.writeBy(writer);
+        question.writeBy(JAVAJIGI);
 
-        softly.assertThat(question.isOwner(writer)).isTrue();
+        softly.assertThat(question.isOwner(JAVAJIGI)).isTrue();
     }
 
     @Test
     public void isOwner_다를때() {
-        final User writer = new User(1L, "id", "password", "name", "email");
-        final User another = new User(2L, "id2", "password2", "name2", "email2");
-        question.writeBy(writer);
+        question.writeBy(JAVAJIGI);
 
-        softly.assertThat(question.isOwner(another)).isFalse();
+        softly.assertThat(question.isOwner(SANJIGI)).isFalse();
     }
 
     @Test
     public void delete() {
         final boolean beforeState = question.isDeleted();
-        final User writer = new User(1L, "id", "password", "name", "email");
-        question.writeBy(writer);
+        question.writeBy(JAVAJIGI);
 
-        question.delete(writer);
+        question.delete(JAVAJIGI);
 
         softly.assertThat(beforeState).isFalse();
         softly.assertThat(question.isDeleted()).isTrue();
@@ -49,20 +47,37 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_작성자_다를때() {
-        final User writer = new User(1L, "id", "password", "name", "email");
-        final User another = new User(2L, "id2", "password2", "name2", "email2");
-        question.writeBy(writer);
+        question.writeBy(JAVAJIGI);
+        question.delete(SANJIGI);
+    }
 
-        question.delete(another);
+    @Test
+    public void delete_질문자와_답변자가_같을때() {
+        question.writeBy(JAVAJIGI);
+
+        Answer answer = new Answer(JAVAJIGI, "cotents1");
+        question.addAnswer(answer);
+
+        question.delete(JAVAJIGI);
+        softly.assertThat(question.isDeleted()).isTrue();
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_질문자와_답변자가_다를때() {
+        question.writeBy(JAVAJIGI);
+
+        Answer answer = new Answer(SANJIGI, "cotents1");
+        question.addAnswer(answer);
+
+        question.delete(JAVAJIGI);
     }
 
     @Test
     public void update() {
-        final User writer = new User(1L, "id", "password", "name", "email");
         final Question newQuestion = new Question("title2", "contents2");
-        question.writeBy(writer);
+        question.writeBy(JAVAJIGI);
 
-        question.update(writer, newQuestion);
+        question.update(JAVAJIGI, newQuestion);
 
         assertThat(question.getTitle()).isEqualTo(newQuestion.getTitle());
         assertThat(question.getContents()).isEqualTo(newQuestion.getContents());
@@ -71,11 +86,9 @@ public class QuestionTest extends BaseTest {
     @Test(expected = UnAuthorizedException.class)
     public void update_작성자_다를때() {
         final Question newQuestion = new Question("title2", "contents2");
-        final User writer = new User(1L, "id", "password", "name", "email");
-        final User another = new User(2L, "id2", "password2", "name2", "email2");
-        question.writeBy(writer);
+        question.writeBy(JAVAJIGI);
 
-        question.update(another, newQuestion);
+        question.update(SANJIGI, newQuestion);
 
         assertThat(question.getTitle()).isEqualTo(newQuestion.getTitle());
         assertThat(question.getContents()).isEqualTo(newQuestion.getContents());
@@ -83,9 +96,8 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void addAnswer() {
-        final User writer = new User(1L, "id", "password", "name", "email");
         final String contents = "contents!!";
-        final Answer answer = new Answer(writer, contents);
+        final Answer answer = new Answer(JAVAJIGI, contents);
         final int beforeAnswersSize = question.getAnswers().size();
 
         question.addAnswer(answer);
@@ -98,15 +110,12 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void addAnswer_동일_Answer_추가시() {
-        final User writer = new User(1L, "id", "password", "name", "email");
         final String contents = "contents!!";
-        final Answer answer = new Answer(writer, contents);
+        final Answer answer = new Answer(JAVAJIGI, contents);
         final int beforeAnswersSize = question.getAnswers().size();
 
-
         question.addAnswer(answer);
         question.addAnswer(answer);
-
 
         softly.assertThat(question.getAnswers().size()).isEqualTo(beforeAnswersSize + 1);
     }
@@ -154,9 +163,8 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void containsAnswer() {
-        final User writer = new User(1L, "id", "password", "name", "email");
         final String contents = "contents!!";
-        final Answer answer = new Answer(1L, writer, question, contents);
+        final Answer answer = new Answer(1L, JAVAJIGI, question, contents);
         question.addAnswer(answer);
 
         boolean contains = question.containsAnswer(answer);
@@ -166,10 +174,9 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void containsAnswer_없을때() {
-        final User writer = new User(1L, "id", "password", "name", "email");
         final String contents = "contents!!";
-        final Answer answer = new Answer(1L, writer, question, contents);
-        final Answer another = new Answer(2L, writer, question, contents);
+        final Answer answer = new Answer(1L, JAVAJIGI, question, contents);
+        final Answer another = new Answer(2L, JAVAJIGI, question, contents);
         question.addAnswer(answer);
 
         boolean answerContains = question.containsAnswer(answer);

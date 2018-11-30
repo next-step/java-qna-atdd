@@ -114,11 +114,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             return false;
         }
 
-        if (this.title != other.title) {
+        if (!title.equals(other.title)) {
             return false;
         }
 
-        return this.contents == other.contents;
+        return contents.equals(other.contents);
     }
 
     public boolean containsAnswer(Answer answer) {
