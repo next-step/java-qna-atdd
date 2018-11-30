@@ -1,6 +1,8 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.NotFoundExeption;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +37,33 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
-    @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    @Transactional(readOnly = true)
+    public Question findContentById(Long id) throws NotFoundExeption {
+        return questionRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundExeption());
+    }
+
+    @Transactional(readOnly = true)
+    public Question findContentById(User loginUser, Long id) throws UnAuthorizedException {
+        return findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .filter(question -> !question.isDeleted())
+                .orElseThrow(() -> new UnAuthorizedException("수정 권한이 없습니다."));
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public Question update(long id, Question updatedQuestion) throws NotFoundExeption {
+        return findContentById(id).update(updatedQuestion);
+    }
+
+    @Transactional
+    public boolean deleteQuestion(User loginUser, long id) throws CannotDeleteException {
+        return findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .filter(question -> !question.isDeleted())
+                .filter(question -> question.isNotExistAnswers())
+                .map(question -> question.delete())
+                .orElseThrow(() -> new CannotDeleteException("삭제 권한이 없거나 댓글이 존재 합니다."));
     }
 
     public Iterable<Question> findAll() {
@@ -54,13 +74,19 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    @Transactional
+    public Answer addAnswer(User loginUser, long questionId, String contents) throws NotFoundExeption {
+        Answer answer = new Answer(loginUser, contents);
+        Question question = findContentById(questionId);
+        question.addAnswer(answer);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public boolean deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        return answerRepository.findById(id)
+                .filter(answer -> answer.isOwner(loginUser))
+                .map(answer -> answer.delete())
+                .orElseThrow(() -> new CannotDeleteException("삭제 권한이 없습니다."));
     }
 }
