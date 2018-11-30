@@ -90,7 +90,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public void update(User loginUser, Question target) {
         if (!isOwner(loginUser)) {
+<<<<<<< HEAD
             System.out.println("ssffooo");
+=======
+>>>>>>> 2cycle
             throw new UnAuthorizedException();
         }
 
@@ -99,7 +102,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     }
 
+<<<<<<< HEAD
     public void deleted(User loginUser) {
+=======
+    public void deleted(User loginUser, Question target) {
+>>>>>>> 2cycle
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }

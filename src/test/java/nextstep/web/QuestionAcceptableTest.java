@@ -63,7 +63,7 @@ public class QuestionAcceptableTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate()
                 .getForEntity(String.format("/questions/%d/form", 1L), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-//        softly.assertThat(response.getBody()).contains("Ruby");
+        softly.assertThat(response.getBody()).contains("Ruby");
     }
 
     @Test

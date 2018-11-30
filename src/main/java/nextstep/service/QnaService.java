@@ -81,4 +81,7 @@ public class QnaService {
     public Answer showAnswer(long answer_id) {
         return answerRepository.findById(answer_id).orElseThrow(IllegalArgumentException::new);
     }
+
+    public void update(User loginUser, long id) {
+    }
 }
