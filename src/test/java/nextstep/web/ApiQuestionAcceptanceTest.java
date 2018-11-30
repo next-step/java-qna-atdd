@@ -109,11 +109,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
 
         final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
-
         softly.assertThat(response.getStatusCode()).isSameAs(HttpStatus.NO_CONTENT);
 
         final ResponseEntity<Question> findResponse = basicAuthTemplate().getForEntity(resource, Question.class);
-
         softly.assertThat(findResponse.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
     }
 
