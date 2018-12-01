@@ -74,7 +74,9 @@ public class QnaService {
     public Answer addAnswer(User loginUser, long questionId, String contents) throws CannotFoundException {
         Question question = findQuestion(questionId);
         Answer answer = new Answer(loginUser, contents);
-        question.addAnswer(answer);
+        answer.toQuestion(question);
+        Answers answers = new Answers();
+        answers.addAnswer(answer);
         return answer;
     }
 

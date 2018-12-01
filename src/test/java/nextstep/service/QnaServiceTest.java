@@ -46,7 +46,7 @@ public class QnaServiceTest {
 
     @Before
     public void setUp(){
-        question =  new Question(1L ,"질문 제목", "내용 블라", JAVAJIGI , new ArrayList<>());
+        question =  new Question(1L ,"질문 제목", "내용 블라", JAVAJIGI , new Answers());
         question.writeBy(JAVAJIGI);
         answer = new Answer(1L, SANJIGI, question, "답변 내용");
     }

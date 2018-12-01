@@ -21,7 +21,9 @@ public class AnswerTest {
     @Test
     public void 답변_입력() {
         Question question = new Question("TDD를 배우는 이유는?", "리팩토링 향상을 위해");
-        question.addAnswer(answer);
+        answer.toQuestion(question);
+        Answers answers = new Answers();
+        answers.addAnswer(answer);
 
         assertThat(answer.getQuestion()).isEqualTo(question);
     }

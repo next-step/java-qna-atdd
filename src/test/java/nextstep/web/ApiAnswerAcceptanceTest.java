@@ -1,12 +1,12 @@
 package nextstep.web;
 
 import nextstep.domain.Answer;
-import nextstep.service.QnaService;
 import org.junit.Test;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
-import javax.annotation.Resource;
 import java.net.URI;
 import java.net.URISyntaxException;
 

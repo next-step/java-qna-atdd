@@ -79,7 +79,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public void delete(User loginUser){
         if(isDeleted()){
             throw new CannotDeleteException("삭제된 답변입니다.");
         }
