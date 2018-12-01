@@ -5,7 +5,6 @@ import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
@@ -13,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static nextstep.domain.QuestionTest.DEFAULT_QUESTION;
+import static nextstep.domain.UserTest.JAVAJIGI;
 import static org.mockito.Mockito.*;
 
 public class QnaServiceTest extends BaseTest {
@@ -58,41 +59,36 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void create() throws UnAuthenticationException {
-        final User loginUser = new User(1L,"userId", "pass", "name", "email");
-        final Question mockQuestion = mock(Question.class);
-        when(questionRepository.save(mockQuestion)).thenReturn(mockQuestion);
+        final Question mockedQuestion = mock(Question.class);
+        when(questionRepository.save(mockedQuestion)).thenReturn(mockedQuestion);
 
+        final Question created = qnaService.create(JAVAJIGI, mockedQuestion);
 
-        final Question created = qnaService.create(loginUser, mockQuestion);
-
-
-        verify(mockQuestion, times(1)).writeBy(loginUser);
-        softly.assertThat(created).isEqualTo(mockQuestion);
+        verify(mockedQuestion, times(1)).writeBy(JAVAJIGI);
+        softly.assertThat(mockedQuestion).isEqualTo(created);
     }
 
     @Test(expected = UnAuthenticationException.class)
     public void create_로그인_안한_사용자() throws UnAuthenticationException {
-        final Question question = new Question("title", "contents");
         final User guest = User.GUEST_USER;
 
-
-        qnaService.create(guest, question);
+        qnaService.create(guest, DEFAULT_QUESTION);
     }
 
     @Test
     public void update() throws UnAuthenticationException {
         final Long questionId = 1L;
         final User loginUser = new User(1L,"userId", "pass", "name", "email");
-        final Question question = new Question("title", "contents");
+        final QuestionPost questionPost = new QuestionPost("title", "contents");
         final Question mockQuestion = mock(Question.class);
         when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(mockQuestion));
-        when(mockQuestion.update(loginUser, question)).thenReturn(mockQuestion);
+        when(mockQuestion.update(loginUser, questionPost)).thenReturn(mockQuestion);
 
 
-        final Question update = qnaService.update(loginUser, questionId, question);
+        final Question update = qnaService.update(loginUser, questionId, questionPost);
 
 
-        verify(mockQuestion, times(1)).update(loginUser, question);
+        verify(mockQuestion, times(1)).update(loginUser, questionPost);
         softly.assertThat(update).isEqualTo(mockQuestion);
     }
 
@@ -100,7 +96,7 @@ public class QnaServiceTest extends BaseTest {
     public void update_질문_아이디_없을때() throws UnAuthenticationException {
         final Long notExistId = 9L;
         final User loginUser = new User(1L,"userId", "pass", "name", "email");
-        final Question question = new Question("title", "contents");
+        final QuestionPost question = new QuestionPost("title", "contents");
 
 
         qnaService.update(loginUser, notExistId, question);
@@ -110,10 +106,10 @@ public class QnaServiceTest extends BaseTest {
     public void update_로그인_안한_사용자() throws UnAuthenticationException {
         final User guest = User.GUEST_USER;
         final Long questionId = 1L;
-        final Question question = new Question("title", "contents");
+        final QuestionPost questionPost = new QuestionPost("title", "contents");
 
 
-        qnaService.update(guest, questionId, question);
+        qnaService.update(guest, questionId, questionPost);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -121,13 +117,13 @@ public class QnaServiceTest extends BaseTest {
         final Long questionId = 1L;
         final User loginUser = new User(1L,"userId", "pass", "name", "email");
         final User anotherUser = new User(2L,"anotherId", "password", "another", "email");
-        final Question question = new Question("title", "contents");
+        final QuestionPost questionPost = new QuestionPost("title", "contents");
         final Question findedQuestion = new Question("title1", "contents1");
         findedQuestion.writeBy(anotherUser);
         when(questionRepository.findByIdAndDeleted(questionId, false)).thenReturn(Optional.of(findedQuestion));
 
 
-        qnaService.update(loginUser, questionId, question);
+        qnaService.update(loginUser, questionId, questionPost);
     }
 
     @Test

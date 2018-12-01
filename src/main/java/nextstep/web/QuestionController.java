@@ -2,7 +2,9 @@ package nextstep.web;
 
 import nextstep.UnAuthenticationException;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionPost;
 import nextstep.domain.User;
+import nextstep.dto.QuestionRequest;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.springframework.stereotype.Controller;
@@ -37,9 +39,9 @@ public class QuestionController {
     }
 
     @PostMapping
-    public String create(@LoginUser User loginUser, @Valid Question question, Model model) throws UnAuthenticationException {
+    public String create(@LoginUser User loginUser, @Valid QuestionRequest questionRequest) throws UnAuthenticationException {
 
-        final Question created = qnaService.create(loginUser, question);
+        final Question created = qnaService.create(loginUser, Question.from(questionRequest));
 
         return "redirect:/questions/"+created.getId();
     }
@@ -55,9 +57,9 @@ public class QuestionController {
     }
 
     @PutMapping("/{questionId}")
-    public String update(@LoginUser User loginUser, @PathVariable Long questionId, @Valid Question updatedQuestion, Model model) throws UnAuthenticationException {
+    public String update(@LoginUser User loginUser, @PathVariable Long questionId, QuestionRequest updatedRequest) throws UnAuthenticationException {
 
-        qnaService.update(loginUser, questionId, updatedQuestion);
+        qnaService.update(loginUser, questionId, QuestionPost.from(updatedRequest));
 
         return "redirect:/questions/"+questionId;
     }

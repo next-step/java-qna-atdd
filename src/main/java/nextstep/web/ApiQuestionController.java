@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.UnAuthenticationException;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionPost;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -38,10 +39,10 @@ public class ApiQuestionController {
 
     @PutMapping("/{questionId}")
     public Question update(@LoginUser User loginUser, @PathVariable Long questionId,
-                           @Valid @RequestBody Question updatedQuestion) throws UnAuthenticationException {
+                           @Valid @RequestBody QuestionPost updatedPost) throws UnAuthenticationException {
 
 
-        return qnaService.update(loginUser, questionId, updatedQuestion);
+        return qnaService.update(loginUser, questionId, updatedPost);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

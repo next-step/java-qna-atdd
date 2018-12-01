@@ -32,7 +32,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(addedQuestion.containsAnswer(response.getBody())).isTrue();
 
-        final Answer addedAnswer = addedQuestion.getAnswers().get(0);
+        final Answer addedAnswer = addedQuestion.getAnswer(0);
 
         softly.assertThat(addedAnswer.equals(response.getBody())).isTrue();
     }
