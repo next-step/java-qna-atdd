@@ -11,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +36,7 @@ public class QnaServiceTest {
     @InjectMocks
     private QnaService qnaService;
 
-    @InjectMocks
+    @Mock
     private DeleteHistoryService deleteHistoryService;
 
 
@@ -46,7 +45,7 @@ public class QnaServiceTest {
 
     @Before
     public void setUp(){
-        question =  new Question(1L ,"질문 제목", "내용 블라", JAVAJIGI , new ArrayList<>());
+        question =  new Question(1L ,"질문 제목", "내용 블라", JAVAJIGI , new Answers());
         question.writeBy(JAVAJIGI);
         answer = new Answer(1L, SANJIGI, question, "답변 내용");
     }
@@ -116,11 +115,14 @@ public class QnaServiceTest {
 
     @Test
     public void 답변작성() throws CannotFoundException {
+        when(questionRepository.findById(anyLong())).thenReturn(Optional.ofNullable(question));
         when(questionRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.ofNullable(question));
 
-        Answer saveAnswer = qnaService.addAnswer(JAVAJIGI, question.getId(), "리팩토링 합시다");
+        String contents = "리팩토링 합시다";
+        qnaService.addAnswer(JAVAJIGI, question.getId(), contents);
 
-        assertThat(saveAnswer.isOwner(JAVAJIGI)).isTrue();
+        assertThat(qnaService.findById(question.getId()).get().getAnswers().getAnswers()).extracting("contents").containsAnyOf(contents);
+
     }
 
     @Test

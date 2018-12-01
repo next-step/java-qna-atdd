@@ -48,6 +48,16 @@ public class QuestionTest extends BaseTest {
         softly.assertThat(question.isDeleted()).isTrue();
     }
 
+    @Test
+    public void delete_question_answer() throws CannotDeleteException {
+        question.writeBy(JAVAJIGI);
+        question.addAnswer(new Answer(JAVAJIGI, "TDD"));
+        question.delete(JAVAJIGI);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(question.getAnswers().getAnswers().get(0).isDeleted()).isTrue();
+    }
+
     @Test(expected = CannotDeleteException.class)
     public void delete_cannot_question() throws CannotDeleteException {
         question.setDeleted(Boolean.TRUE);
@@ -60,8 +70,12 @@ public class QuestionTest extends BaseTest {
         question.delete(SANJIGI);
     }
 
-
-
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_not_question_not_user_answer() throws CannotDeleteException {
+        question.writeBy(JAVAJIGI);
+        question.addAnswer(new Answer(SANJIGI, "TDD"));
+        question.delete(JAVAJIGI);
+    }
 
 
 }
