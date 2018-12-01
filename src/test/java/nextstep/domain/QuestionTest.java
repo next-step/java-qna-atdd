@@ -8,8 +8,8 @@ import support.test.BaseTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionTest extends BaseTest {
-    private static final String TITLE = "테스트 타이틀";
-    private static final String CONTENTS = "테스트 컨텐츠";
+    public static final String TITLE = "테스트 타이틀";
+    public static final String CONTENTS = "테스트 컨텐츠";
     private static final User NEW_USER = UserTest.newUser("mirrors89");
 
 
