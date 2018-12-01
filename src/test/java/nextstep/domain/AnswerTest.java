@@ -1,36 +1,46 @@
 package nextstep.domain;
 
 import nextstep.UnAuthorizedException;
+import org.junit.Before;
 import org.junit.Test;
 import support.test.BaseTest;
 
 public class AnswerTest extends BaseTest {
 
+    private Answer defaultAnswer;
+    private User answerWriter;
+
+    public static Answer newAnswer() {
+        return new Answer(UserTest.JAVAJIGI, "답변합니다");
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        answerWriter = UserTest.JAVAJIGI;
+        defaultAnswer = newAnswer();
+    }
+
     @Test
     public void 내_답변_수정() {
-        Answer answer = new Answer(UserTest.JAVAJIGI, "답변합니다");
-        answer.update(UserTest.JAVAJIGI, "수정합니다");
+        defaultAnswer.update(answerWriter, "수정합니다");
 
-        softly.assertThat(answer.getContents()).isEqualTo("수정합니다");
+        softly.assertThat(defaultAnswer.getContents()).isEqualTo("수정합니다");
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 내_답변이_아니면_수정_불가() {
-        Answer answer = new Answer(UserTest.JAVAJIGI, "답변합니다");
-        answer.update(UserTest.SANJIGI, "수정합니다");
+        defaultAnswer.update(UserTest.SANJIGI, "수정합니다");
     }
 
     @Test
     public void 내_답변_삭제() {
-        Answer answer = new Answer(UserTest.JAVAJIGI, "답변합니다");
-        answer.delete(UserTest.JAVAJIGI);
+        defaultAnswer.delete(answerWriter);
 
-        softly.assertThat(answer.isDeleted()).isTrue();
+        softly.assertThat(defaultAnswer.isDeleted()).isTrue();
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 내_답변이_아니면_삭제_불가() {
-        Answer answer = new Answer(UserTest.JAVAJIGI, "답변합니다");
-        answer.delete(UserTest.SANJIGI);
+        defaultAnswer.delete(UserTest.SANJIGI);
     }
 }

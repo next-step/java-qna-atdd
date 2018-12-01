@@ -21,7 +21,7 @@ public class ApiAnswerController {
     @GetMapping("/{answerId}")
     public ResponseEntity get(@PathVariable long questionId,
                               @PathVariable long answerId) {
-        return ResponseEntity.ok(qnaService.findAnswer(questionId, answerId));
+        return ResponseEntity.ok(qnaService.findAnswerById(questionId, answerId));
     }
 
     @PostMapping("")

@@ -1,49 +1,38 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
+import nextstep.domain.QuestionTest;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    private String createdUrl;
 
-    @Test
-    public void 질문_조회() {
-        Question existing = questionRepository.findById(1L).get();
-
-        Question question = getResource("/api" + existing.generateUrl(), Question.class, defaultUser());
-
-        softly.assertThat(question.getTitle()).isEqualTo(existing.getTitle());
-        softly.assertThat(question.getContents()).isEqualTo(existing.getContents());
+    @Before
+    public void setUp() throws Exception {
+        createdUrl = createResource("/api/questions", QuestionTest.newQuestion(), defaultUser());
     }
 
     @Test
     public void 질문하기_로그인_유저() {
-        Question question = new Question("질문하기", "질문 내용");
-        String location = createResource("/api/questions", question, defaultUser());
+        Question created = getResource(createdUrl, Question.class, defaultUser());
 
-        Question retrieved = getResource(location, Question.class, defaultUser());
-
-        softly.assertThat(retrieved.getTitle()).isEqualTo(question.getTitle());
-        softly.assertThat(retrieved.getContents()).isEqualTo(question.getContents());
+        softly.assertThat(created.isEqualsTitleAndContents(QuestionTest.newQuestion())).isTrue();
     }
 
     @Test
     public void 비로그인_유저는_질문할_수_없다() {
-        Question question = new Question("질문하기", "질문 내용");
-        ResponseEntity<Void> response = template().postForEntity("/api/questions", question, Void.class);
+        ResponseEntity<Void> response = template().postForEntity("/api/questions", QuestionTest.newQuestion(), Void.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void 내_질문_수정() {
-        Question original = template().getForObject("/api/questions/1", Question.class);
+        Question original = getResource(createdUrl, Question.class, defaultUser());
 
         Question updateQuestion = new Question("질문수정", "수정했어요");
 
@@ -51,13 +40,12 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
             .exchange("/api" + original.generateUrl(), HttpMethod.PUT, createHttpEntity(updateQuestion), Question.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(response.getBody().getTitle()).isEqualTo(updateQuestion.getTitle());
-        softly.assertThat(response.getBody().getContents()).isEqualTo(updateQuestion.getContents());
+        softly.assertThat(response.getBody().isEqualsTitleAndContents(updateQuestion)).isTrue();
     }
 
     @Test
     public void 내_질문이_아니면_수정할_수_없다() {
-        Question original = template().getForObject("/api/questions/1", Question.class);
+        Question original = getResource(createdUrl, Question.class, defaultUser());
 
         Question updateQuestion = new Question("질문수정", "수정했어요");
 
@@ -69,24 +57,21 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 내_질문_삭제() {
-        Question target = questionRepository.findById(1L).get();
+        Question target = getResource(createdUrl, Question.class, defaultUser());
 
         HttpEntity<Object> entity = new HttpEntity<>(new HttpHeaders());
-
         ResponseEntity<Void> response = basicAuthTemplate(target.getWriter())
             .exchange("/api" + target.generateUrl(), HttpMethod.DELETE, entity, Void.class);
 
-
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
-        softly.assertThat(questionRepository.findById(target.getId()).get().isDeleted()).isTrue();
+        softly.assertThat(getResource(createdUrl, Question.class, defaultUser())).isNull();
     }
 
     @Test
     public void 내_질문이_아니면_삭제할_수_없다() {
-        Question target = questionRepository.findById(1L).get();
+        Question target = getResource(createdUrl, Question.class, defaultUser());
 
         HttpEntity<Object> entity = new HttpEntity<>(new HttpHeaders());
-
         ResponseEntity<Void> response = basicAuthTemplate(findByUserId("sanjigi"))
             .exchange("/api" + target.generateUrl(), HttpMethod.DELETE, entity, Void.class);
 

@@ -1,6 +1,8 @@
 package nextstep.web;
 
 import nextstep.domain.Answer;
+import nextstep.domain.AnswerTest;
+import nextstep.domain.QuestionTest;
 import nextstep.domain.UserTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,27 +11,26 @@ import support.test.AcceptanceTest;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
-    private String location;
+    private String questionUrl;
+    private String createdUrl;
 
     @Before
     public void setUp() throws Exception {
-        location = createResource("/api/questions/1/answers", "답변입니다", defaultUser());
+        questionUrl = createResource("/api/questions", QuestionTest.newQuestion(), defaultUser());
+        createdUrl = createResource(questionUrl + "/answers", AnswerTest.newAnswer().getContents(), defaultUser());
     }
 
     @Test
     public void 답변_생성_로그인_유저() {
-        String answerContents = "답변입니다";
-        String location = createResource("/api/questions/1/answers", answerContents, defaultUser());
+        Answer created = getResource(createdUrl, Answer.class, defaultUser());
 
-        Answer created = getResource(location, Answer.class, defaultUser());
-
-        softly.assertThat(created.getContents()).isEqualTo(answerContents);
+        softly.assertThat(created.getContents()).isEqualTo(AnswerTest.newAnswer().getContents());
     }
 
     @Test
     public void 미로그인_유저는_답변할_수_없다() {
-        String answerContents = "답변입니다";
-        ResponseEntity<String> response = template().postForEntity("/api/questions/1/answers", answerContents, String.class);
+        ResponseEntity<String> response = template()
+            .postForEntity(questionUrl + "/answers", AnswerTest.newAnswer().getContents(), String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -38,7 +39,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void 내_답변_수정() {
         String answerContents = "업데이트합니다";
 
-        Answer answer = getResource(location, Answer.class, defaultUser());
+        Answer answer = getResource(createdUrl, Answer.class, defaultUser());
 
         ResponseEntity<Answer> response = basicAuthTemplate()
             .exchange("/api" + answer.generateUrl(), HttpMethod.PUT, createHttpEntity(answerContents), Answer.class);
@@ -51,7 +52,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void 내_답변이_아니면_수정할_수_없다() {
         String answerContents = "업데이트합니다";
 
-        Answer answer = getResource(location, Answer.class, defaultUser());
+        Answer answer = getResource(createdUrl, Answer.class, defaultUser());
 
         ResponseEntity<Answer> response = basicAuthTemplate(UserTest.SANJIGI)
             .exchange("/api" + answer.generateUrl(), HttpMethod.PUT, createHttpEntity(answerContents), Answer.class);
@@ -64,10 +65,10 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         HttpEntity<Object> entity = new HttpEntity<>(new HttpHeaders());
 
         ResponseEntity<Void> response = basicAuthTemplate()
-            .exchange(location, HttpMethod.DELETE, entity, Void.class);
+            .exchange(createdUrl, HttpMethod.DELETE, entity, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
-        ResponseEntity<Answer> response2 = basicAuthTemplate().getForEntity(location, Answer.class);
+        ResponseEntity<Answer> response2 = basicAuthTemplate().getForEntity(createdUrl, Answer.class);
         softly.assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
@@ -76,7 +77,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         HttpEntity<Object> entity = new HttpEntity<>(new HttpHeaders());
 
         ResponseEntity<Void> response = basicAuthTemplate(UserTest.SANJIGI)
-            .exchange(location, HttpMethod.DELETE, entity, Void.class);
+            .exchange(createdUrl, HttpMethod.DELETE, entity, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 

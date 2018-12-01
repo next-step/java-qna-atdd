@@ -31,7 +31,8 @@ public class QnaService {
     }
 
     public Question findById(long id) {
-        return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        return questionRepository.findByIdAndDeletedIsFalse(id)
+            .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
@@ -57,8 +58,8 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer findAnswer(long questionId, long answerId) {
-        return answerRepository.findByQuestionAndIdAndDeletedIsFalse(findById(questionId), answerId)
+    public Answer findAnswerById(long questionId, long answerId) {
+        return answerRepository.findByQuestionIdAndIdAndDeletedIsFalse(questionId, answerId)
             .orElseThrow(EntityNotFoundException::new);
     }
 
@@ -67,6 +68,7 @@ public class QnaService {
         Question question = findById(questionId);
         Answer answer = new Answer(loginUser, contents);
 
+        answer.toQuestion(question);
         question.addAnswer(answer);
 
         return answer;
@@ -74,8 +76,7 @@ public class QnaService {
 
     @Transactional
     public Answer updateAnswer(User loginUser, long questionId, long answerId, String contents) {
-        Answer answer = findAnswer(questionId, answerId);
-
+        Answer answer = findAnswerById(questionId, answerId);
         answer.update(loginUser, contents);
 
         return answer;
@@ -83,7 +84,7 @@ public class QnaService {
 
     @Transactional
     public void deleteAnswer(User loginUser, long questionId, long answerId) {
-        Answer answer = findAnswer(questionId, answerId);
+        Answer answer = findAnswerById(questionId, answerId);
 
         answer.delete(loginUser);
     }
