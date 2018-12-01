@@ -32,7 +32,7 @@ public class QnaService {
     }
 
     public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+        return questionRepository.findByIdAndDeleted(id, false);
     }
 
     @Transactional
@@ -60,12 +60,30 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+
+        Answer answer = new Answer(loginUser, contents);
+        answer.toQuestion(findById(questionId).get());
+        Answer a =  answerRepository.save(answer);
+        return a;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer updateAnswer(User loginUser, long answerId, Answer updateAnswer) {
+        return findAnswerById(answerId).map((answer) -> {
+            answer.update(loginUser, updateAnswer);
+            return answer;
+        }).get();
+    }
+
+    @Transactional
+    public void deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
+        findAnswerById(answerId)
+            .filter(answer -> !answer.isDeleted())
+            .orElseThrow(() -> new CannotDeleteException("이미 삭제되었거나 삭제할 답변이 존재하지 않습니다."))
+            .delete(loginUser);
+    }
+
+    public Optional<Answer> findAnswerById(long id) {
+        return answerRepository.findByIdAndDeleted(id, false);
     }
 }
