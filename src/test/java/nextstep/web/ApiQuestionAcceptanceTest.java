@@ -1,6 +1,9 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
+import nextstep.domain.User;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -14,6 +17,13 @@ import java.net.URI;
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     private static final String CONTEXT = "/api/questions";
+
+    private Question question;
+
+    @Before
+    public void setup() {
+        this.question = new Question("newTitle", "newContents");
+    }
 
     @Test
     public void create() {
@@ -41,7 +51,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        final URI resource = createResource(CONTEXT, question);
 
         final ResponseEntity<Question> response = template().getForEntity(resource, Question.class);
 
@@ -60,7 +70,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        final URI resource = createResource(CONTEXT, question);
         final Question origin = getResource(resource, Question.class, defaultUser());
 
         final ResponseEntity<Question> response = put(resource, basicAuthTemplate(), origin);
@@ -75,7 +85,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_로그인_안했을때() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        final URI resource = createResource(CONTEXT, question);
         final Question origin = getResource(resource, Question.class, defaultUser());
 
         final ResponseEntity<Question> response = put(resource, template(), origin);
@@ -85,7 +95,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_작성자_다를때() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        final URI resource = createResource(CONTEXT, question);
         final Question origin = getResource(resource, Question.class, defaultUser());
 
         final ResponseEntity<Question> response = put(resource, basicAuthTemplate(anotherUser()), origin);
@@ -99,14 +109,14 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         final Long questionId = Long.MAX_VALUE;
         final URI uri = UriComponentsBuilder.fromPath(url).buildAndExpand(questionId).toUri();
 
-        final ResponseEntity<Question> response = put(uri, basicAuthTemplate(), new Question());
+        final ResponseEntity<Question> response = put(uri, basicAuthTemplate(), question);
 
         softly.assertThat(response.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
     }
 
     @Test
-    public void delete() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+    public void delete_답변없을때() {
+        final URI resource = createResource(CONTEXT, question);
 
         final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
 
@@ -118,8 +128,49 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    public void delete_동일_작성자_답변만_있을때() {
+        final User defaultUser = defaultUser();
+        final URI resource = createResource(CONTEXT, question);
+        Question question = getResource(resource, Question.class, defaultUser);
+
+        final String answerUrl = CONTEXT + "/{questionId}/answers";
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+
+
+        final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
+
+        softly.assertThat(response.getStatusCode()).isSameAs(HttpStatus.NO_CONTENT);
+
+        final ResponseEntity<Question> findResponse = basicAuthTemplate().getForEntity(resource, Question.class);
+
+        softly.assertThat(findResponse.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_다른_작성자_답변_있을때() {
+        final User defaultUser = defaultUser();
+        final URI resource = createResource(CONTEXT, question);
+        Question question = getResource(resource, Question.class, defaultUser);
+
+        final String answerUrl = CONTEXT + "/{questionId}/answers";
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+        requestAddAnswer(answerUrl, basicAuthTemplate(), question.getId());
+        requestAddAnswer(answerUrl, basicAuthTemplate(anotherUser()), question.getId());
+
+
+        final ResponseEntity<Void> response = delete(resource, basicAuthTemplate());
+
+        softly.assertThat(response.getStatusCode()).isSameAs(HttpStatus.FORBIDDEN);
+    }
+
+    private void requestAddAnswer(String answerUrl, TestRestTemplate testRestTemplate, Long questionId) {
+        testRestTemplate.postForEntity(answerUrl, new Answer("contents!!"), Void.class, questionId);
+    }
+
+    @Test
     public void delete_로그인_안했을때() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        final URI resource = createResource(CONTEXT, question);
 
         final ResponseEntity<Void> response = delete(resource, template());
 
@@ -128,7 +179,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_다른_작성자() {
-        final URI resource = createResource(CONTEXT, new Question("newTitle", "newContents"));
+        final URI resource = createResource(CONTEXT, question);
 
         final ResponseEntity<Void> response = delete(resource, basicAuthTemplate(anotherUser()));
 

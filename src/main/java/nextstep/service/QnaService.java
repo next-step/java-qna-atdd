@@ -51,12 +51,12 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
+    public Question update(User loginUser, long id, QuestionPost updatedPost) throws UnAuthenticationException {
         LoginChecker.check(loginUser);
 
         Question findedQuestion = findNotDeletedQuestionById(id);
 
-        return findedQuestion.update(loginUser, updatedQuestion);
+        return findedQuestion.update(loginUser, updatedPost);
     }
 
     @Transactional
@@ -65,10 +65,9 @@ public class QnaService {
 
         Question findedQuestion = findNotDeletedQuestionById(questionId);
 
-        findedQuestion.delete(loginUser);
+        final List<DeleteHistory> deleteHistories = findedQuestion.delete(loginUser);
 
-        DeleteHistory deleteHistory = new DeleteHistory(ContentType.QUESTION, questionId, loginUser, LocalDateTime.now());
-        deleteHistoryService.saveAll(ImmutableList.of(deleteHistory));
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Iterable<Question> findAll() {
