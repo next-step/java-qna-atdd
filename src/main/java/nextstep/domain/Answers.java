@@ -11,6 +11,7 @@ import java.util.List;
 
 @Embeddable
 public class Answers {
+
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
     @OrderBy("id ASC")
@@ -25,8 +26,12 @@ public class Answers {
         answers.stream().forEach(answer -> answer.delete(loginUser));
     }
 
-    public boolean getSize() {
+    public boolean hasSize() {
         return answers.size() != 0;
+    }
+
+    public List<Answer> getAnswers() {
+        return answers;
     }
 
     public boolean DeleteCheck(User loginUser) {

@@ -3,7 +3,6 @@ package nextstep.web;
 import nextstep.CannotDeleteException;
 import nextstep.CannotFoundException;
 import nextstep.domain.Answer;
-import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -30,9 +29,8 @@ public class ApiAnswerController {
     }
 
     @DeleteMapping("/{id}/answer/{answerId}")
-    public Question deleteAnswer(@LoginUser User user, @PathVariable("id") long id , @PathVariable("answerId") long answerId) throws CannotFoundException, CannotDeleteException {
+    public void deleteAnswer(@LoginUser User user, @PathVariable("id") long id , @PathVariable("answerId") long answerId) throws CannotFoundException, CannotDeleteException {
         qnaService.deleteAnswer(user, id, answerId);
-        return qnaService.findByIdAndDeletedFalse(user ,id);
     }
 
 

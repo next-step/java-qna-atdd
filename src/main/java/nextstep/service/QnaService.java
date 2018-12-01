@@ -4,6 +4,7 @@ import nextstep.CannotDeleteException;
 import nextstep.CannotFoundException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
+import org.apache.tomcat.jni.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -57,6 +58,7 @@ public class QnaService {
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question target = findById(questionId).orElseThrow(CannotDeleteException::new);
         target.delete(loginUser);
+        deleteHistoryService.save(new DeleteHistory(ContentType.QUESTION, target.getId(), loginUser, LocalDateTime.now()));
     }
 
     public Iterable<Question> findAll() {
@@ -71,19 +73,16 @@ public class QnaService {
         return questionRepository.findByIdAndDeletedFalse(questionId).orElseThrow(CannotFoundException::new);
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) throws CannotFoundException {
+    public void addAnswer(User loginUser, long questionId, String contents) throws CannotFoundException {
         Question question = findQuestion(questionId);
-        Answer answer = new Answer(loginUser, contents);
-        answer.toQuestion(question);
-        Answers answers = new Answers();
-        answers.addAnswer(answer);
-        return answer;
+        question.addAnswer(new Answer(loginUser, contents));
     }
 
     public Answer deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException, CannotFoundException {
         findQuestion(questionId);
         Answer answer = answerRepository.findById(answerId).orElseThrow(CannotFoundException::new);
         answer.delete(loginUser);
+        deleteHistoryService.save(new DeleteHistory(ContentType.ANSWER, answerId, loginUser, LocalDateTime.now()));
         return answer;
     }
 }

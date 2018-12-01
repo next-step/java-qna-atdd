@@ -2,7 +2,6 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import nextstep.view.QuestionUpdateView;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -43,6 +42,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+        this.answers = new Answers();
     }
 
     public Question(long id, String title, String contents, User writer) {
@@ -75,6 +75,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContents(String contents) {
+        this.contents = contents;
+    }
+
     public User getWriter() {
         return writer;
     }
@@ -85,6 +93,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public String getTitle() {
         return title;
+    }
+
+    public Answers getAnswers() {
+        return answers;
+    }
+
+    public void addAnswer(Answer answer) {
+        answer.toQuestion(this);
+        answers.addAnswer(answer);
     }
 
     public Question update(Question updatedQuestion) {
@@ -113,6 +130,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     private boolean isDeleteCheck(User loginUser) {
-        return ( !isOwner(loginUser) && answers.getSize() ) || ( !isOwner(loginUser) && answers.DeleteCheck(loginUser) );
+        return ( !isOwner(loginUser) && answers.hasSize() ) || ( !isOwner(loginUser) && answers.DeleteCheck(loginUser) );
     }
 }

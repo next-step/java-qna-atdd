@@ -11,12 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -116,11 +114,14 @@ public class QnaServiceTest {
 
     @Test
     public void 답변작성() throws CannotFoundException {
+        when(questionRepository.findById(anyLong())).thenReturn(Optional.ofNullable(question));
         when(questionRepository.findByIdAndDeletedFalse(anyLong())).thenReturn(Optional.ofNullable(question));
 
-        Answer saveAnswer = qnaService.addAnswer(JAVAJIGI, question.getId(), "리팩토링 합시다");
+        String contents = "리팩토링 합시다";
+        qnaService.addAnswer(JAVAJIGI, question.getId(), contents);
 
-        assertThat(saveAnswer.isOwner(JAVAJIGI)).isTrue();
+        assertThat(qnaService.findById(question.getId()).get().getAnswers().getAnswers()).extracting("contents").containsAnyOf(contents);
+
     }
 
     @Test
