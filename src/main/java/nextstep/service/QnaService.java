@@ -41,18 +41,19 @@ public class QnaService {
     public Question update(User loginUser, long id, Question updatedQuestion) {
         // TODO 수정 기능 구현
         log.debug("question : {}", updatedQuestion);
-        if(findById(id).get().isOwner(loginUser)) {
-            return questionRepository.save(updatedQuestion);
+        if(!findById(id).get().isOwner(loginUser)) {
+            throw new UnAuthorizedException();
         }
-        return null;
+        return questionRepository.save(updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
-        if(findById(questionId).get().isOwner(loginUser)) {
-            questionRepository.deleteById(questionId);
+        if(!findById(questionId).get().isOwner(loginUser)) {
+            throw new UnAuthorizedException();
         }
+        questionRepository.deleteById(questionId);
     }
 
     public Iterable<Question> findAll() {

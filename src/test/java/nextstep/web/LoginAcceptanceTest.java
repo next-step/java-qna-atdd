@@ -9,6 +9,7 @@ import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
+import support.test.HtmlFormDataBuilder;
 
 import java.util.Arrays;
 
@@ -20,17 +21,12 @@ public class LoginAcceptanceTest extends AcceptanceTest{
 
     @Test
     public void login() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
+        HtmlFormDataBuilder htmlFormDataBuilder = HtmlFormDataBuilder.urlEncodedForm();
         String userId = "javajigi";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        htmlFormDataBuilder.addParameter("userId", userId);
+        htmlFormDataBuilder.addParameter("password", "test");
 
-        ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
+        ResponseEntity<String> response = template().postForEntity("/users/login", htmlFormDataBuilder.build(), String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
