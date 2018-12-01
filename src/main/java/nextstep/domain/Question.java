@@ -2,11 +2,14 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
+import nextstep.view.QuestionView;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -72,7 +75,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+        return "Question{" +
+                "title='" + title + '\'' +
+                ", contents='" + contents + '\'' +
+                ", writer=" + writer +
+                ", answers=" + answers +
+                ", deleted=" + deleted +
+                '}';
     }
 
     public void setTitle(String title) {
@@ -111,25 +120,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
         this.title = updatedQuestion.title;
         this.contents = updatedQuestion.contents;
+
         return this;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if(isDeleted()){
             throw new CannotDeleteException("삭제된 질문입니다.");
         }
         if(!isOwner(loginUser)){
             throw new UnAuthorizedException("작성자가 아닙니다.");
         }
-        if(isDeleteCheck(loginUser)){
-            throw new CannotDeleteException("답변이 존재하거나 삭제 가능한 아이디가 아닙니다.");
-        }
         deleted = true;
-        answers.delete(loginUser);
+        List<DeleteHistory> deleteHistories = answers.delete(loginUser);
+        deleteHistories.add(new DeleteHistory(ContentType.ANSWER, getId(), loginUser, LocalDateTime.now()));
 
+        return deleteHistories;
     }
 
-    private boolean isDeleteCheck(User loginUser) {
-        return ( !isOwner(loginUser) && answers.hasSize() ) || ( !isOwner(loginUser) && answers.DeleteCheck(loginUser) );
-    }
 }

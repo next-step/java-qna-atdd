@@ -8,6 +8,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Embeddable
 public class Answers {
@@ -22,8 +23,8 @@ public class Answers {
     }
 
 
-    public void delete(User loginUser) {
-        answers.stream().forEach(answer -> answer.delete(loginUser));
+    public List<DeleteHistory> delete(User loginUser) {
+        return answers.stream().map(answer -> answer.delete(loginUser)).collect(Collectors.toList());
     }
 
     public boolean hasSize() {

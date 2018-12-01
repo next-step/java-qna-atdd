@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -35,7 +36,7 @@ public class QnaServiceTest {
     @InjectMocks
     private QnaService qnaService;
 
-    @InjectMocks
+    @Mock
     private DeleteHistoryService deleteHistoryService;
 
 

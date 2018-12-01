@@ -57,8 +57,8 @@ public class QnaService {
 
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question target = findById(questionId).orElseThrow(CannotDeleteException::new);
-        target.delete(loginUser);
-        deleteHistoryService.save(new DeleteHistory(ContentType.QUESTION, target.getId(), loginUser, LocalDateTime.now()));
+        List<DeleteHistory> deleteHistorys = target.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistorys);
     }
 
     public Iterable<Question> findAll() {
@@ -81,8 +81,8 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException, CannotFoundException {
         findQuestion(questionId);
         Answer answer = answerRepository.findById(answerId).orElseThrow(CannotFoundException::new);
-        answer.delete(loginUser);
-        deleteHistoryService.save(new DeleteHistory(ContentType.ANSWER, answerId, loginUser, LocalDateTime.now()));
+        DeleteHistory deleteHistory = answer.delete(loginUser);
+        deleteHistoryService.saveAll(Arrays.asList(deleteHistory));
         return answer;
     }
 }
