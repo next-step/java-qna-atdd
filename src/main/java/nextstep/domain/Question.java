@@ -95,6 +95,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.deleted = true;
     }
 
+    public boolean isEqualsTitleAndContents(Question other) {
+        if (!title.equals(other.title)) {
+            return false;
+        }
+        return contents.equals(other.contents);
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());

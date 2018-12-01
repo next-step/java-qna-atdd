@@ -1,9 +1,9 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
+import nextstep.domain.QuestionTest;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,24 +14,24 @@ import support.test.HttpHelper;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    private String createdUrl;
 
-    @Test
-    public void 질문_조회() {
-        Question question = questionRepository.findById(1L).get();
+    private Question defaultQuestion = QuestionTest.newQuestion();
 
-        ResponseEntity<String> response = HttpHelper.get(template(), question.generateUrl());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(response.getBody()).contains(question.getTitle());
+    @Before
+    public void setUp() throws Exception {
+        ResponseEntity<String> response = create(basicAuthTemplate());
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        createdUrl = response.getHeaders().getLocation().getPath();
     }
 
     @Test
     public void 질문하기_로그인_유저() {
-        ResponseEntity<String> response = create(basicAuthTemplate());
+        ResponseEntity<String> response = HttpHelper.get(template(), createdUrl);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody()).contains(defaultQuestion.getTitle());
     }
 
     @Test
@@ -43,12 +43,10 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 내_질문_수정() {
-        Question question = questionRepository.findById(1L).get();
-
-        ResponseEntity<String> response = update(basicAuthTemplate(question.getWriter()));
+        ResponseEntity<String> response = update(basicAuthTemplate());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith(question.generateUrl());
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith(createdUrl);
     }
 
     @Test
@@ -60,24 +58,25 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 내_질문_삭제() {
-        ResponseEntity<String> response = HttpHelper.delete(basicAuthTemplate(), String.format("/questions/%d", 1));
+        ResponseEntity<String> response = HttpHelper.delete(basicAuthTemplate(), createdUrl);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
-        softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isTrue();
+
+        softly.assertThat(HttpHelper.get(template(), createdUrl).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
     public void 내_질문이_아니면_삭제할_수_없다() {
-        ResponseEntity<String> response = HttpHelper.delete(basicAuthTemplate(findByUserId("sanjigi")), String.format("/questions/%d", 1));
+        ResponseEntity<String> response = HttpHelper.delete(basicAuthTemplate(findByUserId("sanjigi")), createdUrl);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private ResponseEntity<String> create(TestRestTemplate template) {
         MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("title", "질문이 있습니다");
-        params.add("contents", "답변해주세요.");
+        params.add("title", defaultQuestion.getTitle());
+        params.add("contents", defaultQuestion.getContents());
 
         return HttpHelper.post(template, "/questions", params);
     }
@@ -87,6 +86,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         params.add("title", "질문이 있습니다");
         params.add("contents", "답변해주세요.");
 
-        return HttpHelper.put(template, String.format("/questions/%d", 1), params);
+        return HttpHelper.put(template, createdUrl, params);
     }
 }
