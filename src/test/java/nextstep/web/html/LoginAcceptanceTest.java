@@ -1,4 +1,4 @@
-package nextstep.web;
+package nextstep.web.html;
 
 import nextstep.domain.UserRepository;
 import org.junit.Test;

@@ -7,7 +7,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 @Entity
-public class Answer extends AbstractEntity implements UrlGeneratable {
+public class Answer extends AbstractEntity implements UrlGeneratable, OwnerCheckable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;

@@ -35,15 +35,6 @@ public class QnaServiceTest extends BaseTest {
     public void getAuthorizedQuestionWithoutAuthorized() {
         when(questionRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(basicQuestion));
 
-        qnaService.findByIdWithAuthorized(anotherUser, 0);
-    }
-
-    public void getAuthorizedQuestion() {
-        when(questionRepository.findById(0L)).thenReturn(Optional.of(basicQuestion));
-
-        Question question = qnaService.findByIdWithAuthorized(anotherUser, 0);
-
-        softly.assertThat(question.getTitle()).isEqualTo(basicQuestion.getTitle());
-        softly.assertThat(question.getContents()).isEqualTo(basicQuestion.getContents());
+        qnaService.findById(0).hasAuthority(anotherUser);
     }
 }
