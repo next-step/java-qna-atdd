@@ -26,27 +26,33 @@ public class QuestionController {
     public String form() { return "/qna/form"; }
 
     @PostMapping("")
-    public String create(@LoginUser User loginUser, Question question) {
-        qnaService.create(loginUser, question);
-        return "redirect:/questions";
+    public String create(@LoginUser User loginUser, Question question, Model model) {
+        model.addAttribute("question", qnaService.create(loginUser, question));
+        return "/qna/show";
     }
 
     @GetMapping("/{id}")
+    public String detail(@PathVariable long id, Model model) {
+        model.addAttribute("question", qnaService.findById(id));
+        return "/qna/show";
+    }
+
+    @GetMapping("/{id}/form")
     public String updateForm(@PathVariable long id, Model model) {
         model.addAttribute("question", qnaService.findById(id));
         return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question target) throws UnAuthenticationException {
-        qnaService.update(loginUser, id, target);
-        return "redirect:/questions";
+    public String update(@LoginUser User loginUser, @PathVariable long id, Question target, Model model) {
+        model.addAttribute("question", qnaService.update(loginUser, id, target));
+        return "/qna/show";
     }
 
     @DeleteMapping("/{id}")
     public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
         qnaService.deleteQuestion(loginUser, id);
-        return "redirect:/questions";
+        return "redirect:/";
     }
 
 
