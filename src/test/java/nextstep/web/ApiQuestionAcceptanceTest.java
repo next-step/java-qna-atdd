@@ -35,7 +35,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         final Question createdQuestion = getResource(location, Question.class, defaultUser());
         softly.assertThat(createdQuestion).isNotNull();
     }
@@ -45,12 +47,13 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void create_not_login() {
         ResponseEntity<Void> response = template().postForEntity("/api/questions", newQuestion, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-
     }
 
     @Test
     public void update_writer_login() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         ResponseEntity<String> response = updateResource(location, updateQuestion, basicAuthTemplate());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -59,7 +62,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_login() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         ResponseEntity<String> response = updateResource(location, updateQuestion, basicAuthTemplate(UserTest.SANJIGI));
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -68,7 +73,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_not_login() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         ResponseEntity<String> response = updateResource(location, updateQuestion, template());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -76,7 +83,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_writer_login() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         ResponseEntity<String> response = deleteResource(location, basicAuthTemplate());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
@@ -84,7 +93,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_login() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         ResponseEntity<String> response = deleteResource(location, basicAuthTemplate(UserTest.SANJIGI));
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -92,7 +103,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_not_login() {
-        String location = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        ResponseEntity<Void> resource = createResource(API_QUESTIONS, newQuestion, basicAuthTemplate());
+        String location = resource.getHeaders().getLocation().getPath();
+
         ResponseEntity<String> response = deleteResource(location, template());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);

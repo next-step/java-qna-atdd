@@ -42,16 +42,15 @@ public abstract class AcceptanceTest extends BaseTest {
         return userRepository.findByUserId(userId).get();
     }
 
-    protected String createResource(String path, Object bodyPayload, TestRestTemplate template) {
-        final ResponseEntity<Void> response = template.exchange(path, HttpMethod.POST, createHttpEntity(bodyPayload), Void.class);
-        return response.getHeaders().getLocation().getPath();
+    protected ResponseEntity<Void> createResource(String path, Object bodyPayload, TestRestTemplate template) {
+        return template.exchange(path, HttpMethod.POST, createHttpEntity(bodyPayload), Void.class);
     }
 
-    protected ResponseEntity<String>  updateResource(String path, Object bodyPayload, TestRestTemplate template) {
+    protected ResponseEntity<String> updateResource(String path, Object bodyPayload, TestRestTemplate template) {
         return template.exchange(path, HttpMethod.PUT, createHttpEntity(bodyPayload), String.class);
     }
 
-    protected ResponseEntity<String>  deleteResource(String path, TestRestTemplate template) {
+    protected ResponseEntity<String> deleteResource(String path, TestRestTemplate template) {
         return template.exchange(path, HttpMethod.DELETE, null, String.class);
     }
 
