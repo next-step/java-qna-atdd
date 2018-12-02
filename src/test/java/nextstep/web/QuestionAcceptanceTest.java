@@ -169,7 +169,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template, long id) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "put")
+                .put()
                 .addParameter("title", "질문 수정제목 입니다.")
                 .addParameter("contents", "질문은 수정질문입니다.")
                 .build();
@@ -179,7 +179,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> delete(TestRestTemplate template, long id) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "delete")
+                .delete()
                 .build();
 
         return template.postForEntity(String.format("/questions/%d", id), request, String.class);

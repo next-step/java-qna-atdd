@@ -66,12 +66,19 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Answer answer = new Answer(loginUser, contents);
+        questionRepository.findById(questionId)
+                .orElseThrow(IllegalArgumentException::new)
+                .addAnswer(answer);
+
+        return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = answerRepository.findById(id)
+                .orElseThrow(IllegalArgumentException::new);
+        answer.delete(loginUser);
+
+        return answer;
     }
 }
