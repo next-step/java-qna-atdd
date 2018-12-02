@@ -1,26 +1,26 @@
 package nextstep.web;
 
+import nextstep.domain.User;
+import nextstep.domain.UserRepository;
+import nextstep.domain.UserTest;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
-
-import java.util.Arrays;
+import support.test.HtmlFormDataBuilder;
 
 public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 로그인_성공() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        String userId = "javajigi";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("userId","javajigi")
+                .addParameter("password","test")
+                .build();
 
         ResponseEntity<String> response = template().postForEntity("/login", request, String.class); //url,request,responseType
 
@@ -30,18 +30,12 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 로그인_실패() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("userId","test")
+                .addParameter("password","test")
+                .build();
 
-        String userId = "test";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
-        ResponseEntity<String> response = template().postForEntity("/login", request, String.class); //url,request,responseType
-
+        ResponseEntity<String> response = template().postForEntity("/login", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/failed");
     }

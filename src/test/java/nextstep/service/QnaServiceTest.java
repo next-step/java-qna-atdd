@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.UserTest;
@@ -38,25 +39,24 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findByIdAndDeletedFalse(question.getId())).thenReturn(Optional.of(question));
 
         Question updatedQuestion = new Question("제목 수정", "내용 수정");
-        qnaService.update(question.getId(), updatedQuestion);
+        qnaService.update(UserTest.JAVAJIGI, question.getId(), updatedQuestion);
 
         assertThat(question.getContents()).isEqualTo(updatedQuestion.getContents());
     }
 
     @Test
     public void 삭제_성공() throws CannotDeleteException {
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(question.getId())).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(UserTest.JAVAJIGI, question.getId());
 
         assertThat(question.isDeleted()).isTrue();
     }
 
-    @Test(expected = CannotDeleteException.class)
-    public void 삭제_실패() throws CannotDeleteException {
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+    @Test(expected = UnAuthorizedException.class)
+    public void 삭제_작성자아님_실패(){
+        when(questionRepository.findByIdAndDeletedFalse(question.getId())).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(UserTest.SANJIGI, question.getId());
     }
-
 }
