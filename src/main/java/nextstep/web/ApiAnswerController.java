@@ -5,6 +5,8 @@ import nextstep.domain.AnswerRepository;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +19,17 @@ import java.net.URI;
 @RequestMapping("/api/questions/{question_Id}/answers")
 public class ApiAnswerController {
 
+    private static final Logger log = LoggerFactory.getLogger(ApiAnswerController.class);
+
     @Resource(name = "qnaService")
     private QnaService qnaService;
 
     @PostMapping("")
     public ResponseEntity<Void> create(@PathVariable long question_Id, @RequestBody String contents, @LoginUser User user) {
         Answer newAnswer = qnaService.addAnswer(user,question_Id,contents);
-        System.out.println("checking" + newAnswer.getContents());
+        log.debug("checking Contents : {}",newAnswer.getContents());
+        log.debug("checking URL : {}",newAnswer.generateUrl());
         HttpHeaders headers = new HttpHeaders();
-        System.out.println(newAnswer.generateUrl());
         //answer의 generateURL쓰도록 mapping 주소 변경
         headers.setLocation(URI.create("/api"+newAnswer.generateUrl()));
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);

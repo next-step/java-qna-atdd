@@ -1,10 +1,6 @@
 package support.test;
 
-<<<<<<< HEAD
 import nextstep.domain.Answer;
-=======
-import nextstep.domain.QuestionRepository;
->>>>>>> 2cycle
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.junit.runner.RunWith;

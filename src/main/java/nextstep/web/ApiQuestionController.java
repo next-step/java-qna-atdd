@@ -1,7 +1,6 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
@@ -28,11 +27,7 @@ public class ApiQuestionController {
         Question new_question = qnaService.create(user,question);
 
         HttpHeaders headers = new HttpHeaders();
-<<<<<<< HEAD
-        headers.setLocation(URI.create("/api/"+new_question.generateUrl()));
-=======
         headers.setLocation(URI.create("/api/questions/" + new_question.getId()));
->>>>>>> 2cycle
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
@@ -41,11 +36,7 @@ public class ApiQuestionController {
         Question new_question = qnaService.create(user,question);
 
         HttpHeaders headers = new HttpHeaders();
-<<<<<<< HEAD
-        headers.setLocation(URI.create("/api/"+new_question.generateUrl()));
-=======
         headers.setLocation(URI.create("/api/questions/" + new_question.getId()));
->>>>>>> 2cycle
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
