@@ -5,16 +5,22 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.ArrayList;
+
 public class QuestionTest extends BaseTest {
-    public static final User JAVAJIGI = new User(1L, "javajigi", "test", "name", "javajigi@slipp.net");
-    public static final User SANJIGI = new User(2L, "sanjigi", "test", "name", "sanjigi@slipp.net");
 
     public static Question newQuestion() {
-        return Question.ofUser("지질하다", "내용이 엉?", JAVAJIGI);
+        QuestionBody questionBody = dataultQuestionBody();
+        return Question.ofList(questionBody, UserTest.JAVAJIGI, new ArrayList<Answer>());
     }
 
     public static Question newQuestion(String title, String contents) {
-        return Question.ofUser(title, contents, JAVAJIGI);
+        QuestionBody questionBody = new QuestionBody(title, contents);
+        return Question.ofList(questionBody, UserTest.JAVAJIGI, new ArrayList<Answer>());
+    }
+
+    public static QuestionBody dataultQuestionBody() {
+        return new QuestionBody("지질하다", "내용이 엉?");
     }
 
     @Test
@@ -37,8 +43,8 @@ public class QuestionTest extends BaseTest {
     @Test
     public void 질문업데이트() {
         Question question = newQuestion();
-        Question updateQuestion = Question.ofUser("제목 이상하게하기", "내용삽입", JAVAJIGI);
-        question.update(updateQuestion);
+        QuestionBody updateQuestion = new QuestionBody("제목 이상하게하기", "내용삽입");
+        question.update(UserTest.JAVAJIGI,updateQuestion);
         softly.assertThat(question.getTitle()).isEqualTo(updateQuestion.getTitle());
         softly.assertThat(question.getContents()).isEqualTo(updateQuestion.getContents());
 
@@ -47,8 +53,8 @@ public class QuestionTest extends BaseTest {
     @Test(expected = UnAuthorizedException.class)
     public void 질문타인업데이트() {
         Question question = newQuestion();
-        Question updateQuestion = Question.ofUser("제목 이상하게하기", "내용삽입", SANJIGI);
-        question.update(updateQuestion);
+        QuestionBody updateQuestion = new QuestionBody("제목 이상하게하기", "내용삽입");
+        question.update(UserTest.SANJIGI,updateQuestion);
         softly.assertThat(question.getTitle()).isEqualTo(updateQuestion.getTitle());
         softly.assertThat(question.getContents()).isEqualTo(updateQuestion.getContents());
     }
@@ -56,8 +62,8 @@ public class QuestionTest extends BaseTest {
     @Test(expected = UnAuthorizedException.class)
     public void 질문손님업데이트() {
         Question question = newQuestion();
-        Question updateQuestion = Question.ofUser("제목 이상하게하기", "내용삽입", User.GUEST_USER);
-        question.update(updateQuestion);
+        QuestionBody updateQuestion = new QuestionBody("제목 이상하게하기", "내용삽입");
+        question.update(User.GUEST_USER, updateQuestion);
         softly.assertThat(question.getTitle()).isEqualTo(updateQuestion.getTitle());
         softly.assertThat(question.getContents()).isEqualTo(updateQuestion.getContents());
     }
@@ -65,14 +71,14 @@ public class QuestionTest extends BaseTest {
     @Test
     public void 삭제하기() throws CannotDeleteException {
         Question question = newQuestion();
-        question.delete(JAVAJIGI);
+        question.delete(UserTest.JAVAJIGI);
         softly.assertThat(question.isDeleted()).isTrue();
     }
 
     @Test(expected = CannotDeleteException.class)
     public void 삭제하기타인() throws CannotDeleteException {
         Question question = newQuestion();
-        question.delete(SANJIGI);
+        question.delete(UserTest.SANJIGI);
         softly.assertThat(question.isDeleted()).isTrue();
     }
 

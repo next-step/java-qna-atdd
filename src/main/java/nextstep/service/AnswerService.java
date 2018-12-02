@@ -14,9 +14,9 @@ import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
-@Service("qnaService")
-public class QnaService {
-    private static final Logger log = LoggerFactory.getLogger(QnaService.class);
+@Service("answerService")
+public class AnswerService {
+    private static final Logger log = LoggerFactory.getLogger(AnswerService.class);
 
     @Resource(name = "questionRepository")
     private QuestionRepository questionRepository;
@@ -26,41 +26,6 @@ public class QnaService {
 
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
-
-    public Question createQuestion(User loginUser, QuestionBody target) {
-        Question question = Question.of(target);
-        question.writeBy(loginUser);
-        log.debug("question : {}", question);
-        return questionRepository.save(question);
-    }
-
-    public Optional<Question> findById(long questionId) {
-        return questionRepository.findById(questionId);
-    }
-
-    @Transactional
-    public Question updateQuestion(User loginUser, long questionId, QuestionBody updatedQuestion) {
-        // TODO 수정 기능 구현
-        return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).update(loginUser, updatedQuestion);
-    }
-
-    @Transactional
-    public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
-        Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
-
-        DeleteHistories deleteHistories = question.delete(loginUser);
-        deleteHistoryService.saveAll(deleteHistories);
-        return question;
-    }
-
-    public Iterable<Question> findAll() {
-        return questionRepository.findByDeleted(false);
-    }
-
-    public List<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable).getContent();
-    }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현

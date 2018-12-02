@@ -9,6 +9,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityNotFoundException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -53,7 +55,7 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected User findByUserId(String userId) {
-        return userRepository.findByUserId(userId).get();
+        return userRepository.findByUserId(userId).orElseThrow(EntityNotFoundException::new);
     }
 
     protected Question defaultQuestion() {
@@ -61,7 +63,7 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected Question findById(long id) {
-        return questionRepository.findById(id).get();
+        return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
     protected Answer defaultAnswer() {
@@ -69,7 +71,7 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected Answer findByAnswerId(long id) {
-        return answerRepository.findById(id).get();
+        return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
     protected String createResourceLocation(String path, Object bodyPayload) {

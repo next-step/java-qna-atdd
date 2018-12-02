@@ -21,7 +21,8 @@ public class QuestionValidationTest extends BaseTest {
 
     @Test
     public void titleWhenIsEmpty() throws Exception {
-        Question question = Question.ofUser("", "당근 엄청 의미있는 활동이고 말고..",User.GUEST_USER);
+        QuestionBody questionBody = new QuestionBody("", "당근 엄청 의미있는 활동이고 말고..");
+        Question question = Question.of(questionBody);
         Set<ConstraintViolation<Question>> constraintViolcations = validator.validate(question);
         softly.assertThat(constraintViolcations).hasSize(1);
     }

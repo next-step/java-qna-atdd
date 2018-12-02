@@ -3,6 +3,7 @@ package nextstep.web;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -23,28 +24,25 @@ public class ApiQuestionController {
     private QnaService qnaService;
 
     @PostMapping("")
-    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
-         System.out.println(question.toString());
-        System.out.println(loginUser.toString());
+    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody QuestionBody question) {
         Question savedQuestion = qnaService.createQuestion(loginUser, question);
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api" + savedQuestion.generateUrl()));
         return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
-    @GetMapping("{id}")
-    public Question show(@LoginUser User loginUser, @PathVariable long id) {
+    @GetMapping("/{id}")
+    public Question show(@PathVariable long id) {
         return qnaService.findById(id).orElseThrow(EntityNotFoundException::new);
     }
 
-    @PutMapping("{id}")
-    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question updatedQuestion) {
+    @PutMapping("/{id}")
+    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody QuestionBody updatedQuestion) {
         return qnaService.updateQuestion(loginUser, id, updatedQuestion);
     }
-
-
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public Question delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
         return qnaService.deleteQuestion(loginUser, id);
     }
+
 }
