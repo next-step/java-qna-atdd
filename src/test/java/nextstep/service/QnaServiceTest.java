@@ -107,30 +107,30 @@ public class QnaServiceTest extends BaseTest {
         assertThat(question1.getContents()).isEqualTo(question2.getContents());
     }
 
-    @Test
-    public void 질문_삭제_성공() throws CannotDeleteException {
-
-        final User user = createUser("javajigi", "test", "자바지기", "javajigi@slipp.net");
-        final Question question = createUserAndQuestion(user, "국내에서 Ruby on Rails와 Play가 활성화되기 힘든 이유는 뭘까?", "Ruby on Rails(이하 RoR)는 2006년 즈음에 정말 뜨겁게 달아올랐다가 금방 가라 앉았다.");
-
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-
-        qnaService.delete(user, 1);
-
-        assertThat(question.isDeleted()).isTrue();
-    }
-
-    @Test(expected = CannotDeleteException.class)
-    public void 삭제된_질문_다시_삭제_시도() throws CannotDeleteException {
-
-        final User user = createUser("javajigi", "test", "자바지기", "javajigi@slipp.net");
-        final Question question = createUserAndQuestion(user, "국내에서 Ruby on Rails와 Play가 활성화되기 힘든 이유는 뭘까?", "Ruby on Rails(이하 RoR)는 2006년 즈음에 정말 뜨겁게 달아올랐다가 금방 가라 앉았다.");
-
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-
-        qnaService.delete(user, 1);
-        qnaService.delete(user, 1);
-    }
+//    @Test
+//    public void 질문_삭제_성공() throws CannotDeleteException {
+//
+//        final User user = createUser("javajigi", "test", "자바지기", "javajigi@slipp.net");
+//        final Question question = createUserAndQuestion(user, "국내에서 Ruby on Rails와 Play가 활성화되기 힘든 이유는 뭘까?", "Ruby on Rails(이하 RoR)는 2006년 즈음에 정말 뜨겁게 달아올랐다가 금방 가라 앉았다.");
+//
+//        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+//
+//        qnaService.delete(user, 1);
+//
+//        assertThat(question.isDeleted()).isTrue();
+//    }
+//
+//    @Test(expected = CannotDeleteException.class)
+//    public void 삭제된_질문_다시_삭제_시도() throws CannotDeleteException {
+//
+//        final User user = createUser("javajigi", "test", "자바지기", "javajigi@slipp.net");
+//        final Question question = createUserAndQuestion(user, "국내에서 Ruby on Rails와 Play가 활성화되기 힘든 이유는 뭘까?", "Ruby on Rails(이하 RoR)는 2006년 즈음에 정말 뜨겁게 달아올랐다가 금방 가라 앉았다.");
+//
+//        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+//
+//        qnaService.delete(user, 1);
+//        qnaService.delete(user, 1);
+//    }
 
     @Test(expected = CannotDeleteException.class)
     public void 작성자가_아닌데_질문_삭제_시도() throws CannotDeleteException {

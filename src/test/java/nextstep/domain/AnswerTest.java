@@ -84,6 +84,20 @@ public class AnswerTest {
         answer.delete(createUser("javajigi", "test", "자바지기", "javajigi@slipp.net"));
     }
 
+    @Test(expected = CannotDeleteException.class)
+    public void 질문한_사람과_로그인한_사람이_같지만_답변의_글쓴이가_다른_경우_삭제_가능하지_않음() {
+
+        final User loginUser = createUser("ninezero90hy", "ninezero90hy@", "ninezero", "ninezero90hy@gmail.com");
+
+        final Question question = newQuestion("타이틀", "내용");
+        final User newUser = createUser("javajigi", "test", "자바지기", "javajigi@slipp.net");
+        final Answer answer = new Answer(newUser, "좋은 책이네요.");
+        question.writeBy(createUser("ninezero90hy", "ninezero90hy@", "ninezero", "ninezero90hy@gmail.com"));
+        question.addAnswer(answer);
+
+        answer.delete(loginUser);
+    }
+
     private User createUser(final String userId, final String password, final String name, final String email) {
         return new User(userId, password, name, email);
     }

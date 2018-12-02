@@ -2,14 +2,16 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -26,10 +28,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -68,8 +68,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+        answers.addAnswer(answer, this);
     }
 
     public boolean isOwner(User loginUser) {
@@ -94,7 +93,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = question.contents;
     }
 
-    public void delete(final User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(final User loginUser) throws CannotDeleteException {
 
         if (isDeleted()) {
             throw new CannotDeleteException("Deleted questions.");
@@ -105,14 +104,18 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
+
+        final List<DeleteHistory> deleteHistories = new ArrayList<>(singletonList(createDeleteHistory(loginUser)));
+        deleteHistories.addAll(this.answers.deleteAll(loginUser));
+        return deleteHistories;
     }
 
     public boolean hasAnswers() {
-        return getAnswersCount() > 0;
+        return this.answers.hasAnswers();
     }
 
-    private long getAnswersCount() {
-        return this.answers.stream().filter(answer -> !answer.isDeleted()).count();
+    private DeleteHistory createDeleteHistory(final User loginUser) {
+        return new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, LocalDateTime.now());
     }
 
     public boolean eqTitleAndContents(final Question question) {
