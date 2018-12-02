@@ -10,9 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.ApiAcceptanceTest;
 
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.PUT;
-
 public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
     private Question parentQuestion;
 
@@ -26,11 +23,8 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
         String answerUrl = "/api/" + parentQuestion.generateUrl() + "/answers";
         String contents = "answerContents";
 
-        ResponseEntity<Void> response = basicAuthTemplate().postForEntity(answerUrl, contents, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-
-        String location = response.getHeaders().getLocation().getPath();
-        Answer resultAnswer = template().getForObject(location, Answer.class);
+        String resultPath = createResource(answerUrl, defaultUser(), contents);
+        Answer resultAnswer = getResource(resultPath, Answer.class);
         softly.assertThat(resultAnswer).isNotNull();
     }
 
@@ -38,10 +32,7 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
     public void get() throws Exception {
         Answer answer = addTestAnswer(parentQuestion, "answerContents");
 
-        ResponseEntity<Answer> response = basicAuthTemplate().getForEntity(apiAnswerUrl(answer), Answer.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        Answer resultAnswer = response.getBody();
+        Answer resultAnswer = getResource(apiAnswerUrl(answer), Answer.class);
         softly.assertThat(resultAnswer.getQuestion()).isEqualTo(answer.getQuestion());
         softly.assertThat(resultAnswer.getContents()).isEqualTo(answer.getContents());
     }
@@ -51,7 +42,7 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
         Answer answer = addTestAnswer(parentQuestion, "answerContents");
 
         String newContents = "newAnswerContents";
-        ResponseEntity<Answer> response = basicAuthTemplate().exchange(apiAnswerUrl(answer), PUT, createHttpEntity(newContents), Answer.class);
+        ResponseEntity<Answer> response = modifyResourceResponseEntity(apiAnswerUrl(answer), defaultUser(), newContents, Answer.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         Answer resultAnswer = response.getBody();
@@ -66,7 +57,7 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
     public void update_invalidUser() throws Exception {
         Answer answer = addTestAnswer(parentQuestion, "answerContents");
 
-        ResponseEntity<Answer> response = basicAuthTemplate(anotherUser).exchange(apiAnswerUrl(answer), PUT, createHttpEntity("test"), Answer.class);
+        ResponseEntity<Answer> response = modifyResourceResponseEntity(apiAnswerUrl(answer), anotherUser, "test", Answer.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -74,7 +65,7 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
     public void delete() throws Exception {
         Answer answer = addTestAnswer(parentQuestion, "answerContents");
 
-        ResponseEntity<Void> response = basicAuthTemplate().exchange(apiAnswerUrl(answer), DELETE, null, Void.class);
+        ResponseEntity<Void> response = deleteResourceResponseEntity(apiAnswerUrl(answer), defaultUser());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -82,7 +73,7 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
     public void delete_invalidUser() throws Exception {
         Answer answer = addTestAnswer(parentQuestion, "answerContents");
 
-        ResponseEntity<Void> response = basicAuthTemplate(anotherUser).exchange(apiAnswerUrl(answer), DELETE, null, Void.class);
+        ResponseEntity<Void> response = deleteResourceResponseEntity(apiAnswerUrl(answer), anotherUser);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
