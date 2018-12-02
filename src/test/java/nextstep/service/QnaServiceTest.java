@@ -22,9 +22,6 @@ public class QnaServiceTest  {
     @InjectMocks
     private QnaService qnaService;
 
-    @InjectMocks
-    private UserService userService;
-
     @Mock(name = "questionRepository")
     private QuestionRepository questionRepository;
 
@@ -37,17 +34,20 @@ public class QnaServiceTest  {
     private static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
 
     private static Question question;
+
+    private static QuestionBody questionBody;
     private static Answer answer;
 
     @Before
     public void setUp() throws Exception {
-        question = Question.ofList("제목테스트","내용테스트", JAVAJIGI, new ArrayList<>());
+        questionBody = new QuestionBody("제목테스트","내용테스트");
+        question = Question.ofList(questionBody, JAVAJIGI, new ArrayList<>());
         answer = Answer.of(SANJIGI, "내용테스트");
     }
 
     @Test
     public void create() {
-        qnaService.createQuestion(JAVAJIGI,  question);
+        qnaService.createQuestion(JAVAJIGI,  questionBody);
     }
 
     @Test
@@ -55,10 +55,9 @@ public class QnaServiceTest  {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         String title = "제목업데이트";
         String contents = "내용업데이트";
-        qnaService.updateQuestion(question.getWriter(), question.getId(), Question.ofList(title, contents, JAVAJIGI, new ArrayList<>()));
-        assertThat(question.getTitle()).isEqualTo(title);
-        assertThat(question.getContents()).isEqualTo(contents);
-
+        QuestionBody questionBody = new QuestionBody(title,contents);
+        qnaService.updateQuestion(question.getWriter(), question.getId(), questionBody);
+        assertThat(question.getBody()).isEqualTo(questionBody);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -66,7 +65,8 @@ public class QnaServiceTest  {
         when(questionRepository.findById(any())).thenReturn(Optional.ofNullable(question));
         String title = "제목업데이트";
         String contents = "내용업데이트";
-        qnaService.updateQuestion(SANJIGI, question.getId(),  Question.ofList(title,contents,JAVAJIGI, new ArrayList<>()));
+        QuestionBody questionBody = new QuestionBody(title, contents);
+        qnaService.updateQuestion(SANJIGI, question.getId(),  questionBody);
         assertThat(question.getTitle()).isEqualTo(title);
         assertThat(question.getContents()).isEqualTo(contents);
     }

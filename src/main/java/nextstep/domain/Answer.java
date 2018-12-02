@@ -15,12 +15,10 @@ import java.util.List;
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
-    @JsonIgnore
     private User writer;
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
-    @JsonIgnore
     private Question question;
 
     @Size(min = 5)
@@ -28,10 +26,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     private String contents;
 
     private boolean deleted = false;
-
-    @Transient
-    @JsonIgnore
-    private DeleteHistory deleteHistory;
 
     public Answer() {
     }
@@ -64,10 +58,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
         return new Answer(id, writer, question, contents);
-    }
-
-    public User getWriter() {
-        return writer;
     }
 
     public Question getQuestion() {
@@ -112,14 +102,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
         return this;
     }
-
-//    public Answer delete(User loginUser) throws CannotDeleteException {
-//        if (!isOwner(loginUser)) {
-//            throw new CannotDeleteException("삭제권한없습니다.");
-//        }
-//        this.deleted = true;
-//        return this;
-//    }
 
     public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {

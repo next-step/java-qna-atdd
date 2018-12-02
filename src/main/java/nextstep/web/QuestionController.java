@@ -3,6 +3,7 @@ package nextstep.web;
 import nextstep.CannotDeleteException;
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.AnswerService;
@@ -38,8 +39,8 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String createQuestion(@LoginUser User loginUser, Question question) {
-        qnaService.createQuestion(loginUser, question);
+    public String createQuestion(@LoginUser User loginUser, QuestionBody target) {
+        qnaService.createQuestion(loginUser, target);
         return REDIRECT_QUESTIONS;
     }
 
@@ -57,7 +58,7 @@ public class QuestionController {
     }
 
     @PutMapping("/{id}")
-    public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, Question target) {
+    public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, QuestionBody target) {
         qnaService.updateQuestion(loginUser, id, target);
         return REDIRECT_QUESTIONS;
     }

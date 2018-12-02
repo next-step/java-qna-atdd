@@ -1,5 +1,6 @@
 package nextstep.security;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.slf4j.Logger;
@@ -34,4 +35,12 @@ public class SecurityControllerAdvice {
         log.debug("UnAuthenticationException is happened!");
         return "/user/login";
     }
+
+    @ExceptionHandler(CannotDeleteException.class)
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    public void cannotDeleteException() {
+        log.debug("CannotDeleteException is happened!");
+    }
+
+
 }

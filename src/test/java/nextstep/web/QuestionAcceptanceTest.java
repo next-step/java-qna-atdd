@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.builder.HtmlFormDataBuilder;
 import nextstep.domain.AnswerRepository;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
-import static org.mockito.ArgumentMatchers.any;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
@@ -39,11 +39,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .addParameter("title", title)
                 .addParameter("contents", contents)
                 .build();
+        QuestionBody questionBody = new QuestionBody(title,contents);
+
         ResponseEntity<String> response = basicAuthTemplate(defaultUser())
                 .postForEntity(QUESTIONS, request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(questionRepository.findByTitleAndDeletedFalse(title).isPresent()).isTrue();
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith(QUESTIONS);
+        softly.assertThat(questionRepository.findByBodyAndDeletedFalse(questionBody).isPresent()).isTrue();
     }
 
     @Test
@@ -94,8 +95,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void deleteQuestion() throws Exception {
         ResponseEntity<String> response = deleteQuestion(basicAuthTemplate());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith(QUESTIONS);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private ResponseEntity<String> deleteQuestion(TestRestTemplate template) throws Exception {

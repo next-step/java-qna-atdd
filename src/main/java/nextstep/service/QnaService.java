@@ -27,7 +27,8 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question createQuestion(User loginUser, Question question) {
+    public Question createQuestion(User loginUser, QuestionBody target) {
+        Question question = Question.of(target);
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);
@@ -38,7 +39,7 @@ public class QnaService {
     }
 
     @Transactional
-    public Question updateQuestion(User loginUser, long questionId, Question updatedQuestion) {
+    public Question updateQuestion(User loginUser, long questionId, QuestionBody updatedQuestion) {
         // TODO 수정 기능 구현
         return questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new).update(loginUser, updatedQuestion);
     }
@@ -48,7 +49,7 @@ public class QnaService {
         // TODO 삭제 기능 구현
         Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
 
-        List<DeleteHistory> deleteHistories = question.delete(loginUser);
+        DeleteHistories deleteHistories = question.delete(loginUser);
         deleteHistoryService.saveAll(deleteHistories);
         return question;
     }

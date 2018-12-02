@@ -2,75 +2,63 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.util.ArrayList;
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @Size(min = 3, max = 100)
-    @Column(length = 100, nullable = false)
-    private String title;
-
-    @Size(min = 3)
-    @Lob
-    private String contents;
+    @Embedded
+    private QuestionBody body;
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers;
+
 
     private boolean deleted = false;
 
     private Question() {
     }
 
-    private Question(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
+    private Question(QuestionBody body) {
+        this.body = body;
     }
-    private Question(String title, String contents, User login, List<Answer> answers) {
-        this.title = title;
-        this.contents = contents;
+
+    private Question(QuestionBody body, User login, List<Answer> answers) {
+        this.body = body;
         this.writer = login;
-        this.answers.addAll(answers);
+        this.answers = new Answers(answers);
     }
 
-
-    public static Question of(String title, String contents) {
-        return new Question(title, contents);
+    public static Question of(QuestionBody body) {
+        return new Question(body);
     }
 
-    public static Question ofList(String title, String contents, User login, List<Answer> answers) {
-        return new Question(title, contents, login, answers);
+    public static Question ofList(QuestionBody body, User login, List<Answer> answers) {
+        return new Question(body, login, answers);
     }
 
     public String getTitle() {
-        return title;
-    }
-
-    public Question setTitle(String title) {
-        this.title = title;
-        return this;
+        return body.getTitle();
     }
 
     public String getContents() {
-        return contents;
+        return body.getContents();
     }
 
-    public Question setContents(String contents) {
-        this.contents = contents;
-        return this;
+    public QuestionBody getBody() {
+        return body;
+    }
+
+    public void setBody(QuestionBody body) {
+        this.body = body;
     }
 
     public User getWriter() {
@@ -85,8 +73,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+        answers.add(answer, this);
     }
 
     public boolean isOwner(User loginUser) {
@@ -104,57 +91,32 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+        return "Question{" +
+                "body=" + body +
+                ", writer=" + writer +
+                ", deleted=" + deleted +
+                '}';
     }
 
-    public Question update(User loginUser, Question question) {
+    public Question update(User loginUser, QuestionBody target) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
-        this.title = (question.getTitle());
-        this.contents = (question.getContents());
+        this.body = target;
         return this;
     }
-
-//    public Question delete(User loginUser) throws CannotDeleteException {
-//        if (!isOwner(loginUser)) {
-//            throw new CannotDeleteException("삭제권한없습니다.");
-//        }
-//        if(isEmptyAnswers(loginUser)){
-//            throw new CannotDeleteException("답변이 남아있습니다.");
-//        }
-//
-//        for (Answer answer : answers) {
-//            answer.delete(loginUser);
-//        }
-//
-//        this.deleted = Boolean.TRUE;
-//        return this;
-//    }
-
-    private boolean isEmptyAnswers(User loginUser) {
-        return answers.stream().anyMatch(answer->!answer.isOwner(loginUser));
-    }
-
-    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+    @Transactional
+    public DeleteHistories delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("삭제권한없습니다.");
         }
-        if(isEmptyAnswers(loginUser)){
+        if(answers.isEmptyAnswer(loginUser)){
             throw new CannotDeleteException("답변이 남아있습니다.");
         }
 
-        List<DeleteHistory> deleteHistories = new ArrayList<>();
-        for (Answer answer : answers) {
-            deleteHistories.add(answer.delete(loginUser));
-        }
-
         this.deleted = Boolean.TRUE;
-        deleteHistories.add(DeleteHistory.of(ContentType.QUESTION, getId(), loginUser));
+        DeleteHistories deleteHistories = answers.deleteAll(loginUser);
+        deleteHistories.deleteQuestion(this,loginUser);
         return deleteHistories;
     }
-
-//    public int getAnswerSize() {
-//        return answers.size();
-//    }
 }

@@ -39,7 +39,7 @@ public class AnswerServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        question = Question.ofList("제목테스트","내용테스트", JAVAJIGI, new ArrayList<>());
+        question = Question.ofList(QuestionTest.dataultQuestionBody(), JAVAJIGI, new ArrayList<>());
         answer = Answer.of(SANJIGI, "내용테스트");
     }
     @Test

@@ -3,6 +3,7 @@ package nextstep.web;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionTest;
 import nextstep.domain.User;
+import nextstep.domain.UserTest;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +84,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question question = findById(1L);
         ResponseEntity<Question> responseEntity = deleteLoginResponseEntity(API_PREFIX + question.generateUrl(), Question.class, defaultUser(), question);
 
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -97,7 +98,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_손님() throws Exception {
-        User newUser = newUser("taintest");
+        User newUser = User.GUEST_USER;
         Question question = QuestionTest.newQuestion();
         String location = createLoginResourceLocation(defaultUser(), API_QUESTIONS, question);
         ResponseEntity<Question> responseEntity = deleteLoginResponseEntity(location, Question.class, newUser, question);
@@ -107,12 +108,12 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_타인() throws Exception {
-        User newUser = newUser("taintest");
+        User newUser = UserTest.SANJIGI;
         Question question = QuestionTest.newQuestion();
         String location = createLoginResourceLocation(defaultUser(), API_QUESTIONS, question);
         ResponseEntity<Question> responseEntity = deleteLoginResponseEntity(location, Question.class, newUser, question);
 
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND );
     }
 
 }
