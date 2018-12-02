@@ -35,37 +35,37 @@ public class QnaController {
     }
 
     @GetMapping("/{id}")
-    public String showQuestion(@PathVariable Long id, Model model) throws NotFoundExeption {
+    public String showQuestion(@PathVariable Long id, Model model){
         model.addAttribute("question", qnaService.findContentById(id));
         return "qna/show";
     }
 
     @GetMapping("/{id}/form")
-    public String showUpdateDetail(@LoginUser User loginUser, @PathVariable Long id, Model model) throws UnAuthorizedException {
-        model.addAttribute("question", qnaService.findContentById(loginUser, id));
+    public String showUpdateDetail(@PathVariable Long id, Model model){
+        model.addAttribute("question", qnaService.findContentById(id));
         return "qna/updateForm";
     }
 
     @PostMapping("/{id}")
-    public String updateQuestion(@PathVariable Long id, Question question) throws NotFoundExeption {
-        qnaService.update(id, question);
+    public String updateQuestion(@LoginUser User loginUser, @PathVariable Long id, Question question){
+        qnaService.update(loginUser, id, question);
         return "redirect:/questions/" + id;
     }
 
     @DeleteMapping("/{id}")
-    public String deleteQuestion(@LoginUser User loginUser, @PathVariable Long id) throws CannotDeleteException {
+    public String deleteQuestion(@LoginUser User loginUser, @PathVariable Long id){
         qnaService.deleteQuestion(loginUser, id);
-        return "redirect:/";
+        return "redirect:/questions";
     }
 
     @PostMapping("/{id}/answers")
-    public String addAnswer(@LoginUser User loginUser, @PathVariable Long id, String contents) throws NotFoundExeption {
+    public String addAnswer(@LoginUser User loginUser, @PathVariable Long id, String contents){
         qnaService.addAnswer(loginUser, id, contents);
         return "redirect:/questions/" + id;
     }
 
     @DeleteMapping("/{questionId}/answers/{id}")
-    public String deleteAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @PathVariable Long id) throws CannotDeleteException {
+    public String deleteAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @PathVariable Long id){
         qnaService.deleteAnswer(loginUser, id);
         return "redirect:/questions/" + questionId;
     }
@@ -73,6 +73,6 @@ public class QnaController {
     @ExceptionHandler(CannotDeleteException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public void cannotDeleteException() {
-
+        log.debug("CannotDeleteException is happened!");
     }
 }

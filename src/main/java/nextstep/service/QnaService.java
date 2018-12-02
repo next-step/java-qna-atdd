@@ -43,27 +43,14 @@ public class QnaService {
                 .orElseThrow(() -> new NotFoundExeption());
     }
 
-    @Transactional(readOnly = true)
-    public Question findContentById(User loginUser, Long id) throws UnAuthorizedException {
-        return findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .filter(question -> !question.isDeleted())
-                .orElseThrow(() -> new UnAuthorizedException("수정 권한이 없습니다."));
+    @Transactional
+    public void update(User user, long id, Question updatedQuestion) {
+        findContentById(id).update(user, updatedQuestion);
     }
 
     @Transactional
-    public Question update(long id, Question updatedQuestion) throws NotFoundExeption {
-        return findContentById(id).update(updatedQuestion);
-    }
-
-    @Transactional
-    public boolean deleteQuestion(User loginUser, long id) throws CannotDeleteException {
-        return findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .filter(question -> !question.isDeleted())
-                .filter(question -> question.isNotExistAnswers())
-                .map(question -> question.delete())
-                .orElseThrow(() -> new CannotDeleteException("삭제 권한이 없거나 댓글이 존재 합니다."));
+    public void deleteQuestion(User loginUser, long id) {
+        findContentById(id).delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -83,10 +70,13 @@ public class QnaService {
     }
 
     @Transactional
-    public boolean deleteAnswer(User loginUser, long id) throws CannotDeleteException {
-        return answerRepository.findById(id)
-                .filter(answer -> answer.isOwner(loginUser))
-                .map(answer -> answer.delete())
-                .orElseThrow(() -> new CannotDeleteException("삭제 권한이 없습니다."));
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        findAnswerById(id).delete(loginUser);
+    }
+
+    @Transactional(readOnly = true)
+    public Answer findAnswerById(Long id) throws NotFoundExeption {
+        return answerRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundExeption());
     }
 }

@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -96,15 +98,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return answers.size() == 0;
     }
 
-    public Question update(Question updateContents) {
+    public void update(User user, Question updateContents) {
+        if(!this.isOwner(user)){
+            throw new UnAuthorizedException("작성자가 아닙니다.");
+        }
         this.title = updateContents.getTitle();
         this.contents = updateContents.getContents();
-        return this;
     }
 
-    public boolean delete() {
+    public void delete(User user) {
+        if(!this.isOwner(user)){
+            throw new UnAuthorizedException("작성자가 아닙니다.");
+        }
+        if(!this.isNotExistAnswers()){
+            throw new CannotDeleteException("댓글이 존재 합니다.");
+        }
         this.deleted = true;
-        return deleted;
     }
 
     @Override
