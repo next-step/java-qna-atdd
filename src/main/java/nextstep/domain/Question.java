@@ -13,7 +13,7 @@ import java.util.List;
 import static support.util.QnaUtil.not;
 
 @Entity
-public class Question extends AbstractEntity implements UrlGeneratable {
+public class Question extends AbstractEntity implements UrlGeneratable, OwnerCheckable {
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;

@@ -1,4 +1,4 @@
-package nextstep.web;
+package nextstep.web.html;
 
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
@@ -12,8 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import support.test.WebAcceptanceTest;
+import support.util.HtmlFormBuilder;
 
-import static support.util.MultiValueMapBuilder.builder;
+import static support.util.HtmlFormBuilder.builder;
 
 public class QnaAcceptanceTest extends WebAcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QnaAcceptanceTest.class);
@@ -76,9 +77,10 @@ public class QnaAcceptanceTest extends WebAcceptanceTest {
         String title = "제목입니다.";
         String contents = "본문입니다.";
 
-        MultiValueMap<String, Object> params = builder()
+        MultiValueMap<String, Object> params = HtmlFormBuilder.put()
                 .add("title", title)
-                .add("contents", contents).build();
+                .add("contents", contents)
+                .build();
 
         HttpEntity request = createWebRequestEntity(params);
 

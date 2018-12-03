@@ -1,4 +1,4 @@
-package nextstep.web;
+package nextstep.web.html;
 
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
@@ -10,8 +10,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import support.test.WebAcceptanceTest;
+import support.util.HtmlFormBuilder;
 
-import static support.util.MultiValueMapBuilder.builder;
+import static support.util.HtmlFormBuilder.builder;
 
 public class UserAcceptanceTest extends WebAcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
@@ -74,10 +75,9 @@ public class UserAcceptanceTest extends WebAcceptanceTest {
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-        MultiValueMap<String, Object> params = builder()
-                .add("_method", "put").add("password", "test")
-                .add("name", "자바지기2").add("email", "javajigi@slipp.net")
-                .build();
+        MultiValueMap<String, Object> params = HtmlFormBuilder.put()
+                .add("password", "test").add("name", "자바지기2")
+                .add("email", "javajigi@slipp.net").build();
 
         HttpEntity request = createWebRequestEntity(params);
 

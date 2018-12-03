@@ -34,16 +34,18 @@ public class QnaController {
 
     @GetMapping("/{id}")
     public String showQuestion(@PathVariable("id") long questionId, Model model) {
-        Question question = qnaService.findById(questionId)
-                .orElseThrow(() -> new IllegalArgumentException("질문을 찾을 수 없습니다."));
+        Question question = qnaService.findById(questionId);
         model.addAttribute("question", question);
         return "/qna/show";
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable("id") long questionId, Model model) {
-        model.addAttribute("question", qnaService.findByIdWithAuthorized(loginUser, questionId));
-        return "/user/updateForm";
+        Question question = qnaService.findById(questionId);
+        question.hasAuthority(loginUser);
+
+        model.addAttribute("question", question);
+        return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")

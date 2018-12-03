@@ -1,7 +1,6 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Optional;
 
 @Service("qnaService")
 public class QnaService {
@@ -32,22 +30,15 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Question findByIdWithAuthorized(User loginUser, long questionId) {
-        Question question = this.findById(questionId).orElseThrow(() -> new IllegalArgumentException("question이 존재하지 않음"));
-        if (!question.isOwner(loginUser)) {
-            throw new UnAuthorizedException("사용자가 일치하지 않음");
-        }
-
-        return question;
-    }
-
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) {
+        return questionRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("question이 존재하지 않음"));
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question original = findByIdWithAuthorized(loginUser, id);
+        Question original = findById(id);
+        original.hasAuthority(loginUser);
+
         original.update(loginUser, updatedQuestion);
 
         return original;
@@ -55,7 +46,9 @@ public class QnaService {
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = findByIdWithAuthorized(loginUser, questionId);
+        Question question = findById(questionId);
+        question.hasAuthority(loginUser);
+
         question.delete(loginUser);
     }
 
@@ -67,13 +60,35 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer findAnswerById(long questionId, long answerId) {
+        return answerRepository.findById(answerId)
+                .filter(a -> a.getQuestion().getId() == questionId)
+                .orElseThrow(() -> new IllegalArgumentException("answer를 찾을 수 없음"));
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer addAnswer(User loginUser, long questionId, String contents) {
+        Question question = findById(questionId);
+        Answer answer = new Answer(loginUser, contents);
+        question.addAnswer(answer);
+
+        return answer;
+    }
+
+    @Transactional
+    public void deleteAnswer(User loginUser, long questionId, long answerId) {
+        Answer answer = findAnswerById(questionId, answerId);
+        answer.hasAuthority(loginUser);
+
+        answerRepository.delete(answer);
+    }
+
+    @Transactional
+    public Answer updateAnswer(User loginUser, long questionId, long answerId, String contents) {
+        Answer answer = findAnswerById(questionId, answerId);
+        answer.hasAuthority(loginUser);
+
+        answer.setContents(contents);
+        return answer;
     }
 }
