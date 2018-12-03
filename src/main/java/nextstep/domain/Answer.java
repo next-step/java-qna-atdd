@@ -7,6 +7,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -70,7 +71,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(final User loginUser) {
+    public DeleteHistory delete(final User loginUser) {
 
         if (isDeleted()) {
             throw new CannotDeleteException("Deleted answer.");
@@ -81,6 +82,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
+
+        return createDeleteHistory(loginUser);
+    }
+
+    private DeleteHistory createDeleteHistory(final User loginUser) {
+        return new DeleteHistory(ContentType.ANSWER, this.getId(), loginUser, LocalDateTime.now());
     }
 
     public void update(final User loginUser, final Answer answer) {

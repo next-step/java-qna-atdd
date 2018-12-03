@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -26,8 +27,15 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     private AnswerRepository answerRepository;
 
+    @Mock
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     @InjectMocks
     private QnaService qnaService;
+
+    @SuppressWarnings("unused")
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
 
     @Test
     public void 질문_등록() {
@@ -115,9 +123,11 @@ public class QnaServiceTest extends BaseTest {
 
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
-        qnaService.delete(user, 1);
+        final List<DeleteHistory> deleteHistories = qnaService.delete(user, 1);
+        when(deleteHistoryRepository.findAll()).thenReturn(deleteHistories);
 
         assertThat(question.isDeleted()).isTrue();
+        assertThat(deleteHistoryRepository.findAll()).isEqualTo(deleteHistories);
     }
 
     @Test(expected = CannotDeleteException.class)
