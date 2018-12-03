@@ -1,7 +1,5 @@
 package nextstep.domain;
 
-import org.hibernate.sql.Delete;
-
 import javax.persistence.*;
 import java.time.LocalDateTime;
 

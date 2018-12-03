@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -21,8 +22,8 @@ public class ApiQuestionController {
     private QnaService qnaService;
 
     @PostMapping("")
-    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
-        Question savedQuestion = qnaService.create(loginUser, question);
+    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody QuestionBody questionBody) {
+        Question savedQuestion = qnaService.create(loginUser, questionBody);
 
         return ResponseEntity.created(URI.create("/api/questions/" + savedQuestion.getId())).build();
     }
@@ -33,8 +34,8 @@ public class ApiQuestionController {
     }
 
     @PutMapping("{id}")
-    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question question) {
-        return qnaService.update(loginUser, id, question);
+    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody QuestionBody questionBody) {
+        return qnaService.update(loginUser, id, questionBody);
     }
 
     @DeleteMapping("{id}")

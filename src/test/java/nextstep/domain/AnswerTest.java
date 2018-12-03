@@ -20,7 +20,8 @@ public class AnswerTest extends BaseTest {
 
     @Test
     public void create() {
-        Question question = newQuestion(TITLE, CONTENTS, JAVAJIGI);
+        QuestionBody questionBody = new QuestionBody(TITLE, CONTENTS);
+        Question question = newQuestion(questionBody, JAVAJIGI);
         Answer answer = newAnswer(ANSWER_CONTENTS);
         question.addAnswer(answer);
 

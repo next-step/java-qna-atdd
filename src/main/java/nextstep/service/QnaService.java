@@ -27,8 +27,10 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question create(User loginUser, QuestionBody questionBody) {
+        Question question = new Question(questionBody);
         question.writeBy(loginUser);
+
         log.debug("question : {}", question);
         return questionRepository.save(question);
     }
@@ -44,10 +46,10 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, QuestionBody updatedQuestionBody) {
         Question original = findByIdWithAuthorized(loginUser, id);
 
-        original.update(loginUser, updatedQuestion);
+        original.update(loginUser, updatedQuestionBody);
         return original;
     }
 
