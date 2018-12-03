@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -33,6 +35,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
+    public Question(Long id, String title, String contents, User writer) {
+        this.setId(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
+    }
+
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
@@ -56,6 +65,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public int getSize() {
+        return answers.size();
+    }
+
     public User getWriter() {
         return writer;
     }
@@ -75,6 +92,28 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public boolean isNotExistAnswers() {
+        return answers.size() == 0;
+    }
+
+    public void update(User user, Question updateContents) {
+        if(!this.isOwner(user)){
+            throw new UnAuthorizedException("작성자가 아닙니다.");
+        }
+        this.title = updateContents.getTitle();
+        this.contents = updateContents.getContents();
+    }
+
+    public void delete(User user) {
+        if(!this.isOwner(user)){
+            throw new UnAuthorizedException("작성자가 아닙니다.");
+        }
+        if(!this.isNotExistAnswers()){
+            throw new CannotDeleteException("댓글이 존재 합니다.");
+        }
+        this.deleted = true;
     }
 
     @Override

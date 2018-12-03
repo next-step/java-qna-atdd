@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -53,6 +54,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer setContents(String contents) {
         this.contents = contents;
         return this;
+    }
+
+    public void delete(User user) {
+        if (!isOwner(user)) {
+            throw new UnAuthorizedException();
+        }
+        this.deleted = true;
     }
 
     public void toQuestion(Question question) {

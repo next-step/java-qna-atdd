@@ -25,24 +25,24 @@ public class UserController {
         return "/user/form";
     }
 
-    @PostMapping("")
+    @PostMapping
     public String create(User user) {
         userService.add(user);
         return "redirect:/users";
     }
 
-    @GetMapping("")
+    @GetMapping
     public String list(Model model) {
         List<User> users = userService.findAll();
         log.debug("user size : {}", users.size());
         model.addAttribute("users", users);
-        return "/user/list";
+        return "user/list";
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("user", userService.findById(loginUser, id));
-        return "/user/updateForm";
+        return "user/updateForm";
     }
 
     @PutMapping("/{id}")
@@ -50,5 +50,4 @@ public class UserController {
         userService.update(loginUser, id, target);
         return "redirect:/users";
     }
-
 }

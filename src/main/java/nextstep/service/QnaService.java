@@ -1,6 +1,8 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.NotFoundExeption;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,15 +37,20 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
-    @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    @Transactional(readOnly = true)
+    public Question findContentById(Long id) throws NotFoundExeption {
+        return questionRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundExeption());
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public void update(User user, long id, Question updatedQuestion) {
+        findContentById(id).update(user, updatedQuestion);
+    }
+
+    @Transactional
+    public void deleteQuestion(User loginUser, long id) {
+        findContentById(id).delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -54,13 +61,22 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    @Transactional
+    public Answer addAnswer(User loginUser, long questionId, String contents) throws NotFoundExeption {
+        Answer answer = new Answer(loginUser, contents);
+        Question question = findContentById(questionId);
+        question.addAnswer(answer);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        findAnswerById(id).delete(loginUser);
+    }
+
+    @Transactional(readOnly = true)
+    public Answer findAnswerById(Long id) throws NotFoundExeption {
+        return answerRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new NotFoundExeption());
     }
 }
