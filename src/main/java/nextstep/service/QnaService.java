@@ -1,7 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.concurrent.CancellationException;
+
 
 @Service("qnaService")
+@Transactional
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
@@ -34,30 +33,25 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) {
+        return questionRepository.findById(id)
+                .orElseThrow(UnAuthorizedException::new);
     }
 
-    @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
-        Question question = questionRepository.findById(id)
-                .filter(q -> q.isOwner(loginUser))
-                .orElseThrow(UnAuthenticationException::new);
-
-        updatedQuestion.writeBy(loginUser);
-        return questionRepository.save(updatedQuestion);
+    public Answer findByIdAnswer(long id) {
+        return answerRepository.findById(id)
+                .orElseThrow(UnAuthorizedException::new);
     }
 
-    @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = questionRepository.findById(questionId)
-                .filter(q -> q.isOwner(loginUser))
-                .filter(q -> !q.isDeleted())
-                .orElseThrow(() -> {
-                    return new CannotDeleteException("삭제가 불가능합니다.");
-                });
+    public Question update(User loginUser, long id, Question updatedQuestion) {
+        Question origin = findById(id);
+        return origin.update(loginUser, updatedQuestion);
+    }
 
-        questionRepository.deleteById(questionId);
+    public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+        Question origin = findById(questionId);
+        origin.delete(loginUser);
+        return origin;
     }
 
     public Iterable<Question> findAll() {
@@ -68,24 +62,15 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        Question question = questionRepository.findById(questionId)
-                .orElseThrow(NoSuchElementException::new);
-
-        Answer answer = new Answer(loginUser, question, contents);
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) {
+        answer.writeBy(loginUser);
+        Question question = findById(questionId);
         question.addAnswer(answer);
-        return answerRepository.save(answer);
+        return answer;
     }
 
-    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
-        // TODO 답변 삭제 기능 구현
-        Answer answer = answerRepository.findById(id)
-                .filter(a -> a.isOwner(loginUser))
-                .filter(a -> !a.isDeleted())
-                .orElseThrow(() -> {
-                    return new CannotDeleteException("삭제가 불가능합니다.");
-        });
-
-        answerRepository.delete(answer);
+    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = findByIdAnswer(id);
+        return answer.delete(loginUser);
     }
 }
