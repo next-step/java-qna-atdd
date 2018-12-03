@@ -25,8 +25,10 @@ public class AnswerTest extends BaseTest {
         Answer answer = newAnswer(ANSWER_CONTENTS);
         question.addAnswer(answer);
 
-        assertThat(question.getAnswers().size()).isEqualTo(1);
-        assertThat(question.getAnswers().get(0)).isEqualTo(answer);
+        Answers answers = new Answers();
+        answers.addAnswer(answer, question);
+
+        assertThat(question.getAnswers()).isEqualTo(answers);
     }
 
     @Test

@@ -1,9 +1,7 @@
 package nextstep.domain;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -22,10 +20,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -48,13 +44,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
-    public List<Answer> getAnswers() {
+    public Answers getAnswers() {
         return answers;
     }
 
     public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+        answers.addAnswer(answer, this);
     }
 
     public boolean isOwner(User loginUser) {
@@ -79,10 +74,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
         List<DeleteHistory> deleteHistories = new ArrayList<>();
         deleteHistories.add(setDeleteHistory(loginUser));
-
-        for(Answer answer : answers) {
-            deleteHistories.add(answer.delete(loginUser));
-        }
+        deleteHistories.addAll(answers.delete(loginUser));
         this.deleted = true;
 
         return deleteHistories;
