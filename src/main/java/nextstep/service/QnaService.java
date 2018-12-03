@@ -48,7 +48,7 @@ public class QnaService {
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
         Question deleted = findById(questionId).orElseThrow(UnAuthorizedException::new);
-        deleted.deleted(loginUser,deleted);
+        deleted.deleted(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -59,14 +59,27 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현
-        return null;
+        Question usingQuestion = findById(questionId).orElseThrow(IllegalArgumentException::new);
+        Answer answer = new Answer(loginUser,contents);
+        usingQuestion.addAnswer(answer);
+
+        return answerRepository.save(answer);
     }
 
+    @Transactional
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+        // TODO 답변 삭제 기능 구현
+        Answer deleteAnswer = answerRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        System.out.println("서비스에서 삭제답변 확인" + deleteAnswer.getContents());
+        deleteAnswer.delete(loginUser);
+        return deleteAnswer;
+    }
+
+    public Answer showAnswer(long answer_id) {
+        return answerRepository.findById(answer_id).orElseThrow(IllegalArgumentException::new);
     }
 
     public void update(User loginUser, long id) {

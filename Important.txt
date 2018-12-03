@@ -1,0 +1,41 @@
+1. Domain단위에 로직을 만들어라.
+2. Domain은 TDD가 가능하다.
+ 2-1. 도메인 단위에서 클린코드하게 계속 리팩토링해라
+3. 서비스는 If else 또는 try catch만 사용하도록 아주 가볍게 만들자.
+
+***
+db테이블 하나의 여러개의 도메인이 들어가야 정상적인 객체지향 개발임
+table과 domain의 갯수가 1:1이면 안됨.
+
+----
+has-a 와 has-a (user와 answer 예)를 bidirection이라고 하는게 이 경우 커플링이 커질 수 있음.
+
+
+
+%%%
+Question에서 잘 보니 Title과 contents가 항상 같이 움직인다. > VO로 따로 뺀다.
+그럼 table에 여러 개의 필드가 만들어질거임
+ex)Question Table > Question.class & QuestionBody.class
+****
+모든 객체는 역할을 위임한다 GET하지말고! > 이게 객체지향에선 많이 나와야함.
+
+
+
+TDD개발시 Fixture이슈 (테스트를 위한 객체 초기화)를 해결하기 위한 방법.
+
+------
+AOP로 할 수 있다.
+Security에 SequrityController / RestControllerAdvice (중복제거, 중앙집중)
+
+
+DTO와 Domain 구분
+
+
+builder pattern만들어라. (값이 조금씩 바뀌는 경우)
+setMethod{return this;} > new Uesr.setMethod().setMethod2.setMethod3();
+
+
+AcceptanceTest 에서 repository(DB)데이터를 빼오는 방식은 비추천 (로컬에서만 테스트할 수 잇는 코드가 될 수 있음)
+
+
+

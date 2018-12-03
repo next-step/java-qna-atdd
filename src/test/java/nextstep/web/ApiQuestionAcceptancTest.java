@@ -10,10 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
-import static nextstep.domain.UserTest.newUser;
-
 public class ApiQuestionAcceptancTest extends AcceptanceTest {
-    private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptancTest.class);
 
     @Autowired
     private QuestionRepository questionRepository;

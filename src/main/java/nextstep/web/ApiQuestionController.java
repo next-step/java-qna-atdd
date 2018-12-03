@@ -1,7 +1,6 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
