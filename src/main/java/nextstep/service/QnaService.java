@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +27,10 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question create(User loginUser, QuestionBody questionBody) {
+        Question question = new Question(questionBody);
         question.writeBy(loginUser);
+
         log.debug("question : {}", question);
         return questionRepository.save(question);
     }
@@ -43,18 +46,21 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, QuestionBody updatedQuestionBody) {
         Question original = findByIdWithAuthorized(loginUser, id);
 
-        original.update(loginUser, updatedQuestion);
+        original.update(loginUser, updatedQuestionBody);
         return original;
     }
 
     @Transactional
-    public void delete(User loginUser, long questionId) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser, long questionId) throws CannotDeleteException {
         Question target = findByIdWithAuthorized(loginUser, questionId);
 
-        target.delete(loginUser);
+        List<DeleteHistory> histories = target.delete(loginUser);
+        deleteHistoryService.saveAll(histories);
+
+        return histories;
     }
 
     public Iterable<Question> findAll() {
@@ -74,10 +80,13 @@ public class QnaService {
         return answerRepository.save(answer);
     }
 
+    @Transactional
     public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(IllegalArgumentException::new);
-        answer.delete(loginUser);
+
+        List<DeleteHistory> histories = Arrays.asList(answer.delete(loginUser));
+        deleteHistoryService.saveAll(histories);
 
         return answer;
     }

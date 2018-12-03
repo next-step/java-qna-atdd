@@ -2,7 +2,6 @@ package nextstep.web;
 
 import nextstep.CannotDeleteException;
 import nextstep.domain.Answer;
-import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;

@@ -13,9 +13,11 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     private static final Logger log = LoggerFactory.getLogger(LoginAcceptanceTest.class);
 
+    private static final String LOGIN_URL = "/login";
+
     @Test
     public void loginForm() {
-        ResponseEntity<String> response = template().getForEntity("/login", String.class);
+        ResponseEntity<String> response = template().getForEntity(LOGIN_URL, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.info("body : {}", response.getBody());
     }
@@ -27,7 +29,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
                 .addParameter("password", "test").build();
 
         User loginUser = defaultUser();
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity("/login", request, String.class);
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(LOGIN_URL, request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         log.info("body : {}", response.getHeaders());
@@ -39,7 +41,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
                 .addParameter("userId", "javajigi")
                 .addParameter("password", "test11").build();
         User loginUser = defaultUser();
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity("/login", request, String.class);
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(LOGIN_URL, request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.info("body : {}", response.getHeaders());

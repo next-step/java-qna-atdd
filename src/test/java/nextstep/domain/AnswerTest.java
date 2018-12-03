@@ -20,23 +20,28 @@ public class AnswerTest extends BaseTest {
 
     @Test
     public void create() {
-        Question question = newQuestion(TITLE, CONTENTS, JAVAJIGI);
+        QuestionBody questionBody = new QuestionBody(TITLE, CONTENTS);
+        Question question = newQuestion(questionBody, JAVAJIGI);
         Answer answer = newAnswer(ANSWER_CONTENTS);
         question.addAnswer(answer);
 
-        assertThat(question.getAnswers().size()).isEqualTo(1);
-        assertThat(question.getAnswers().get(0)).isEqualTo(answer);
+        Answers answers = new Answers();
+        answers.addAnswer(answer, question);
+
+        assertThat(question.getAnswers()).isEqualTo(answers);
     }
 
     @Test
     public void delete_writer() throws CannotDeleteException {
         Answer answer = newAnswer(ANSWER_CONTENTS);
 
-        answer.delete(JAVAJIGI);
+        DeleteHistory delete = answer.delete(JAVAJIGI);
 
         assertThat(answer.isDeleted()).isEqualTo(true);
+        assertThat(delete.getContentType()).isEqualTo(ContentType.ANSWER);
+        assertThat(delete.getContentId()).isEqualTo(answer.getId());
+        assertThat(delete.getDeletedBy()).isEqualTo(JAVAJIGI);
     }
-
 
     @Test(expected = CannotDeleteException.class)
     public void delete_not_writer() throws CannotDeleteException {

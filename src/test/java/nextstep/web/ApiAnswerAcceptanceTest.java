@@ -14,7 +14,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final String API_QUESTIONS = "/api/questions";
     private static final String API_ANSWERS = "/1/answers";
 
-    private static final String ANSWER_CONTENTS = "답변 컨텐츠입니다.";
+    public static final String ANSWER_CONTENTS = "답변 컨텐츠입니다.";
 
     @Test
     public void create() {
@@ -38,7 +38,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> response = createResource(API_QUESTIONS + API_ANSWERS, ANSWER_CONTENTS, basicAuthTemplate());
         String location = response.getHeaders().getLocation().getPath();
 
-        ResponseEntity<String> deleteResource = deleteResource(location, basicAuthTemplate());
+        ResponseEntity<String> deleteResource = deleteResource(location, basicAuthTemplate(), String.class);
         softly.assertThat(deleteResource.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
     }
 
@@ -47,7 +47,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> response = createResource(API_QUESTIONS + API_ANSWERS, ANSWER_CONTENTS, basicAuthTemplate());
         String location = response.getHeaders().getLocation().getPath();
 
-        ResponseEntity<String> deleteResource = deleteResource(location, basicAuthTemplate(UserTest.SANJIGI));
+        ResponseEntity<String> deleteResource = deleteResource(location, basicAuthTemplate(UserTest.SANJIGI), String.class);
         softly.assertThat(deleteResource.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -56,7 +56,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> response = createResource(API_QUESTIONS + API_ANSWERS, ANSWER_CONTENTS, basicAuthTemplate());
         String location = response.getHeaders().getLocation().getPath();
 
-        ResponseEntity<String> deleteResource = deleteResource(location, template());
+        ResponseEntity<String> deleteResource = deleteResource(location, template(), String.class);
         softly.assertThat(deleteResource.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }

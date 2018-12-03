@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static nextstep.domain.UserTest.JAVAJIGI;
@@ -24,6 +25,7 @@ public class QnaServiceTest extends BaseTest {
     private static final String ANSWER_CONTENTS = "테스트 답변 컨텐츠";
 
     private Question question;
+    private QuestionBody questionBody;
     private Answer answer;
 
     @Mock
@@ -32,42 +34,50 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     private AnswerRepository answerRepository;
 
+    @Mock
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     @InjectMocks
     private QnaService qnaService;
 
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
+
     @Before
     public void setup() {
-        question = new Question(TITLE, CONTENTS);
+        questionBody = new QuestionBody(TITLE, CONTENTS);
+        question = new Question(questionBody);
         answer = new Answer(JAVAJIGI, ANSWER_CONTENTS);
     }
 
     @Test
     public void create() {
+        question.writeBy(JAVAJIGI);
         when(questionRepository.save(question)).thenReturn(question);
 
-        Question savedQuestion = qnaService.create(JAVAJIGI, question);
+        Question savedQuestion = qnaService.create(JAVAJIGI, questionBody);
         softly.assertThat(savedQuestion).isEqualTo(question);
     }
 
     @Test
     public void update_writer(){
         question.writeBy(JAVAJIGI);
-        Question updatedQuestion = new Question("수정 타이틀","수정 컨텐츠");
+        QuestionBody updatedQuestionBody = new QuestionBody("수정 타이틀","수정 컨텐츠");
 
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
-        qnaService.update(JAVAJIGI,1L,updatedQuestion);
-        softly.assertThat(question).isEqualTo(updatedQuestion);
+        qnaService.update(JAVAJIGI,1L,updatedQuestionBody);
+        softly.assertThat(question.getQuestionBody()).isEqualTo(updatedQuestionBody);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_writer_another_user(){
         question.writeBy(JAVAJIGI);
-        Question updatedQuestion = new Question("수정 타이틀","수정 컨텐츠");
+        QuestionBody updatedQuestionBody = new QuestionBody("수정 타이틀","수정 컨텐츠");
 
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
-        qnaService.update(SANJIGI,1L,updatedQuestion);
+        qnaService.update(SANJIGI,1L,updatedQuestionBody);
     }
 
     @Test
@@ -75,8 +85,14 @@ public class QnaServiceTest extends BaseTest {
         question.writeBy(JAVAJIGI);
         when(questionRepository.findById(1l)).thenReturn(Optional.of(question));
 
-        qnaService.delete(JAVAJIGI,1L);
+        List<DeleteHistory> deleteHistories = qnaService.delete(JAVAJIGI, 1L);
+
+        when(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).thenReturn(deleteHistories);
+
         softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories.size()).isEqualTo(1);
+        softly.assertThat(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).isEqualTo(deleteHistories);
+
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -89,20 +105,20 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void findByIdWithAuthorized() {
-        qnaService.create(JAVAJIGI, question);
+        question.writeBy(JAVAJIGI);
+        
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(this.question));
+        Question findQuestion = qnaService.findByIdWithAuthorized(JAVAJIGI, 1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        Question findQuestion = qnaService.findByIdWithAuthorized(JAVAJIGI, 1);
-
-        softly.assertThat(findQuestion.getTitle()).isEqualTo(TITLE);
-        softly.assertThat(findQuestion.getContents()).isEqualTo(CONTENTS);
+        softly.assertThat(findQuestion.getQuestionBody()).isEqualTo(questionBody);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void findByIdWithAuthorizedByAnotherUser() {
+        question.writeBy(JAVAJIGI);
+
         User anotherUser = new User("mirrors89", "password", "name", "mirrors89@slipp.net");
 
-        qnaService.create(JAVAJIGI, question);
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         qnaService.findByIdWithAuthorized(anotherUser, 1);
@@ -128,6 +144,37 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void delete_answer_another_user() throws CannotDeleteException {
+        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
+
+        qnaService.deleteAnswer(SANJIGI, 1L);
+    }
+
+    @Test
+    public void delete_question_and_answer_writer_login() throws CannotDeleteException {
+        question.writeBy(JAVAJIGI);
+
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(answerRepository.save(answer)).thenReturn(answer);
+
+        qnaService.addAnswer(JAVAJIGI, 1L, ANSWER_CONTENTS);
+
+        List<DeleteHistory> deleteHistories = qnaService.delete(JAVAJIGI, 1L);
+        when(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).thenReturn(deleteHistories);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).isEqualTo(deleteHistories);
+
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_question_and_answer_another_login() throws CannotDeleteException {
+        question.writeBy(SANJIGI);
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(answerRepository.save(answer)).thenReturn(answer);
+
+        qnaService.addAnswer(JAVAJIGI, 1L, ANSWER_CONTENTS);
+        qnaService.addAnswer(JAVAJIGI, 1L, ANSWER_CONTENTS);
+
         when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
 
         qnaService.deleteAnswer(SANJIGI, 1L);
