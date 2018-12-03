@@ -122,16 +122,10 @@ public class QuestionTest {
         final User write = createUser("ninezero90hy", "ninezero90hy@", "ninezero", "ninezero90hy@gmail.com");
         question.writeBy(write);
         question.addAnswer(new Answer(write, "좋은 책이네요.~"));
-        question.addAnswer(new Answer(write, "좋은 책이네요.!"));
-        question.addAnswer(new Answer(write, "좋은 책이네요.#"));
-        question.addAnswer(new Answer(write, "좋은 책이네요.$"));
-        question.addAnswer(new Answer(write, "좋은 책이네요.%"));
-        question.addAnswer(new Answer(write, "좋은 책이네요.^"));
-        question.addAnswer(new Answer(write, "좋은 책이네요.*"));
         assertThat(question.hasAnswers()).isTrue();
 
         final List<DeleteHistory> deleteHistories = question.delete(loginUser);
-        assertThat(deleteHistories.size()).isEqualTo(8);
+        assertThat(deleteHistories.size()).isEqualTo(2);
         assertThat(question.hasAnswers()).isFalse();
     }
 
