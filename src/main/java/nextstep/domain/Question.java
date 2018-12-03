@@ -92,14 +92,25 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedQuestion.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 삭제 가능합니다.");
         }
 
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.add(setDeleteHistory(loginUser));
+
+        for(Answer answer : answers) {
+            deleteHistories.add(answer.delete(loginUser));
+        }
         this.deleted = true;
+
+        return deleteHistories;
     }
 
+    private DeleteHistory setDeleteHistory(User loginUser) {
+        return DeleteHistory.of(ContentType.QUESTION, getId(), loginUser);
+    }
 
     @Override
     public String generateUrl() {

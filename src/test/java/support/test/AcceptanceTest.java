@@ -46,12 +46,12 @@ public abstract class AcceptanceTest extends BaseTest {
         return template.exchange(path, HttpMethod.POST, createHttpEntity(bodyPayload), Void.class);
     }
 
-    protected ResponseEntity<String> updateResource(String path, Object bodyPayload, TestRestTemplate template) {
-        return template.exchange(path, HttpMethod.PUT, createHttpEntity(bodyPayload), String.class);
+    protected <T> ResponseEntity<T>  updateResource(String path, Object bodyPayload, TestRestTemplate template, Class<T> responseType) {
+        return template.exchange(path, HttpMethod.PUT, createHttpEntity(bodyPayload), responseType);
     }
 
-    protected ResponseEntity<String> deleteResource(String path, TestRestTemplate template) {
-        return template.exchange(path, HttpMethod.DELETE, null, String.class);
+    protected <T> ResponseEntity<T> deleteResource(String path, TestRestTemplate template, Class<T> responseType) {
+        return template.exchange(path, HttpMethod.DELETE, null, responseType);
     }
 
     protected <T> T getResource(String location, Class<T> responseType, User loginUser) {

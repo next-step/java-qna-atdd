@@ -13,8 +13,13 @@ import org.springframework.util.MultiValueMap;
 import support.builder.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
 
+import static nextstep.domain.UserTest.JAVAJIGI;
+
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
+
+    private static final String QUESTIONS = "/questions";
+    private static final String ANSWERS = "/answers";
 
     @Autowired
     private QuestionRepository questionRepository;
@@ -137,9 +142,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_writer_login() {
-        Question question = questionRepository.findById(1L).get();
+        Question question = questionRepository.findById(3L).get();
 
-        ResponseEntity<String> response = update(basicAuthTemplate(), question.getId());
+        ResponseEntity<String> response = delete(basicAuthTemplate(), question.getId());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         log.debug("body : {}", response.getBody());
@@ -165,6 +170,25 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void delete_question_and_answer_writer_login() {
+        Question question = questionRepository.findById(3L).get();
+
+        ResponseEntity<String> response = delete(basicAuthTemplate(), question.getId());
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
+    @Test
+    public void delete_question_and_answer_another_login() {
+        Question question = questionRepository.findById(1L).get();
+
+        ResponseEntity<String> response = delete(basicAuthTemplate(), question.getId());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private ResponseEntity<String> update(TestRestTemplate template, long id) {

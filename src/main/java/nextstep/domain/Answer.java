@@ -76,11 +76,17 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedAnswer.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 삭제 가능합니다.");
         }
         this.deleted = true;
+
+        return setDeleteHistory(loginUser);
+    }
+
+    private DeleteHistory setDeleteHistory(User loginUser) {
+        return DeleteHistory.of(ContentType.ANSWER, getId(), loginUser);
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static nextstep.domain.UserTest.JAVAJIGI;
@@ -32,8 +33,14 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     private AnswerRepository answerRepository;
 
+    @Mock
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     @InjectMocks
     private QnaService qnaService;
+
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
 
     @Before
     public void setup() {
@@ -75,8 +82,14 @@ public class QnaServiceTest extends BaseTest {
         question.writeBy(JAVAJIGI);
         when(questionRepository.findById(1l)).thenReturn(Optional.of(question));
 
-        qnaService.delete(JAVAJIGI,1L);
+        List<DeleteHistory> deleteHistories = qnaService.delete(JAVAJIGI, 1L);
+
+        when(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).thenReturn(deleteHistories);
+
         softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories.size()).isEqualTo(1);
+        softly.assertThat(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).isEqualTo(deleteHistories);
+
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -128,6 +141,37 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void delete_answer_another_user() throws CannotDeleteException {
+        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
+
+        qnaService.deleteAnswer(SANJIGI, 1L);
+    }
+
+    @Test
+    public void delete_question_and_answer_writer_login() throws CannotDeleteException {
+        question.writeBy(JAVAJIGI);
+
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(answerRepository.save(answer)).thenReturn(answer);
+
+        qnaService.addAnswer(JAVAJIGI, 1L, ANSWER_CONTENTS);
+
+        List<DeleteHistory> deleteHistories = qnaService.delete(JAVAJIGI, 1L);
+        when(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).thenReturn(deleteHistories);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(deleteHistoryRepository.findByDeletedBy(JAVAJIGI)).isEqualTo(deleteHistories);
+
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_question_and_answer_another_login() throws CannotDeleteException {
+        question.writeBy(SANJIGI);
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(answerRepository.save(answer)).thenReturn(answer);
+
+        qnaService.addAnswer(JAVAJIGI, 1L, ANSWER_CONTENTS);
+        qnaService.addAnswer(JAVAJIGI, 1L, ANSWER_CONTENTS);
+
         when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
 
         qnaService.deleteAnswer(SANJIGI, 1L);

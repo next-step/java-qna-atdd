@@ -32,11 +32,13 @@ public class AnswerTest extends BaseTest {
     public void delete_writer() throws CannotDeleteException {
         Answer answer = newAnswer(ANSWER_CONTENTS);
 
-        answer.delete(JAVAJIGI);
+        DeleteHistory delete = answer.delete(JAVAJIGI);
 
         assertThat(answer.isDeleted()).isEqualTo(true);
+        assertThat(delete.getContentType()).isEqualTo(ContentType.ANSWER);
+        assertThat(delete.getContentId()).isEqualTo(answer.getId());
+        assertThat(delete.getDeletedBy()).isEqualTo(JAVAJIGI);
     }
-
 
     @Test(expected = CannotDeleteException.class)
     public void delete_not_writer() throws CannotDeleteException {

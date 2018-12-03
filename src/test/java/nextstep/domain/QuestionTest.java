@@ -5,6 +5,9 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.List;
+
+import static nextstep.domain.UserTest.JAVAJIGI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionTest extends BaseTest {
@@ -14,7 +17,7 @@ public class QuestionTest extends BaseTest {
 
 
     public static Question newQuestion(String title, String contents) {
-        return newQuestion(title, contents, UserTest.JAVAJIGI);
+        return newQuestion(title, contents, JAVAJIGI);
     }
 
     public static Question newQuestion(String title, String contents, User user) {
@@ -78,5 +81,28 @@ public class QuestionTest extends BaseTest {
         Question question = newQuestion(TITLE, CONTENTS, NEW_USER);
 
         question.delete(anotherUser);
+    }
+
+    @Test
+    public void delete_question_and_answer_writer_login() throws CannotDeleteException {
+        Question question = newQuestion(TITLE, CONTENTS, NEW_USER);
+
+        question.addAnswer(new Answer(NEW_USER, CONTENTS));
+        question.addAnswer(new Answer(NEW_USER, CONTENTS));
+
+        List<DeleteHistory> deleteHistories = question.delete(NEW_USER);
+        assertThat(question.isDeleted()).isEqualTo(true);
+        assertThat(deleteHistories.size()).isEqualTo(3);
+
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_question_and_answer_another_login() throws CannotDeleteException {
+        Question question = newQuestion(TITLE, CONTENTS, NEW_USER);
+
+        question.addAnswer(new Answer(JAVAJIGI, CONTENTS));
+        question.addAnswer(new Answer(NEW_USER, CONTENTS));
+
+        question.delete(NEW_USER);
     }
 }
