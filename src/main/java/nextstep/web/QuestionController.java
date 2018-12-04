@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -55,5 +56,18 @@ public class QuestionController {
         return "redirect:/";
     }
 
+    @PostMapping("/{questionId}/answers")
+    public String addAnswer(@LoginUser User loginUser, @PathVariable long questionId, Answer answer, Model model) {
+        qnaService.addAnswer(loginUser, questionId, answer);
+        model.addAttribute("quesion", qnaService.findById(questionId));
+        return "/qna/show";
+    }
 
+    @DeleteMapping("/{questionId}/answers/{id}")
+    public String deleteAnswer(@LoginUser User loginUser, @PathVariable long questionId,
+                               @PathVariable long id, Model model) throws CannotDeleteException {
+        qnaService.deleteAnswer(loginUser, id);
+        model.addAttribute("question", qnaService.findById(questionId));
+        return "/qna/show";
+    }
 }

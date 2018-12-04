@@ -17,7 +17,7 @@ import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/answers")
+@RequestMapping("/api/questions/{questionId}/answers")
 public class ApiAnswerController {
     private static final Logger log = LoggerFactory.getLogger(ApiAnswerController.class);
     private static final String API = "/api";

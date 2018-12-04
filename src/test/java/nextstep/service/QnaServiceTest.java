@@ -25,6 +25,9 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     private AnswerRepository answerRepository;
 
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
+
     @InjectMocks
     private QnaService qnaService;
 
@@ -40,7 +43,7 @@ public class QnaServiceTest extends BaseTest {
     public void setUp() {
         user1 = UserTest.JAVAJIGI;
         user2 = UserTest.SANJIGI;
-        question = new Question(questionId, "질문 타이틀", "질문 내용~~~", user1);
+        question = new Question(questionId,"질문 타이틀", "질문 내용~~~", user1);
         answer = new Answer(answerId, user1, "첫 답변");
     }
 
@@ -54,7 +57,7 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void update_question_success() {
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
-        Question updatedQuestion = new Question(questionId, "질문 타이틀 수정용", "질문 내용 수정용~~~", user1);
+        Question updatedQuestion = new Question(questionId,"질문 타이틀 수정용", "질문 내용 수정용~~~", user1);
         Question target = qnaService.update(user1, questionId, updatedQuestion);
         softly.assertThat(target).isEqualTo(updatedQuestion);
     }
@@ -72,13 +75,13 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(question.isDeleted()).isTrue();
     }
 
-    @Test(expected = CannotDeleteException.class)
+    @Test(expected = UnAuthorizedException.class)
     public void delete_question_failed_when_user_not_owner() throws CannotDeleteException {
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
         qnaService.deleteQuestion(user2, questionId);
     }
 
-    @Test(expected = CannotDeleteException.class)
+    @Test(expected = UnAuthorizedException.class)
     public void delete_Answer_failed_when_user_not_owner() throws CannotDeleteException {
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
         when(answerRepository.save(answer)).thenReturn(answer);
