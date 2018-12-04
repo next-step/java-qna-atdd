@@ -25,6 +25,9 @@ public class QuestionTest extends BaseTest {
         softly.assertThat(question).isEqualTo(updateQuestion);
     }
 
+    /**
+     * noAnswer
+     */
     @Test
     public void delete_owner() {
         question.writeBy(JAVAJIGI);
@@ -32,10 +35,28 @@ public class QuestionTest extends BaseTest {
         softly.assertThat(question.isDeleted()).isTrue();
     }
 
+    /**
+     * noAnswer
+     */
     @Test(expected = UnAuthorizedException.class)
     public void delete_noOwner() {
         question.writeBy(JAVAJIGI);
         question.deleted(SANJIGI);
     }
 
+    @Test
+    public void delete_Que_owner_Ans_owner() {
+        question.writeBy(JAVAJIGI);
+        question.addAnswer(new Answer(JAVAJIGI,"javajigi answer"));
+        question.deleted(JAVAJIGI);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_Que_Owner_Ans_NoOwner() {
+        question.writeBy(JAVAJIGI);
+        question.addAnswer(new Answer(SANJIGI,"sanjigi answer"));
+        question.deleted(JAVAJIGI);
+    }
 }

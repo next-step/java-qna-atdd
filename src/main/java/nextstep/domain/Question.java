@@ -7,8 +7,11 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -98,11 +101,26 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     }
 
-    public void deleted(User loginUser) {
+    public List<DeleteHistory> deleted(User loginUser) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.deleted = true;
+        System.out.println(loginUser.getUserId());
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        System.out.println("this is success?");
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer , LocalDateTime.now()));
+        System.out.println("history1 success");
+        List<DeleteHistory> deleteHistories1 = this.answers.stream().map(e -> e.delete(loginUser)).collect(Collectors.toList());
+
+        for(int i = 0 ; i < deleteHistories1.size() ; i++){
+            System.out.println(deleteHistories1.get(i).toString());
+        }
+        System.out.println("answer history size is : " + deleteHistories1.size());
+
+        deleteHistories.addAll(this.answers.stream().map(e -> e.delete(loginUser)).collect(Collectors.toList()));
+        System.out.println("history2 success");
+        return deleteHistories;
     }
     // private boolean matchUserId(User userId) {
     //    return this.writer.equals(userId);

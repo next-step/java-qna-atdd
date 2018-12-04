@@ -23,8 +23,8 @@ public class QnaService {
     @Resource(name = "answerRepository")
     private AnswerRepository answerRepository;
 
-    @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+    @Resource(name = "deleteHistoryRepository")
+    private DeleteHistoryRepository deleteHistoryRepository;
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
@@ -47,8 +47,10 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
+        System.out.println("delete question service ok");
         Question deleted = findById(questionId).orElseThrow(UnAuthorizedException::new);
-        deleted.deleted(loginUser);
+        System.out.println("question in service : " + deleted.getContents());
+        deleteHistoryRepository.saveAll(deleted.deleted(loginUser));
     }
 
     public Iterable<Question> findAll() {
@@ -80,8 +82,5 @@ public class QnaService {
 
     public Answer showAnswer(long answer_id) {
         return answerRepository.findById(answer_id).orElseThrow(IllegalArgumentException::new);
-    }
-
-    public void update(User loginUser, long id) {
     }
 }

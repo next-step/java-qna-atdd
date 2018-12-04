@@ -1,5 +1,7 @@
 package nextstep.web;
 
+import nextstep.UnAuthorizedException;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -59,12 +61,52 @@ public class ApiQuestionAcceptancTest extends AcceptanceTest {
     }
 
     @Test
-    public void deleteQuestion(){
-        ResponseEntity<Question> responseEntity =
+    public void deleteQuestion_noAnswer(){
+        String title = "test 입니다.";
+        String contentsQ = "테스트 내용 입니다.";
+        Question question = new Question(title,contentsQ);
+
+        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", question, Void.class);
+        ResponseEntity<Question> responseEntityDelete =
+                basicAuthTemplate().exchange("/api/questions/3",HttpMethod.DELETE, createHttpEntity(1), Question.class);
+
+        softly.assertThat(responseEntityDelete.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    }
+
+    @Test
+    public void 삭제_작성자_답변만_있는_경우(){
+
+        String title = "test 입니다.";
+        String contentsQ = "테스트 내용 입니다.";
+        Question question = new Question(title,contentsQ);
+
+        ResponseEntity<Void> response = basicAuthTemplate().postForEntity("/api/questions", question, Void.class);
+
+        String contents = "이것은 답변입니다.";
+        String location = createResourceBasicAuth("/api/questions/3/answers/", contents);
+        Answer answer = getResource(location,Answer.class,defaultUser());
+
+        ResponseEntity<Question> responseEntityDelete =
+                basicAuthTemplate().exchange("/api/questions/3",HttpMethod.DELETE, createHttpEntity(1), Question.class);
+
+        softly.assertThat(responseEntityDelete.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    }
+
+    @Test
+    public void 삭제_작성자외_답변도_있는_경우(){
+//        ResponseEntity<Question> responseEntityQuestion =
+//                basicAuthTemplate().exchange("/api/questions/1",HttpMethod.GET, createHttpEntity(1), Question.class);
+
+        String contents = "이것은 답변입니다.";
+        User user = findByUserId("sanjigi");
+        String location = createResourceBasicAuth("/api/questions/1/answers/", contents);
+        Answer answer = getResource(location,Answer.class,user);
+
+        ResponseEntity<Question> responseEntityDelete =
                 basicAuthTemplate().exchange("/api/questions/1",HttpMethod.DELETE, createHttpEntity(1), Question.class);
-
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-
+        softly.assertThat(responseEntityDelete.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private HttpEntity createHttpEntity(Object body) {
