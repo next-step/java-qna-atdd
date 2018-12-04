@@ -57,7 +57,6 @@ public class UserController {
     @PostMapping("/login")
     public String login(String userId, String password, HttpSession httpSession) throws UnAuthenticationException {
         User user =userService.login(userId,password);
-        System.out.println(user.getUserId() + " : " + user.getPassword());
 
         if(!user.matchPassword(password)){
             log.debug("Password misamtched");

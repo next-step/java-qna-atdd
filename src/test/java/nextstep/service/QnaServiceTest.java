@@ -1,7 +1,6 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +11,8 @@ import support.test.BaseTest;
 
 import java.util.Optional;
 
+import static nextstep.domain.UserTest.JAVAJIGI;
+import static nextstep.domain.UserTest.SANJIGI;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -48,12 +49,12 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void delete_Owner() throws CannotDeleteException {
+    public void deleteQueston_byOwner() throws CannotDeleteException {
         Question question = new Question("testQ","testQ");
-        question.writeBy(javajigi);
+        question.writeBy(JAVAJIGI);
         when(questionRepository.findById(1l)).thenReturn(Optional.of(question));
 
-        qnaService.deleteQuestion(javajigi,1L);
+        qnaService.deleteQuestion(JAVAJIGI,1L);
         softly.assertThat(question.isDeleted()).isTrue();
     }
 

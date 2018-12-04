@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -7,8 +8,11 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -24,10 +28,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -66,8 +68,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+        this.answers.addAnswer(this,answer);
+//        answer.toQuestion(this);
+//        answers.add(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -98,11 +101,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     }
 
-    public void deleted(User loginUser) {
+    public List<DeleteHistory> deleted(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.deleted = true;
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer , LocalDateTime.now()));
+        deleteHistories.addAll(this.answers.deleteAllAnswer(loginUser));
+        return deleteHistories;
     }
     // private boolean matchUserId(User userId) {
     //    return this.writer.equals(userId);

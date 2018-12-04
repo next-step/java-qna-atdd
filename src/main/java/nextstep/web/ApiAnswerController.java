@@ -42,7 +42,6 @@ public class ApiAnswerController {
 
     @PostMapping("/{answer_Id}")
     public Answer delete(@LoginUser User user,  @PathVariable long answer_Id ){
-        System.out.println("delete test");
         return qnaService.deleteAnswer(user,answer_Id);
     }
 }

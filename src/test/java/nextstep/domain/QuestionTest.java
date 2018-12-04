@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
@@ -25,17 +26,38 @@ public class QuestionTest extends BaseTest {
         softly.assertThat(question).isEqualTo(updateQuestion);
     }
 
+    /**
+     * noAnswer
+     */
     @Test
-    public void delete_owner() {
+    public void delete_owner() throws CannotDeleteException {
         question.writeBy(JAVAJIGI);
         question.deleted(JAVAJIGI);
         softly.assertThat(question.isDeleted()).isTrue();
     }
 
+    /**
+     * noAnswer
+     */
     @Test(expected = UnAuthorizedException.class)
-    public void delete_noOwner() {
+    public void delete_noOwner() throws CannotDeleteException {
         question.writeBy(JAVAJIGI);
         question.deleted(SANJIGI);
     }
 
+    @Test
+    public void delete_Que_owner_Ans_owner() throws CannotDeleteException {
+        question.writeBy(JAVAJIGI);
+        question.addAnswer(new Answer(JAVAJIGI,"javajigi answer"));
+        question.deleted(JAVAJIGI);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_Que_Owner_Ans_NoOwner() throws CannotDeleteException {
+        question.writeBy(JAVAJIGI);
+        question.addAnswer(new Answer(SANJIGI,"sanjigi answer"));
+        question.deleted(JAVAJIGI);
+    }
 }
