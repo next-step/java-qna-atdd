@@ -47,10 +47,9 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
-        System.out.println("delete question service ok");
-        Question deleted = findById(questionId).orElseThrow(UnAuthorizedException::new);
-        System.out.println("question in service : " + deleted.getContents());
-        deleteHistoryRepository.saveAll(deleted.deleted(loginUser));
+        log.debug("delete Qustion service check");
+        Question questionForDelete = findById(questionId).orElseThrow(UnAuthorizedException::new);
+        deleteHistoryRepository.saveAll(questionForDelete.deleted(loginUser));
     }
 
     public Iterable<Question> findAll() {
@@ -75,7 +74,6 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현
         Answer deleteAnswer = answerRepository.findById(id).orElseThrow(IllegalArgumentException::new);
-        System.out.println("서비스에서 삭제답변 확인" + deleteAnswer.getContents());
         deleteAnswer.delete(loginUser);
         return deleteAnswer;
     }

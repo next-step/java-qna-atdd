@@ -69,7 +69,7 @@ public class QuestionAcceptableTest extends AcceptanceTest {
     public void delete() throws Exception {
         ResponseEntity<Question> responseEntity =
                 basicAuthTemplate().exchange("/questions/1",HttpMethod.DELETE, createHttpEntity(1), Question.class);
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         softly.assertThat(questionRepository.findById(1L).isPresent()).isTrue();
     }
 

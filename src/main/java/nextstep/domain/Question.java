@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -27,10 +28,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -69,8 +68,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+        this.answers.addAnswer(this,answer);
+//        answer.toQuestion(this);
+//        answers.add(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -101,25 +101,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     }
 
-    public List<DeleteHistory> deleted(User loginUser) {
+    public List<DeleteHistory> deleted(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.deleted = true;
-        System.out.println(loginUser.getUserId());
         List<DeleteHistory> deleteHistories = new ArrayList<>();
-        System.out.println("this is success?");
         deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.writer , LocalDateTime.now()));
-        System.out.println("history1 success");
-        List<DeleteHistory> deleteHistories1 = this.answers.stream().map(e -> e.delete(loginUser)).collect(Collectors.toList());
-
-        for(int i = 0 ; i < deleteHistories1.size() ; i++){
-            System.out.println(deleteHistories1.get(i).toString());
-        }
-        System.out.println("answer history size is : " + deleteHistories1.size());
-
-        deleteHistories.addAll(this.answers.stream().map(e -> e.delete(loginUser)).collect(Collectors.toList()));
-        System.out.println("history2 success");
+        deleteHistories.addAll(this.answers.deleteAllAnswer(loginUser));
         return deleteHistories;
     }
     // private boolean matchUserId(User userId) {
