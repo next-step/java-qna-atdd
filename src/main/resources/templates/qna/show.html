@@ -14,8 +14,8 @@
                                  class="article-author-thumb" alt="">
                         </div>
                         <div class="article-header-text">
-                            <a href="{{ writer.id }}" class="article-author-name">{{ writer.name }}</a>
-                            <a href="{{ id }}" class="article-header-time" title="퍼머링크">
+                            <a href="/users/{{ writer.id }}" class="article-author-name">{{ writer.name }}</a>
+                            <a href="/questions/{{ id }}" class="article-header-time" title="퍼머링크">
                                 {{ formattedCreateDate }}
                                 <i class="icon-link"></i>
                             </a>
@@ -36,7 +36,7 @@
                                 </form>
                             </li>
                             <li>
-                                <a class="link-modify-article" href="/index.html">목록</a>
+                                <a class="link-modify-article" href="/">목록</a>
                             </li>
                         </ul>
                     </div>
@@ -44,7 +44,7 @@
 
                 <div class="qna-comment">
                     <div class="qna-comment-slipp">
-                        <p class="qna-comment-count"><strong>{{ answer.size }}</strong>개의 의견</p>
+                        <p class="qna-comment-count"><strong>{{ answers.size }}</strong>개의 의견</p>
                         <div class="qna-comment-slipp-articles">
 
                             {{# answers }}

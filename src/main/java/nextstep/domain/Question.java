@@ -2,12 +2,12 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,10 +26,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -84,11 +82,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
-    public List<Answer> getAnswers() { return answers; }
+    public List<Answer> getAnswers() { return answers.getAnswers(); }
 
     public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+        answers.addAnswer(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -109,13 +106,24 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if(!isOwner(loginUser)) {
-            throw new CannotDeleteException("질문을 삭제할 수 없습니다.");
+            throw new UnAuthorizedException("작성자만 삭제할 수 있습니다.");
+        }
+
+        if(!answers.isMatchedWriter(loginUser)) {
+            throw new CannotDeleteException("질문자와 답변자가 같아야 삭제할 수 있습니다.");
         }
 
         this.deleted = true;
-        return this;
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+        deleteHistories.add(generateQuestionDeleteHistory());
+        deleteHistories.addAll(answers.deleteAllAnswer(loginUser));
+        return deleteHistories;
+    }
+
+    private DeleteHistory generateQuestionDeleteHistory() {
+        return new DeleteHistory(ContentType.QUESTION, getId(), writer, LocalDateTime.now());
     }
 
     public boolean equalsTitleAndContents(Question target) {
@@ -127,15 +135,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
                 && contents.equals(target.contents);
     }
 
-    public boolean equalsTitleAndContentsAndWriter(Question target) {
-        if(Objects.isNull(target)) {
-            return false;
-        }
-
-        return title.equals(target.title)
-                && contents.equals(target.contents)
-                && writer.equals(target.writer);
-    }
 
     @Override
     public String generateUrl() {

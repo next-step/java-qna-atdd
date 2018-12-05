@@ -2,9 +2,14 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
+import org.hibernate.sql.Delete;
 import org.junit.Before;
 import org.junit.Test;
 import support.test.BaseTest;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class QuestionTest extends BaseTest {
 
@@ -54,4 +59,24 @@ public class QuestionTest extends BaseTest {
         User user = UserTest.newUser("sanjigi");
         question.delete(user);
     }
+
+    @Test
+    public void delete_match_writer() throws CannotDeleteException{
+        Answer answer1 = new Answer(UserTest.JAVAJIGI, "default 답변1");
+        Answer answer2 = new Answer(UserTest.JAVAJIGI, "default 답변2");
+        question.addAnswer(answer1);
+        question.addAnswer(answer2);
+        List<DeleteHistory> deleteHistories = question.delete(UserTest.JAVAJIGI);
+        softly.assertThat(deleteHistories).hasSize(3);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_not_match_writer() throws CannotDeleteException{
+        Answer answer1 = new Answer(UserTest.JAVAJIGI, "default 답변1");
+        Answer answer2 = new Answer(UserTest.SANJIGI, "default 답변2");
+        question.addAnswer(answer1);
+        question.addAnswer(answer2);
+        question.delete(UserTest.JAVAJIGI);
+    }
+
 }

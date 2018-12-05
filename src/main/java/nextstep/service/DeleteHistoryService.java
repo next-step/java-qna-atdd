@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 
+
 @Service("deleteHistoryService")
 public class DeleteHistoryService {
     @Resource(name = "deleteHistoryRepository")
@@ -20,4 +21,5 @@ public class DeleteHistoryService {
             deleteHistoryRepository.save(deleteHistory);
         }
     }
+
 }

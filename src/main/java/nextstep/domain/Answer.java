@@ -1,12 +1,12 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -24,12 +24,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Answer() {
-    }
-
-    public Answer(User loginUser) {
-        this.writer = loginUser;
-    }
+    public Answer() { }
 
     public Answer(User writer, String contents) {
         this.writer = writer;
@@ -39,20 +34,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer(Long id, User writer, String contents) {
         super(id);
         this.writer = writer;
-        this.contents = contents;
-    }
-
-    public Answer(User writer, Question question, String contents) {
-        this.writer = writer;
-        this.question = question;
-        this.contents = contents;
-        this.deleted = false;
-    }
-
-    public Answer(Long id, User writer, Question question, String contents) {
-        super(id);
-        this.writer = writer;
-        this.question = question;
         this.contents = contents;
         this.deleted = false;
     }
@@ -90,13 +71,17 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Answer delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) {
         if(!isOwner(loginUser)) {
-            throw new CannotDeleteException("답변을 삭제할 수 없습니다.");
+            throw new UnAuthorizedException("작성자만 삭제할 수 있습니다.");
         }
 
         this.deleted = true;
-        return this;
+        return generateAnswerDeleteHistory();
+    }
+
+    private DeleteHistory generateAnswerDeleteHistory() {
+        return new DeleteHistory(ContentType.ANSWER, getId(), writer, LocalDateTime.now());
     }
 
     public boolean equalsContents(Answer target) {

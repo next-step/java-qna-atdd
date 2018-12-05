@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+
 
 @Service("qnaService")
 @Transactional
@@ -48,10 +50,9 @@ public class QnaService {
         return origin.update(loginUser, updatedQuestion);
     }
 
-    public Question deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question origin = findById(questionId);
-        origin.delete(loginUser);
-        return origin;
+        deleteHistoryService.saveAll(origin.delete(loginUser));
     }
 
     public Iterable<Question> findAll() {
@@ -71,6 +72,7 @@ public class QnaService {
 
     public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
         Answer answer = findByIdAnswer(id);
-        return answer.delete(loginUser);
+        deleteHistoryService.saveAll(asList(answer.delete(loginUser)));
+        return answer;
     }
 }

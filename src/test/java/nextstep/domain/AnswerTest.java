@@ -1,6 +1,6 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import support.test.BaseTest;
@@ -22,14 +22,14 @@ public class AnswerTest extends BaseTest {
     }
 
     @Test
-    public void delete_owner() throws CannotDeleteException {
+    public void delete_owner() {
         User user = UserTest.JAVAJIGI;
         answer.delete(user);
         softly.assertThat(answer.isDeleted()).isTrue();
     }
 
-    @Test(expected = CannotDeleteException.class)
-    public void delete_not_owner() throws CannotDeleteException {
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_not_owner() {
         User user = UserTest.SANJIGI;
         answer.delete(user);
     }

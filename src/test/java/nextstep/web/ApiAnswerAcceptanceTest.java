@@ -16,12 +16,12 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void create() {
         String questionLocation = createQuestionLocation();
-        Answer newAnswer = new Answer(UserTest.JAVAJIGI, "답변");
+        Answer newAnswer = new Answer(UserTest.JAVAJIGI, "default 답변 생성");
 
         String location = createResource(basicAuthTemplate(), questionLocation, newAnswer);
         Answer createdAnswer = getResource(template(), location, Answer.class);
         softly.assertThat(createdAnswer).isNotNull();
-        softly.assertThat(createdAnswer.equalsContents(newAnswer));
+        softly.assertThat(createdAnswer.equalsContents(newAnswer)).isTrue();
     }
 
 
