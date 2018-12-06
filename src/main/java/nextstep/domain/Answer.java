@@ -9,6 +9,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.Objects;
 
+import static nextstep.CannotDeleteException.ALREADY_DELETED_EXCEPTION;
+
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
@@ -90,7 +92,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         if(isDeleted()) {
-            throw new CannotDeleteException("이미 삭제된 질문입니다.");
+            throw new CannotDeleteException(ALREADY_DELETED_EXCEPTION);
         }
 
         this.deleted = true;

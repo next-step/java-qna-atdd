@@ -50,6 +50,15 @@ public class AnswerTest extends BaseTest {
         softly.assertThat(origin.isDeleted()).isTrue();
     }
 
+    @Test
+    public void 삭제시_상태가_변경된다() throws Exception {
+        User loginUser = JAVAJIGI;
+        Answer origin = newAnswer(loginUser);
+
+        origin.delete(loginUser);
+        softly.assertThat(origin.isDeleted()).isTrue();
+    }
+
     @Test(expected = UnAuthorizedException.class)
     public void delete_not_owner() throws Exception {
         Answer origin = newAnswer(JAVAJIGI);
