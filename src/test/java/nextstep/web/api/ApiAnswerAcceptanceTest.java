@@ -37,7 +37,6 @@ public class ApiAnswerAcceptanceTest extends ApiAcceptanceTest {
         Answer answer = addTestAnswer(parentQuestion, "answerContents");
 
         Answer resultAnswer = getResource(apiAnswerUrl(answer), Answer.class);
-        softly.assertThat(resultAnswer.getQuestion()).isEqualTo(answer.getQuestion());
         softly.assertThat(resultAnswer.getContents()).isEqualTo(answer.getContents());
     }
 

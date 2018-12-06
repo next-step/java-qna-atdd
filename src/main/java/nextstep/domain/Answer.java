@@ -1,6 +1,6 @@
 package nextstep.domain;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -9,7 +9,6 @@ import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 import static nextstep.domain.ContentType.ANSWER;
-import static support.util.QnaUtil.not;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable, OwnerCheckable {
@@ -19,7 +18,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable, OwnerCheck
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
-    @JsonBackReference
+    @JsonIgnore
     private Question question;
 
     @Size(min = 5)
@@ -84,12 +83,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable, OwnerCheck
     }
 
     public boolean isParentDeletable() {
-        // 1. 부모의 유저와 답변의 유저가 동일한지 여부를 체크한다.
-        if (not(question.isOwner(writer))) {
-            return false;
-        }
-
-        return true;
+        // 부모의 유저와 답변의 유저가 동일한지 여부를 체크한다.
+        return question.isOwner(writer);
     }
 
     public DeleteHistory delete(User user) {

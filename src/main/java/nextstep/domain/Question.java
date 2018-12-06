@@ -1,6 +1,5 @@
 package nextstep.domain;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
@@ -30,7 +29,6 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
     private User writer;
 
     @Embedded
-    @JsonManagedReference
     private Answers answers = new Answers();
 
     private boolean deleted = false;
