@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
@@ -54,6 +55,14 @@ public class AbstractEntity {
             return "";
         }
         return dateTime.format(DateTimeFormatter.ofPattern(format));
+    }
+
+    public boolean equalsId(long targetId) {
+        if (Objects.isNull(targetId)) {
+            return false;
+        }
+
+        return this.id == targetId;
     }
 
     @Override

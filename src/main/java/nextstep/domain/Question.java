@@ -1,18 +1,17 @@
 package nextstep.domain;
 
 import nextstep.CannotDeleteException;
-import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
+
+import static nextstep.CannotDeleteException.ALREADY_DELETED_EXCEPTION;
+import static nextstep.CannotDeleteException.AUTHORITY_EXCEPTION;
+import static nextstep.CannotDeleteException.EXISTED_ANOTHER_USER_ANSWER_EXCEPTION;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -28,10 +27,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -76,8 +73,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
+    public Question writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void addAnswer(Answer answer) {
@@ -86,10 +84,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Answer findAnswer(long answerId) {
-        return answers.stream()
-                .filter(answer -> answer.equals(answer))
-                .findFirst()
-                .orElseThrow(NotFoundException::new);
+        return answers.find(answerId);
     }
 
     public boolean isOwner(User loginUser) {
@@ -108,12 +103,18 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser))
-            throw new UnAuthorizedException("삭제 권한이 없습니다.");
+            throw new UnAuthorizedException(AUTHORITY_EXCEPTION);
         if(isDeleted())
-            throw new CannotDeleteException("삭제된 질문입니다.");
+            throw new CannotDeleteException(ALREADY_DELETED_EXCEPTION);
+        if(answers.hasOtherUserAnswers(loginUser)) {
+            throw new CannotDeleteException(EXISTED_ANOTHER_USER_ANSWER_EXCEPTION);
+        }
         this.deleted = true;
+        answers.delete(loginUser);
+
+        return DeleteHistory.from(this, loginUser);
     }
 
     public boolean equalsTitleAndContents(Question target) {

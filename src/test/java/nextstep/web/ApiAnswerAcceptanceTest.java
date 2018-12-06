@@ -64,7 +64,6 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         User loginUser = defaultUser();
         ResponseEntity<Void> createResponseEntity = createAnswer(loginUser);
         String location = getResponseLocationPath(createResponseEntity);
-        log.info("location::{}",location);
 
         Answer original = selectAnswer(location);
         Answer updateAnswer = new Answer(original.getId(), "변경된답변");
