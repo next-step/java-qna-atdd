@@ -136,6 +136,8 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     public void deleteQuestion() throws Exception {
         long questionId = defaultQuestion().getId();
         User loginUser = defaultQuestionWriter();
+        log.info("loginUser::{}", loginUser.toString());
+        log.info("defaultQuestion()::{}", defaultQuestion());
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .exchange(String.format("/questions/%d", questionId), HttpMethod.DELETE, null, String.class);
