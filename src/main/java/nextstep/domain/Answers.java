@@ -27,11 +27,12 @@ public class Answers {
         return answers.stream().anyMatch(answer -> !answer.isOwner(loginUser));
     }
 
-    public boolean deleteAll(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> deleteAll(User loginUser) throws CannotDeleteException {
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
         for (Answer answer : answers) {
-            answer.delete(loginUser);
+            deleteHistories.add(answer.delete(loginUser));
         }
 
-        return true;
+        return deleteHistories;
     }
 }

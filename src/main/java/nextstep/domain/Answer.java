@@ -76,7 +76,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public boolean delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
@@ -86,7 +86,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
-        return true;
+
+        return DeleteHistory.fromAnswer(loginUser, this);
     }
 
     @Override

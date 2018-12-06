@@ -79,19 +79,25 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public boolean delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+        System.out.println("#############");
+        System.out.println(loginUser);
+        System.out.println(this);
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
         if (isDeleted() || answers.hasOtherUsersAnswer(loginUser)) {
+            System.out.println("@@@@@@ 1: " + isDeleted());
+            System.out.println("@@@@@@ 2: " + answers.hasOtherUsersAnswer(loginUser));
             throw new CannotDeleteException("");
         }
 
-        answers.deleteAll(loginUser);
-
         this.deleted = true;
-        return true;
+        List<DeleteHistory> deleteHistories = answers.deleteAll(loginUser);
+        deleteHistories.add(DeleteHistory.fromQuestion(loginUser, this));
+
+        return deleteHistories;
     }
 
     public boolean equalsTitleAndContents(Question target) {

@@ -19,6 +19,7 @@ public class QuestionTest extends BaseTest {
         originUser = UserTest.JAVAJIGI;
         origin = newQuestion();
         origin.writeBy(originUser);
+        origin.setId(1000);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -53,7 +54,7 @@ public class QuestionTest extends BaseTest {
     @Test
     public void 삭제_원글작성자() throws Exception {
         User loginUser = originUser;
-        softly.assertThat(origin.delete(loginUser)).isTrue();
+        softly.assertThat(origin.delete(loginUser).get(0).isMatchContentId(origin.getId())).isTrue();
     }
 
     @Test
@@ -64,7 +65,7 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void 삭제_다른_사용자_답변_존재() throws Exception {
-        origin.addAnswer(new Answer(UserTest.SANJIGI, "내가 쓴 답변"));
+        origin.addAnswer(new Answer(UserTest.SANJIGI, "다른사용자가 쓴 답변"));
         origin.delete(originUser);
     }
 }
