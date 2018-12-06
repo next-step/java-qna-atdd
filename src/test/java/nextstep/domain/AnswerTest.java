@@ -6,7 +6,6 @@ import support.test.BaseTest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AnswerTest extends BaseTest {
-    private Question question;
 
     @Test
     public void createAnswerTest() {

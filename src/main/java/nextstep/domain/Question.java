@@ -1,8 +1,8 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
 import static nextstep.domain.ContentType.QUESTION;
 import static support.util.QnaUtil.not;
 
@@ -30,10 +29,9 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    @JsonManagedReference
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -70,6 +68,10 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
 
     public User getWriter() {
         return writer;
+    }
+
+    public Answers getAnswers(){
+        return answers;
     }
 
     public void writeBy(User loginUser) {
@@ -123,7 +125,7 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
         }
 
         // 답변이 존재하는 경우, 삭제여부 확인할 것
-        if (isAnswersExist() && not(isAllAnswerDeletable())) {
+        if (not(answers.isAllAnswerDeletable())) {
             throw new CannotDeleteException("다른 유저가 작성한 답변이 존재함");
         }
     }
@@ -132,10 +134,9 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
         this.deleted = true;
 
         List<DeleteHistory> histories = new ArrayList<>();
-
         histories.add(createDeleteHistory(user));
 
-        List<DeleteHistory> answerDeleteHistories = this.answers.stream().map(a -> a.delete(user)).collect(toList());
+        List<DeleteHistory> answerDeleteHistories = answers.deleteAll(user);
         histories.addAll(answerDeleteHistories);
 
         return histories;
@@ -143,13 +144,5 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
 
     private DeleteHistory createDeleteHistory(User user) {
         return new DeleteHistory(QUESTION, getId(), user, LocalDateTime.now());
-    }
-
-    private boolean isAnswersExist() {
-        return answers != null && answers.size() > 0;
-    }
-
-    private boolean isAllAnswerDeletable() {
-        return answers.stream().allMatch(Answer::isParentDeletable);
     }
 }
