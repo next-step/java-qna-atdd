@@ -147,7 +147,6 @@ public class QuestionAcceptanceTest extends WebAcceptanceTest {
     @Test
     public void deleteQuestion_no_login() {
         long questionId = defaultQuestion().getId();
-
         ResponseEntity<String> response = template()
                 .exchange(String.format("/questions/%d", questionId), HttpMethod.DELETE, null, String.class);
 
