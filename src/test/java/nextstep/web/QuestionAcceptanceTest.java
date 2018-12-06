@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.UserTest;
 import nextstep.util.HtmlFormDataBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -106,16 +107,13 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> delete(TestRestTemplate template) throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder
-                .urlEncodedForm()
-                .addParameter("_method", "delete")
-                .build();
-        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+        return template
+                .exchange(String.format("/questions/%d", 2), HttpMethod.DELETE, null, String.class);
     }
 
     @Test
     public void 삭제_로그인_사용자() throws Exception {
-        ResponseEntity<String> response = delete(basicAuthTemplate());
+        ResponseEntity<String> response = delete(basicAuthTemplate(UserTest.SANJIGI));
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }

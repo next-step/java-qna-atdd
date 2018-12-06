@@ -15,6 +15,7 @@ public class AnswerTest extends BaseTest {
     public void setUp() throws Exception {
         originUser = UserTest.JAVAJIGI;
         origin = newAnswer();
+        origin.setId(1000);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -48,7 +49,7 @@ public class AnswerTest extends BaseTest {
     @Test
     public void 삭제_원글작성자() throws Exception {
         User loginUser = originUser;
-        softly.assertThat(origin.delete(loginUser)).isTrue();
+        softly.assertThat(origin.delete(loginUser).isMatchContentId(origin.getId())).isTrue();
     }
 
     public static Answer newAnswer() {
