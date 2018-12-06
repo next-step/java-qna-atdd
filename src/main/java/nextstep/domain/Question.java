@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -102,5 +103,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
         this.deleted = true;
+    }
+
+    public boolean equalsTitleAndContents(Question body) {
+        if(!this.title.equals(body.title)) {
+            return false;
+        }
+        if(!this.contents.equals(body.contents)) {
+            return false;
+        }
+        return true;
     }
 }

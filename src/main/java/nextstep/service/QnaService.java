@@ -64,13 +64,23 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Optional<Answer> findByAnswerId(long id) {
+        return answerRepository.findById(id);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer addAnswer(User loginUser, long questionId, String contents) {
+        // TODO 답변 추가 기능 구현
+        if(!findById(questionId).get().isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        return answerRepository.save(new Answer(loginUser, contents));
+    }
+
+    public void deleteAnswer(User loginUser, long id) {
+        // TODO 답변 삭제 기능 구현
+        if(!findById(id).get().isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        answerRepository.deleteById(id);
     }
 }
