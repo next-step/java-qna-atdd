@@ -73,8 +73,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
+    public Question writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void addAnswer(Answer answer) {
@@ -102,15 +103,18 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser))
             throw new UnAuthorizedException(AUTHORITY_EXCEPTION);
         if(isDeleted())
             throw new CannotDeleteException(ALREADY_DELETED_EXCEPTION);
-        if(answers.hasAnswersOfOther(loginUser)) {
+        if(answers.hasOtherUserAnswers(loginUser)) {
             throw new CannotDeleteException(EXISTED_ANOTHER_USER_ANSWER_EXCEPTION);
         }
         this.deleted = true;
+        answers.delete(loginUser);
+
+        return DeleteHistory.from(this, loginUser);
     }
 
     public boolean equalsTitleAndContents(Question target) {

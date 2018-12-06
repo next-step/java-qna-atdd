@@ -33,9 +33,7 @@ public class Answers {
                 .orElseThrow(NotFoundException::new);
     }
 
-    public boolean hasAnswersOfOther(User loginUser) {
-        this.answers.forEach(answer -> System.out.println(answer));
-
+    public boolean hasOtherUserAnswers(User loginUser) {
         return this.answers.stream()
                 .anyMatch(answer -> !answer.isOwner(loginUser));
     }

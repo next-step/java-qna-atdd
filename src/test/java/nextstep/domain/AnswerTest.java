@@ -5,6 +5,7 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import static nextstep.CannotDeleteException.EXISTED_ANOTHER_USER_ANSWER_EXCEPTION;
 import static nextstep.domain.UserTest.JAVAJIGI;
 import static nextstep.domain.UserTest.SANJIGI;
 
@@ -32,8 +33,10 @@ public class AnswerTest extends BaseTest {
         softly.assertThat(origin.equalsContents(target)).isTrue();
     }
 
-    @Test(expected = UnAuthorizedException.class)
+    @Test
     public void update_not_owner() {
+        exception.expect(UnAuthorizedException.class);
+
         Answer origin = newAnswer(JAVAJIGI);
         User loginUser = SANJIGI;
         Answer target = newAnswer(SANJIGI, "변경된답변");
@@ -59,17 +62,29 @@ public class AnswerTest extends BaseTest {
         softly.assertThat(origin.isDeleted()).isTrue();
     }
 
-    @Test(expected = UnAuthorizedException.class)
+    @Test
     public void delete_not_owner() throws Exception {
+        exception.expect(UnAuthorizedException.class);
+
         Answer origin = newAnswer(JAVAJIGI);
         User loginUser = SANJIGI;
 
         origin.delete(loginUser);
     }
 
-    @Test(expected = CannotDeleteException.class)
+    @Test
     public void can_not_delete() throws Exception {
+        exception.expect(CannotDeleteException.class);
         Answer origin = newAnswerByDeleted();
         origin.delete(JAVAJIGI);
+    }
+
+    @Test
+    public void 삭제시_이력을_남긴다() throws Exception {
+        User loginUser = JAVAJIGI;
+        Answer origin = newAnswer(loginUser);
+
+        DeleteHistory delete = origin.delete(loginUser);
+        softly.assertThat(delete.getContentId()).isEqualTo(origin.getId());
     }
 }
