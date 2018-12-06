@@ -13,6 +13,23 @@ import java.util.Objects;
 public class User extends AbstractEntity {
     public static final GuestUser GUEST_USER = new GuestUser();
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        if (!super.equals(o)) return false;
+        User user = (User) o;
+        return Objects.equals(userId, user.userId) &&
+                Objects.equals(password, user.password) &&
+                Objects.equals(name, user.name) &&
+                Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), userId, password, name, email);
+    }
+
     @Size(min = 3, max = 20)
     @Column(unique = true, nullable = false)
     private String userId;

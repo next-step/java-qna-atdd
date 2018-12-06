@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import support.domain.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
@@ -83,8 +82,8 @@ public class UserAcceptanceTest extends AcceptanceTest {
         htmlFormDataBuilder.addParameter("_method", "put");
         htmlFormDataBuilder.addParameter("password", "test");
         htmlFormDataBuilder.addParameter("name", "자바지기2");
-        htmlFormDataBuilder.addParameter("email","javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request =htmlFormDataBuilder.build();
+        htmlFormDataBuilder.addParameter("email", "javajigi@slipp.net");
+        HttpEntity<MultiValueMap<String, Object>> request = htmlFormDataBuilder.build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
     }

@@ -1,7 +1,6 @@
 package nextstep.web;
 
 
-
 import org.junit.Test;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
@@ -25,8 +24,5 @@ public class LoginAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
-
-
-
 
 }

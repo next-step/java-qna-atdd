@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -9,9 +10,12 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
+    private static final boolean DELETE = true;
+
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -34,6 +38,24 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Question)) return false;
+        if (!super.equals(o)) return false;
+        Question question = (Question) o;
+        return deleted == question.deleted &&
+                Objects.equals(title, question.title) &&
+                Objects.equals(contents, question.contents) &&
+                Objects.equals(writer, question.writer) &&
+                Objects.equals(answers, question.answers);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), title, contents, writer, answers, deleted);
+    }
+
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
@@ -43,18 +65,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return title;
     }
 
-    public Question setTitle(String title) {
+    public void setTitle(String title) {
         this.title = title;
-        return this;
     }
 
     public String getContents() {
         return contents;
     }
 
-    public Question setContents(String contents) {
+    public void setContents(String contents) {
         this.contents = contents;
-        return this;
     }
 
     public User getWriter() {
@@ -76,6 +96,23 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void delete(User loginUser) {
+        if (!this.isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        if (!this.isDeleted()) {
+            this.deleted = DELETE;
+        }
+    }
+
+    public void update(User loginUser, Question newQuestion) {
+        if (!this.isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        this.setTitle(newQuestion.getTitle());
+        this.setContents(newQuestion.getContents());
     }
 
     @Override
