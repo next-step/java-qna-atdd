@@ -55,4 +55,16 @@ public class QuestionTest extends BaseTest {
         User loginUser = originUser;
         softly.assertThat(origin.delete(loginUser)).isTrue();
     }
+
+    @Test
+    public void 삭제_원글작성자가_작성한_답변만_존재() throws Exception {
+        origin.addAnswer(new Answer(originUser, "내가 쓴 답변"));
+        origin.delete(originUser);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void 삭제_다른_사용자_답변_존재() throws Exception {
+        origin.addAnswer(new Answer(UserTest.SANJIGI, "내가 쓴 답변"));
+        origin.delete(originUser);
+    }
 }

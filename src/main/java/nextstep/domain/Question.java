@@ -26,10 +26,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -86,9 +84,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
 
-        if (isDeleted()) {
+        if (isDeleted() || answers.hasOtherUsersAnswer(loginUser)) {
             throw new CannotDeleteException("");
         }
+
+        answers.deleteAll(loginUser);
 
         this.deleted = true;
         return true;
