@@ -1,15 +1,17 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static nextstep.domain.ContentType.QUESTION;
 import static support.util.QnaUtil.not;
 
 @Entity
@@ -26,10 +28,8 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -68,6 +68,10 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
         return writer;
     }
 
+    public Answers getAnswers(){
+        return answers;
+    }
+
     public void writeBy(User loginUser) {
         this.writer = loginUser;
     }
@@ -104,11 +108,39 @@ public class Question extends AbstractEntity implements UrlGeneratable, OwnerChe
         this.contents = updatedQuestion.getContents();
     }
 
-    public void delete(User loginUser) {
+    public List<DeleteHistory> delete(User loginUser) {
+        checkDeletable(loginUser);
+        return deleteInternal(loginUser);
+    }
+
+    private void checkDeletable(User loginUser) {
         if (not(isOwner(loginUser))) {
             throw new UnAuthorizedException("사용자가 일치하지 않음");
         }
 
+        if (this.deleted) {
+            throw new IllegalStateException("이미 삭제됨");
+        }
+
+        // 답변이 존재하는 경우, 삭제여부 확인할 것
+        if (not(answers.isAllAnswerDeletable())) {
+            throw new CannotDeleteException("다른 유저가 작성한 답변이 존재함");
+        }
+    }
+
+    private List<DeleteHistory> deleteInternal(User user) {
         this.deleted = true;
+
+        List<DeleteHistory> histories = new ArrayList<>();
+        histories.add(createDeleteHistory(user));
+
+        List<DeleteHistory> answerDeleteHistories = answers.deleteAll(user);
+        histories.addAll(answerDeleteHistories);
+
+        return histories;
+    }
+
+    private DeleteHistory createDeleteHistory(User user) {
+        return new DeleteHistory(QUESTION, getId(), user, LocalDateTime.now());
     }
 }
