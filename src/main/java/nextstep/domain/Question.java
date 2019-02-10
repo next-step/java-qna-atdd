@@ -40,6 +40,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
     public String getTitle() {
         return title;
     }

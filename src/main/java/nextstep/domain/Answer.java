@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -14,6 +16,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
+    @JsonBackReference
     private Question question;
 
     @Size(min = 5)
@@ -50,8 +53,26 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return contents;
     }
 
-    public Answer setContents(String contents) {
+    public void setContents(String contents) {
         this.contents = contents;
+    }
+
+    public void writeBy(User loginUser) {
+        this.writer = loginUser;
+    }
+
+    public void update(User user, Answer answer) {
+        if(!isOwner(user)) {
+            throw  new UnAuthorizedException();
+        }
+        this.setContents(answer.getContents());
+    }
+
+    public Answer delete(User user) {
+        if(!isOwner(user)) {
+            throw new UnAuthorizedException();
+        }
+        this.deleted = true;
         return this;
     }
 

@@ -27,6 +27,7 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
+    @Transactional
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
         log.debug("question : {}", question);
@@ -68,19 +69,36 @@ public class QnaService {
         return answerRepository.findById(id);
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
+    @Transactional
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) throws UnAuthenticationException {
         // TODO 답변 추가 기능 구현
-        if(!findById(questionId).get().isOwner(loginUser)) {
-            throw new UnAuthorizedException();
+        if(loginUser.isGuestUser()) {
+            throw new UnAuthenticationException();
         }
-        return answerRepository.save(new Answer(loginUser, contents));
+        answer.writeBy(loginUser);
+        Question question = questionRepository.findById(questionId).orElseThrow(IllegalArgumentException::new);
+        question.addAnswer(answer);
+        return answer;
     }
 
-    public void deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현
-        if(!findById(id).get().isOwner(loginUser)) {
+    @Transactional
+    public Answer updateAnswer(User loginUser, long id, Answer updatedAnswer) {
+        // TODO 답변 수정 기능 구현
+        Answer answer = answerRepository.findById(id).orElseThrow(IllegalArgumentException::new);
+        if(!answer.isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
-        answerRepository.deleteById(id);
+        answer.update(loginUser, updatedAnswer);
+        return answer;
+    }
+
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        // TODO 답변 삭제 기능 구현
+        Answer answer = answerRepository.findById(id).get();
+        if(!answer.isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        return answer.delete(loginUser);
     }
 }

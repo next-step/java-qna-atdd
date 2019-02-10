@@ -20,12 +20,13 @@ public class ApiQuestionController {
     private QnaService qnaService;
 
     @PostMapping("")
-    public ResponseEntity<Void> create(@LoginUser User user, @Valid @RequestBody Question createdQuestion) {
+    public ResponseEntity<Question> create(@LoginUser User user, @Valid @RequestBody Question createdQuestion) {
         Question question = qnaService.create(user, createdQuestion);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/questions/" + question.getId()));
-        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+
+        return new ResponseEntity<>(question, headers, HttpStatus.CREATED);
     }
 
     @GetMapping("{id}")

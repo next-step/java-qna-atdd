@@ -3,6 +3,7 @@ package nextstep.web;
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.exception.ResourceNotFoundException;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.slf4j.Logger;
@@ -35,7 +36,7 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String showQuestion(@PathVariable long id, Model model) {
-        Question question = qnaService.findById(id).get();
+        Question question = qnaService.findById(id).orElseThrow(ResourceNotFoundException::new);
         model.addAttribute("question", question);
         return "/qna/show";
     }

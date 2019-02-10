@@ -12,6 +12,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.net.URI;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -56,9 +58,14 @@ public abstract class AcceptanceTest extends BaseTest {
         return new HttpEntity(body, headers);
     }
 
-    protected String createResource(String path, Object bodyPayload) {
-        ResponseEntity<String> response = template().postForEntity(path, bodyPayload, String.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    protected String createResource(String url, Object requestParam, Object... uriVariables) {
+
+        final ResponseEntity<Void> response = basicAuthTemplate().postForEntity(url, requestParam, Void.class, uriVariables);
+
+        if (response.getStatusCode() != HttpStatus.CREATED) {
+            throw new IllegalStateException("리소스가 생성되지 않았습니다.");
+        }
+
         return response.getHeaders().getLocation().getPath();
     }
 

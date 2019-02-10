@@ -1,5 +1,7 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Answer;
 import nextstep.domain.User;
@@ -14,31 +16,46 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.net.URI;
 
-@RestController
 @RequestMapping("/api/questions/{id}/answers")
+@RestController
 public class ApiAnswerController {
     @Resource(name = "qnaService")
     private QnaService qnaService;
 
-    @PostMapping("")
-    public ResponseEntity<Void> add(@Valid @RequestBody User user, @PathVariable long id, String contents) {
-        Answer answer = qnaService.addAnswer(user, id, contents);
+    @PostMapping
+    public ResponseEntity<Answer> add(@LoginUser User user, @PathVariable long id, @Valid @RequestBody Answer answer) throws UnAuthenticationException {
+        Answer addedAnswer = qnaService.addAnswer(user, id, answer);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/questions/" + id + "/answers/" + answer.getId()));
-        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+
+        return new ResponseEntity<>(addedAnswer, headers, HttpStatus.CREATED);
     }
 
-    @GetMapping("{secondId}")
-    public Answer show(@PathVariable long secondId) {
-        return qnaService.findByAnswerId(secondId).get();
+    @GetMapping
+    public Answer show(@PathVariable long id) {
+        return qnaService.findByAnswerId(id).get();
     }
 
-    @PutMapping("{secondId}")
-    public Answer update(@LoginUser User loginUser, @PathVariable long secondId, String contents) {
-        if(!qnaService.findByAnswerId(secondId).get().isOwner(loginUser)) {
+    @PutMapping("{answerId}")
+    public Answer update(@LoginUser User loginUser, @PathVariable long answerId, @Valid @RequestBody Answer updatedAnswer) {
+        if(!qnaService.findByAnswerId(answerId).get().isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
-        return qnaService.findByAnswerId(secondId).get().setContents(contents);
+        return qnaService.updateAnswer(loginUser, answerId, updatedAnswer);
+    }
+
+    @DeleteMapping("{answerId}")
+    public ResponseEntity<Answer> delete(@LoginUser User loginUser, @PathVariable long id, @PathVariable long answerId) throws CannotDeleteException {
+        Answer deleteAnswer = qnaService.deleteAnswer(loginUser, answerId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/api/questions/" + id + "/answers/" + answerId));
+
+        if(!qnaService.findByAnswerId(answerId).get().isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        return new ResponseEntity<>(deleteAnswer, headers, HttpStatus.OK);
     }
 }
