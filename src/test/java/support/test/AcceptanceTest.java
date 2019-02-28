@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
     private static final String DEFAULT_LOGIN_USER = "javajigi";
+    private static final String ANOTHER_LOGIN_USER = "sanjigi";
 
     @Autowired
     private TestRestTemplate template;
@@ -46,11 +47,13 @@ public abstract class AcceptanceTest extends BaseTest {
         return findByUserId(DEFAULT_LOGIN_USER);
     }
 
+    protected User anotherUser() {
+        return findByUserId(ANOTHER_LOGIN_USER);
+    }
+
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
     }
-
-    protected Question findByQuestionId(long questionId) { return  questionRepository.findById(questionId).get(); }
 
     protected HttpEntity createHttpEntity(Object body) {
         HttpHeaders headers = new HttpHeaders();

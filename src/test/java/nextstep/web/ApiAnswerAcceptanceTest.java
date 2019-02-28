@@ -54,7 +54,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         // 4. 답변을 추가한 후 확인을 위해 질문을 다시 가져옴
         Question addedQuestion = getResource(questionResource, Question.class, loginUser);
-        Answer addedAnswer = addedQuestion.getAnswers().get(0);
+        Answer addedAnswer = addedQuestion.getAnswer(0);
 
         softly.assertThat(addedAnswer.equals(answerWriteResponse.getBody())).isTrue();
     }
@@ -68,7 +68,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void show() throws Exception {
         Question question = questionRepository.findById(1L).get();
         Answer answer = template().getForObject("/api/questions/" + questionRepository.findById(1L).get().getId() + "/answers", Answer.class);
-        softly.assertThat(answer).isEqualTo(question.getAnswers().get(0));
+        softly.assertThat(answer).isEqualTo(question.getAnswer(0));
     }
 
     @Test

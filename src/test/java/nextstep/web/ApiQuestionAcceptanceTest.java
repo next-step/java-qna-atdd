@@ -1,16 +1,17 @@
 package nextstep.web;
 
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
-import nextstep.domain.UserTest;
+import nextstep.domain.*;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
+import javax.persistence.EntityExistsException;
+import javax.persistence.EntityNotFoundException;
+import java.net.URI;
 import java.util.Optional;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
@@ -25,7 +26,6 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question question = new Question("title", "content");
 
         ResponseEntity<Void> response = basicAuthTemplate(loginUser).postForEntity("/api/questions", question, Void.class);
-        // 왜 question의 title과 content의 내용을 한글로 세팅하면 테스트를 통과하지 못할까요?
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Optional<Question> dbQuestion = questionRepository.findById(question.getId());
         softly.assertThat(dbQuestion).isNotNull();
@@ -37,17 +37,24 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(question).isNotNull();
     }
 
+    public Question findQuestionIdNotDeleted(Long id) {
+        return questionRepository.findByIdAndDeleted(id, false).orElseThrow(EntityNotFoundException::new);
+    }
+
     @Test
     public void update() throws Exception {
-        User loginUser = defaultUser();
-        Question question = questionRepository.findById(1L).get();
+        // 1. 질문 작성
+        Question question = new Question("title", "content");
+        ResponseEntity<Question> questionWriteResponse = basicAuthTemplate(defaultUser()).postForEntity("/api/questions", question, Question.class);
+        String questionResource = questionWriteResponse.getHeaders().getLocation().getPath();
+        Question origin = getResource(questionResource, Question.class, defaultUser());
+
+        // 2. 질문 수정
         Question otherQuestion = new Question("modify title", "modify contents");
-        otherQuestion.writeBy(loginUser);
-        Question updatedQuestion = question.update(otherQuestion);
-        ResponseEntity<Question> responseEntity = basicAuthTemplate(loginUser).exchange("/api/questions/1", HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
+        ResponseEntity<Question> responseEntity = basicAuthTemplate(defaultUser()).exchange("/api/questions/" + origin.getId(), HttpMethod.PUT, createHttpEntity(otherQuestion), Question.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(updatedQuestion.equalsTitleAndContents(responseEntity.getBody())).isTrue();
+        softly.assertThat(otherQuestion.equalsTitleAndContents(responseEntity.getBody())).isTrue();
     }
 
     @Test
@@ -78,5 +85,87 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", responseEntity.getBody());
+    }
+
+    @Test
+    public void delete_질문없는경우() throws Exception {
+        String noQuestionResource = "/api/questions";
+
+        // 1. 질문 삭제
+        ResponseEntity<Void> deleteQuestionResponse = basicAuthTemplate(defaultUser()).exchange(noQuestionResource, HttpMethod.DELETE, createHttpEntity(Void.class), Void.class);
+
+        softly.assertThat(deleteQuestionResponse.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @Test
+    public void delete_답변없는경우() throws Exception {
+        // 1. 질문 작성
+        Question question = new Question("title", "content");
+        ResponseEntity<Question> questionWriteResponse = basicAuthTemplate(defaultUser()).postForEntity("/api/questions", question, Question.class);
+        String questionResource = questionWriteResponse.getHeaders().getLocation().getPath();
+        Question origin = getResource(questionResource, Question.class, defaultUser());
+
+        // 3. 질문 삭제
+        ResponseEntity<Void> deleteQuestionResponse = basicAuthTemplate(defaultUser()).exchange(questionResource, HttpMethod.DELETE, createHttpEntity(origin), Void.class);
+        final ResponseEntity<Question> isQuestionDeleted = basicAuthTemplate(defaultUser()).getForEntity(questionResource, Question.class);
+
+        softly.assertThat(deleteQuestionResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        softly.assertThat(isQuestionDeleted.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_질문자_로그인_다른경우() throws Exception {
+        // 1. 질문 작성
+        Question question = new Question("title", "content");
+        ResponseEntity<Question> questionWriteResponse = basicAuthTemplate(defaultUser()).postForEntity("/api/questions", question, Question.class);
+        String questionResource = questionWriteResponse.getHeaders().getLocation().getPath();
+        Question origin = getResource(questionResource, Question.class, defaultUser());
+
+        // 3. 질문 삭제
+        ResponseEntity<Void> deleteQuestionResponse = basicAuthTemplate(anotherUser()).exchange(questionResource, HttpMethod.DELETE, createHttpEntity(origin), Void.class);
+
+        softly.assertThat(deleteQuestionResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_질문자_답변자_같은경우() throws Exception {
+        // 1. 질문 작성
+        Question question = new Question("title", "content");
+        ResponseEntity<Question> questionWriteResponse = basicAuthTemplate(defaultUser()).postForEntity("/api/questions", question, Question.class);
+        String questionResource = questionWriteResponse.getHeaders().getLocation().getPath();
+        Question origin = getResource(questionResource, Question.class, defaultUser());
+
+        // 2. 답변 추가
+        Answer answer = new Answer(defaultUser(), "original answer");
+        post(answer, basicAuthTemplate(), origin.getId());
+
+        // 3. 질문 삭제
+        ResponseEntity<Void> deleteQuestionResponse = basicAuthTemplate(defaultUser()).exchange(questionResource, HttpMethod.DELETE, createHttpEntity(origin), Void.class);
+        final ResponseEntity<Question> isQuestionDeleted = basicAuthTemplate(defaultUser()).getForEntity(questionResource, Question.class);
+
+        softly.assertThat(deleteQuestionResponse.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        softly.assertThat(isQuestionDeleted.getStatusCode()).isSameAs(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void delete_질문자_답변자_다른경우() throws Exception {
+        // 1. 질문 작성
+        Question question = new Question("title", "content");
+        ResponseEntity<Question> questionWriteResponse = basicAuthTemplate(defaultUser()).postForEntity("/api/questions", question, Question.class);
+        String questionResource = questionWriteResponse.getHeaders().getLocation().getPath();
+        Question origin = getResource(questionResource, Question.class, defaultUser());
+
+        // 2. 답변 추가
+        Answer answer = new Answer(anotherUser(), "another answer");
+        post(answer, basicAuthTemplate(anotherUser()), origin.getId());
+
+        // 3. 질문 삭제
+        ResponseEntity<Void> deleteQuestionResponse = basicAuthTemplate(defaultUser()).exchange(questionResource, HttpMethod.DELETE, createHttpEntity(origin), Void.class);
+
+        softly.assertThat(deleteQuestionResponse.getStatusCode()).isSameAs(HttpStatus.FORBIDDEN);
+    }
+
+    private ResponseEntity<Answer> post(Answer answer, TestRestTemplate testRestTemplate, Long id) {
+        return testRestTemplate.postForEntity("/api/questions/{id}/answers", answer, Answer.class, id);
     }
 }
