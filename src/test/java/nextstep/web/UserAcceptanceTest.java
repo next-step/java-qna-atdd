@@ -40,7 +40,6 @@ public class UserAcceptanceTest extends AcceptanceTest {
                         .addParameter("email", "javajigi@slipp.net")
                         .build();
 
-
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
