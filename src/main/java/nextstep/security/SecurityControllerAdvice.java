@@ -32,6 +32,6 @@ public class SecurityControllerAdvice {
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     public String unAuthentication() {
         log.debug("UnAuthenticationException is happened!");
-        return "/user/login";
+        return "/user/login_failed";
     }
 }

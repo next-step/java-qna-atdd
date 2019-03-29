@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.UnAuthenticationException;
 import nextstep.domain.UserRepository;
 import org.junit.Test;
 import org.slf4j.Logger;
