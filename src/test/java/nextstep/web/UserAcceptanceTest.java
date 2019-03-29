@@ -22,8 +22,6 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Autowired
     private UserRepository userRepository;
 
-    HtmlFormDataBuilder builder = HtmlFormDataBuilder.urlEncodedForm();
-
     @Test
     public void createForm() throws Exception {
         ResponseEntity<String> response = template().getForEntity("/users/form", String.class);
@@ -34,11 +32,14 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Test
     public void create() throws Exception {
         String userId = "testuser";
-        builder.addParameter("userId", userId)
-                .addParameter("password", "password")
-                .addParameter("name", "자바지기")
-                .addParameter("email", "javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request = builder.build();
+        HttpEntity<MultiValueMap<String, Object>> request =
+                HtmlFormDataBuilder.urlEncodedForm()
+                        .addParameter("userId", userId)
+                        .addParameter("password", "password")
+                        .addParameter("name", "자바지기")
+                        .addParameter("email", "javajigi@slipp.net")
+                        .build();
+
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -78,11 +79,13 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-        builder.addParameter("_method", "put")
-                .addParameter("password", "test")
-                .addParameter("name", "자바지기2")
-                .addParameter("email", "javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request = builder.build();
+        HttpEntity<MultiValueMap<String, Object>> request =
+                HtmlFormDataBuilder.urlEncodedForm()
+                        .put()
+                        .addParameter("password", "test")
+                        .addParameter("name", "자바지기2")
+                        .addParameter("email", "javajigi@slipp.net")
+                        .build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
     }
