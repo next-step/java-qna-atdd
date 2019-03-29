@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import support.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
 
 import java.util.Arrays;
@@ -20,6 +22,8 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Autowired
     private UserRepository userRepository;
 
+    HtmlFormDataBuilder builder = HtmlFormDataBuilder.urlEncodedForm();
+
     @Test
     public void createForm() throws Exception {
         ResponseEntity<String> response = template().getForEntity("/users/form", String.class);
@@ -29,18 +33,12 @@ public class UserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
         String userId = "testuser";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "password");
-        params.add("name", "자바지기");
-        params.add("email", "javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-
+        builder.addParameter("userId", userId)
+                .addParameter("password", "password")
+                .addParameter("name", "자바지기")
+                .addParameter("email", "javajigi@slipp.net");
+        HttpEntity<MultiValueMap<String, Object>> request = builder.build();
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -80,16 +78,11 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("_method", "put");
-        params.add("password", "test");
-        params.add("name", "자바지기2");
-        params.add("email", "javajigi@slipp.net");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        builder.addParameter("_method", "put")
+                .addParameter("password", "test")
+                .addParameter("name", "자바지기2")
+                .addParameter("email", "javajigi@slipp.net");
+        HttpEntity<MultiValueMap<String, Object>> request = builder.build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
     }
