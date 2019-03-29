@@ -92,6 +92,8 @@ public class User extends AbstractEntity {
         this.email = target.email;
     }
 
+
+
     private boolean matchUserId(String userId) {
         return this.userId.equals(userId);
     }
