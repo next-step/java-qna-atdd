@@ -27,13 +27,18 @@ public class HtmlFormDataBuilder {
         return this;
     }
 
+    public HtmlFormDataBuilder delete() {
+        this.params.add("_method", "delete");
+        return this;
+    }
+
     public HtmlFormDataBuilder addParameter(String key, Object value) {
         this.params.add(key, value);
         return this;
     }
 
     public HttpEntity<MultiValueMap<String, Object>> build() {
-        return new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        return new HttpEntity<>(params, headers);
     }
 
     public static HtmlFormDataBuilder urlEncodedForm() {

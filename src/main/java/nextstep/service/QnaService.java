@@ -1,9 +1,13 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.NotFoundException;
+import nextstep.UnAuthenticationException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,22 +32,33 @@ public class QnaService {
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
         log.debug("question : {}", question);
+
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) throws NotFoundException {
+        return questionRepository.findById(id)
+                .orElseThrow(NotFoundException::new);
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
+        Question original = findById(id);
+
+        original.update(loginUser, updatedQuestion);
+
+        return questionRepository.save(original);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question deletedQuestion = findById(questionId);
+
+        if (!deletedQuestion.isOwner(loginUser)) {
+            throw new CannotDeleteException("not owner");
+        }
+
+        questionRepository.delete(deletedQuestion);
     }
 
     public Iterable<Question> findAll() {
