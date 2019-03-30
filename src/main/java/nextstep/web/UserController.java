@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
@@ -11,10 +10,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.List;
-
-import static nextstep.security.HttpSessionUtils.USER_SESSION_KEY;
 
 @Controller
 @RequestMapping("/users")
@@ -43,6 +40,13 @@ public class UserController {
         return "/user/list";
     }
 
+    @GetMapping("/{id}")
+    public String profile(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        User user = userService.findById(loginUser, id);
+        model.addAttribute("user", user);
+        return "/user/profile";
+    }
+
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         model.addAttribute("user", userService.findById(loginUser, id));
@@ -52,19 +56,6 @@ public class UserController {
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
-        return "redirect:/users";
-    }
-
-    @PostMapping("/login")
-    public String login(String userId, String password, HttpSession httpSession) {
-        try {
-            User user = userService.login(userId, password);
-            httpSession.setAttribute(USER_SESSION_KEY, user);
-        } catch (UnAuthenticationException e) {
-            e.printStackTrace();
-            return "user/login_failed";
-        }
-
         return "redirect:/users";
     }
 }
