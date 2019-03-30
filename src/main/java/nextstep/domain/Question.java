@@ -91,4 +91,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.title = target.title;
         this.contents = target.contents;
     }
+
+    public void delete() {
+        this.deleted = true;
+    }
 }

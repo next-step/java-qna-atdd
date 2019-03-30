@@ -160,8 +160,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
   @Test
   public void update_no_login() throws Exception {
 
+    // Given
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
     // When
-    ResponseEntity<String> response = update(template());
+    ResponseEntity<String> response = update(template(), question.getId());
 
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -169,20 +173,49 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
   }
 
   @Test
-  public void update() throws Exception {
+  public void update_notFound() throws Exception {
+
+    // Given
+    User loginUser = defaultUser();
 
     // When
-    ResponseEntity<String> response = update(basicAuthTemplate());
+    ResponseEntity<String> response = update(basicAuthTemplate(loginUser), 100L);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void update_notOwner() throws Exception {
+
+    // Given
+    User loginUser = findByUserId("sanjigi");
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
+    // When
+    ResponseEntity<String> response = update(basicAuthTemplate(loginUser), question.getId());
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  public void update() throws Exception {
+
+    // Given
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
+    // When
+    ResponseEntity<String> response = update(basicAuthTemplate(), question.getId());
 
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
   }
 
-  private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-
-    Question question = questionRepository.findById(1L)
-        .orElseThrow(EntityNotFoundException::new);
+  private ResponseEntity<String> update(TestRestTemplate template, long id) throws Exception {
 
     HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
         .put()
@@ -190,6 +223,76 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         .addParameter("contents", "질문 내용 수정")
         .build();
 
-    return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
+    return template.postForEntity(String.format("/questions/%d", id), request, String.class);
+  }
+
+  @Test
+  public void delete_no_login() throws Exception {
+
+    // Given
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
+    // When
+    ResponseEntity<String> response = delete(template(), question.getId());
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  public void delete_notFound() throws Exception {
+
+    // Given
+    User loginUser = defaultUser();
+
+    // When
+    ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), 100L);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void delete_notOwner() throws Exception {
+
+    // Given
+    User loginUser = findByUserId("sanjigi");
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
+    // When
+    ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+
+  @Test
+  public void delete() throws Exception {
+
+    // Given
+    User loginUser = defaultUser();
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
+    //When
+    ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+    softly.assertThat(questionRepository.findById(1L).orElseThrow(EntityNotFoundException::new).isDeleted()).isTrue();
+  }
+
+  private ResponseEntity<String> delete(TestRestTemplate testRestTemplate, long id) {
+
+    HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+        .delete()
+        .build();
+
+    return testRestTemplate
+        .postForEntity(String.format("/questions/%d", id), request, String.class);
   }
 }

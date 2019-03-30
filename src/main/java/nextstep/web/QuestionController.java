@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,7 +59,16 @@ public class QuestionController {
 
   @PutMapping("/{id}")
   public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
+
     qnaService.update(loginUser, id, target);
+    return "redirect:/";
+  }
+
+  @DeleteMapping("/{id}")
+  public String delete(@LoginUser User loginUser, @PathVariable long id)
+      throws CannotDeleteException {
+
+    qnaService.deleteQuestion(loginUser, id);
     return "redirect:/";
   }
 }
