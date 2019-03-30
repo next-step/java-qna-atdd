@@ -1,7 +1,8 @@
 package nextstep.security;
 
-import nextstep.UnAuthenticationException;
-import nextstep.UnAuthorizedException;
+import nextstep.exception.CannotDeleteException;
+import nextstep.exception.UnAuthenticationException;
+import nextstep.exception.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,12 @@ public class SecurityControllerAdvice {
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
     public String unAuthentication() {
         log.debug("UnAuthenticationException is happened!");
-        return "/user/login_failed";
+        return "/user/login";
+    }
+
+    @ExceptionHandler(CannotDeleteException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public void cannotDeleteException() {
+        log.debug("CannotDeleteException is happened!");
     }
 }

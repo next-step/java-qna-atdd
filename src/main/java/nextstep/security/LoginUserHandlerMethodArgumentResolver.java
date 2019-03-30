@@ -1,6 +1,6 @@
 package nextstep.security;
 
-import nextstep.UnAuthenticationException;
+import nextstep.exception.UnAuthenticationException;
 import nextstep.domain.User;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
