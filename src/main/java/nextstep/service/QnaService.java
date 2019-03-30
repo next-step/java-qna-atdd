@@ -63,7 +63,6 @@ public class QnaService {
 
     public Page<Question> findAll(Pageable pageable) {
         Page<Question> questions = questionRepository.findAll(pageable);
-        log.info("questions: " + questions.toString());
         return questions;
     }
 

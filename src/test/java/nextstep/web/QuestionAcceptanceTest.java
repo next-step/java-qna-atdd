@@ -105,11 +105,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         mockMvc.perform(get("/questions/" + defaultQuestion().getId()))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(model().attributeDoesNotExist("isModifiable"))
                 .andExpect(model().attributeExists("question"))
                 .andExpect(view().name("/qna/show"))
                 .andExpect(content().string(containsString(defaultQuestion().getTitle())))
-                .andExpect(content().string(containsString(defaultQuestion().getContents())));
+                .andExpect(content().string(containsString(defaultQuestion().getContents())))
+                .andExpect(content().string(containsString("span class=\"article-author-name\"")))
+        ;
     }
 
     @Test
@@ -118,11 +119,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .with(httpBasic(defaultUser().getUserId(), defaultUser().getPassword())))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("isModifiable"))
                 .andExpect(model().attributeExists("question"))
                 .andExpect(view().name("/qna/show"))
                 .andExpect(content().string(containsString(defaultQuestion().getTitle())))
-                .andExpect(content().string(containsString(defaultQuestion().getContents())));
+                .andExpect(content().string(containsString(defaultQuestion().getContents())))
+                .andExpect(content().string(containsString("a href=\"/users/" + defaultQuestion().getId() + "\"")))
+        ;
     }
 
     @Test

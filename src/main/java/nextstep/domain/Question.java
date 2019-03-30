@@ -31,6 +31,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
+    @Transient
+    private boolean modifiable = false;
+
     public Question() {
     }
 
@@ -76,6 +79,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public boolean isModifiable() {
+        return modifiable;
+    }
+
+    public void setModifiable(boolean modifiable) {
+        this.modifiable = modifiable;
     }
 
     public void update(User loginUser, Question target) {

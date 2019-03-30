@@ -10,7 +10,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.List;
 
 @Controller
@@ -18,6 +17,7 @@ import java.util.List;
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
+    private static final String REFERER = "Referer";
     @Resource(name = "userService")
     private UserService userService;
 

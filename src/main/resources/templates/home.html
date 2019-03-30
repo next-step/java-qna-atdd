@@ -13,12 +13,12 @@
                             <div class="auth-info">
                                 <i class="icon-add-comment"></i>
                                 <span class="time">{{formattedCreateDate}}</span>
-                                {{# matchedWriter }}
+                                {{# modifiable }}
                                 <a href="/users/{{writer.id}}" class="author">{{writer.name}}</a>
-                                {{/ matchedWriter }}
-                                {{^ matchedWriter }}
+                                {{/ modifiable }}
+                                {{^ modifiable }}
                                 <span class="author">{{writer.name}}</span>
-                                {{/ matchedWriter }}
+                                {{/ modifiable }}
                             </div>
                             <div class="reply" title="댓글">
                                 <i class="icon-reply"></i>
