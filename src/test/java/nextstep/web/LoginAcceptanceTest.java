@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
+import support.test.HtmlFormDataBuilder;
 
 public class LoginAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(LoginAcceptanceTest.class);
@@ -18,12 +19,11 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     @Test
     public void test_login_success() {
         String userId = "javajigi";
-        HttpHeaders headers = new HttpHeaders();
 
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParamater("userId", userId)
+                .addParamater("password", "test")
+                .build();
 
         ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
 
@@ -33,14 +33,11 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void test_login_fail() {
-        String userId = "no_user";
-
-        HttpHeaders headers = new HttpHeaders();
-
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-        params.add("userId", userId);
-        params.add("password", "test");
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(params, headers);
+        String userId = "javajigi";
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParamater("userId", userId)
+                .addParamater("password", "")
+                .build();
 
         ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
 
