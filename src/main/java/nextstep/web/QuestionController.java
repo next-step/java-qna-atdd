@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -50,13 +51,13 @@ public class QuestionController {
   @GetMapping("/{id}/form")
   public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
 
-    Optional<Question> optionalQuestion = qnaService.findById(id);
-    if(!optionalQuestion.isPresent()) {
-      throw new EntityNotFoundException();
-    }
-    model.addAttribute("question", optionalQuestion
-        .filter(question -> question.isOwner(loginUser))
-        .orElseThrow(UnAuthorizedException::new));
+    model.addAttribute("question", qnaService.findById(loginUser, id));
     return "/qna/updateForm";
+  }
+
+  @PutMapping("/{id}")
+  public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
+    qnaService.update(loginUser, id, target);
+    return "redirect:/";
   }
 }

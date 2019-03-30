@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -154,5 +155,41 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     softly.assertThat(response.getBody()).contains(question.getTitle());
     softly.assertThat(response.getBody()).contains(question.getContents());
+  }
+
+  @Test
+  public void update_no_login() throws Exception {
+
+    // When
+    ResponseEntity<String> response = update(template());
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    log.debug("body : {}", response.getBody());
+  }
+
+  @Test
+  public void update() throws Exception {
+
+    // When
+    ResponseEntity<String> response = update(basicAuthTemplate());
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+    softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+  }
+
+  private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
+
+    Question question = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+
+    HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+        .put()
+        .addParameter("title", "질문 제목 수정")
+        .addParameter("contents", "질문 내용 수정")
+        .build();
+
+    return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
   }
 }
