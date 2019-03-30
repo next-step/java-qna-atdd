@@ -13,8 +13,8 @@ public class LoginAcceptanceTest extends AcceptanceTest {
   public void login() {
 
     HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-        .addParameter("userId", "theolddragon")
-        .addParameter("password", "loginPassword")
+        .addParameter("userId", "javajigi")
+        .addParameter("password", "test")
         .build();
 
     ResponseEntity<String> response = template().postForEntity("/login", request, String.class);
