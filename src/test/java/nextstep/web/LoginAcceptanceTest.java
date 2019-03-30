@@ -14,7 +14,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(LoginAcceptanceTest.class);
 
     @Test
-    public void login_success() {
+    public void login_success() throws Exception {
         String userId = "sanjigi";
         String password = "test";
         ResponseEntity<String> response = login(userId, password);
@@ -24,7 +24,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 로그인_실패() {
+    public void login_fail() throws Exception {
         String userId = "spring";
         String password = "stay";
 
