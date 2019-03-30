@@ -22,13 +22,18 @@ public class HtmlFormDataBuilder {
         return this;
     }
 
+    public HtmlFormDataBuilder post() {
+        this.addParameter("_method", "post");
+        return this;
+    }
+
     public HtmlFormDataBuilder addParameter(String key, Object value) {
         this.params.add(key, value);
         return this;
     }
 
     public HttpEntity<MultiValueMap<String, Object>> build() {
-        return new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        return new HttpEntity<>(params, headers);
     }
 
     public static HtmlFormDataBuilder urlEncodedForm() {
@@ -37,7 +42,4 @@ public class HtmlFormDataBuilder {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HtmlFormDataBuilder(headers);
     }
-
-
-
 }
