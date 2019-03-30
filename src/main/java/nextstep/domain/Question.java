@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -78,7 +79,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void update(User loginUser, Question target) {
+    public void update(User loginUser, Question target) throws UnAuthenticationException {
+        if (loginUser == User.GUEST_USER) {
+            throw new UnAuthenticationException();
+        }
+
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
