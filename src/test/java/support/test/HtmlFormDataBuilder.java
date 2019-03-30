@@ -23,6 +23,11 @@ public class HtmlFormDataBuilder {
         return this;
     }
 
+    public HtmlFormDataBuilder post() {
+        this.params.add("_method", "post");
+        return this;
+    }
+
     public HtmlFormDataBuilder put() {
         this.params.add("_method", "put");
         return this;
