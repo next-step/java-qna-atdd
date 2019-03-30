@@ -213,6 +213,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+
+    Question updateQuestion = questionRepository.findById(1L)
+        .orElseThrow(EntityNotFoundException::new);
+    softly.assertThat(updateQuestion.getTitle()).isEqualTo("질문 제목 수정");
+    softly.assertThat(updateQuestion.getContents()).isEqualTo("질문 내용 수정");
   }
 
   private ResponseEntity<String> update(TestRestTemplate template, long id) throws Exception {

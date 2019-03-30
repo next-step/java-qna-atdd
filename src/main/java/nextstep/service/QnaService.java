@@ -50,19 +50,17 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public void update(User loginUser, long id, Question updatedQuestion) {
 
-        Question original = findById(loginUser, id);
-        original.update(updatedQuestion);
-        return questionRepository.save(original);
+        Question original = findById(id).orElseThrow(EntityNotFoundException::new);
+        original.update(loginUser, updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
 
-        Question target = findById(loginUser, id);
-        target.delete();
-        questionRepository.save(target);
+        Question target = findById(id).orElseThrow(EntityNotFoundException::new);
+        target.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
