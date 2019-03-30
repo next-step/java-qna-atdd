@@ -1,6 +1,6 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,13 +38,19 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        questionRepository.findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
+
+        return questionRepository.save(updatedQuestion);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public void deleteQuestion(User loginUser, long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .filter(q -> q.isOwner(loginUser))
+                .orElseThrow(EntityNotFoundException::new);
+        questionRepository.delete(question);
     }
 
     public Iterable<Question> findAll() {
@@ -55,12 +62,18 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(EntityNotFoundException::new);
+        Answer answer = new Answer(loginUser, contents);
+        answer.toQuestion(question);
+        return answerRepository.save(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+        Answer answer = answerRepository.findById(id)
+                .filter(a -> a.isOwner(loginUser))
+                .orElseThrow(EntityNotFoundException::new);
+        answerRepository.delete(answer);
+        return answer;
     }
 }

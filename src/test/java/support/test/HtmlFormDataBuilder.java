@@ -6,7 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 public class HtmlFormDataBuilder {
     private HttpHeaders headers;
@@ -23,18 +23,23 @@ public class HtmlFormDataBuilder {
     }
 
     public HttpEntity<MultiValueMap<String, Object>> build() {
-        return new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+        return new HttpEntity<>(params, headers);
     }
 
     public static HtmlFormDataBuilder urlEncodedForm() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
+        headers.setAccept(Collections.singletonList(MediaType.TEXT_HTML));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HtmlFormDataBuilder(headers);
     }
 
     public HtmlFormDataBuilder put() {
         this.params.add("_method", "put");
+        return this;
+    }
+
+    public HtmlFormDataBuilder delete() {
+        this.params.add("_method", "delete");
         return this;
     }
 
