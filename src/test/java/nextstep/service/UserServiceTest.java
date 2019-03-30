@@ -1,6 +1,6 @@
 package nextstep.service;
 
-import nextstep.UnAuthenticationException;
+import nextstep.exception.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.junit.Test;

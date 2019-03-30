@@ -1,6 +1,6 @@
 package nextstep.domain;
 
-import nextstep.UnAuthorizedException;
+import nextstep.exception.UnAuthorizedException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import support.domain.AbstractEntity;
 

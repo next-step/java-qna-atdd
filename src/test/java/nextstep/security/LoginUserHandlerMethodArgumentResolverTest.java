@@ -1,6 +1,6 @@
 package nextstep.security;
 
-import nextstep.UnAuthenticationException;
+import nextstep.exception.UnAuthenticationException;
 import nextstep.domain.User;
 import org.junit.Before;
 import org.junit.Test;
