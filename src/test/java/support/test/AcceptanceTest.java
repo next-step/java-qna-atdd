@@ -15,16 +15,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
     private static final String DEFAULT_LOGIN_USER = "javajigi";
-    private static final long DEFAULT_QUESTION = 1L;
 
     @Autowired
     private TestRestTemplate template;
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private QuestionRepository questionRepository;
 
     public TestRestTemplate template() {
         return template;
@@ -44,13 +40,5 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
-    }
-
-    protected Question defaultQuestion() {
-        return findByQuestionId(DEFAULT_QUESTION);
-    }
-
-    protected Question findByQuestionId(long id) {
-        return questionRepository.findById(id).get();
     }
 }

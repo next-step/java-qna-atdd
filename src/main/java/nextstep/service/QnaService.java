@@ -54,16 +54,10 @@ public class QnaService {
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
         Question target = findById(id);
         target.delete(loginUser);
-        questionRepository.delete(target);
-    }
-
-    public Iterable<Question> findAll() {
-        return questionRepository.findByDeleted(false);
     }
 
     public Page<Question> findAll(Pageable pageable) {
-        Page<Question> questions = questionRepository.findAll(pageable);
-        return questions;
+        return questionRepository.findByDeleted(pageable, false);
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {

@@ -15,12 +15,11 @@
                                  class="article-author-thumb" alt="">
                         </div>
                         <div class="article-header-text">
-                            {{# modifiable }}
-                            <a href="/users/{{question.writer.id}}" class="article-author-name">{{writer.name}}</a>
-                            {{/ modifiable }}
-                            {{^ modifiable }}
-                            <span class="article-author-name">{{writer.name}}</span>
-                            {{/ modifiable }}
+                            {{#if loginedUser }}
+                                <a href="/users/{{question.writer.id}}" class="article-author-name">{{writer.name}}</a>
+                            {{else}}
+                                <span class="article-author-name">{{writer.name}}</span>
+                            {{/if}}
                             <a href="/questions/{{id}}" class="article-header-time" title="퍼머링크">
                                 {{formattedCreateDate}}
                                 <i class="icon-link"></i>
@@ -32,17 +31,17 @@
                     </div>
                     <div class="article-util">
                         <ul class="article-util-list">
-                            {{# modifiable }}
+                            {{#loginedUser}}
                             <li>
-                                <a class="link-modify-article" href="/questions/{{id}}/form">수정</a>
+                                <a class="link-modify-article" href="/questions/{{question.id}}/form">수정</a>
                             </li>
                             <li>
-                                <form class="form-delete" action="/questions/{{id}}" method="POST">
+                                <form class="form-delete" action="/questions/{{question.id}}" method="POST">
                                     <input type="hidden" name="_method" value="DELETE">
                                     <button class="link-delete-article" type="submit">삭제</button>
                                 </form>
                             </li>
-                            {{/ modifiable }}
+                            {{/loginedUser}}
                             <li>
                                 <a class="link-modify-article" href="/">목록</a>
                             </li>

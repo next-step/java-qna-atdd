@@ -31,9 +31,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    @Transient
-    private boolean modifiable = false;
-
     public Question() {
     }
 
@@ -81,16 +78,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public boolean isModifiable() {
-        return modifiable;
-    }
-
-    public void setModifiable(boolean modifiable) {
-        this.modifiable = modifiable;
-    }
-
     public void update(User loginUser, Question target) {
-        if (!matchedWriter(loginUser)) {
+        if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
@@ -99,15 +88,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void delete(User loginUser) {
-        if (!matchedWriter(loginUser)) {
+        if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
         deleted = true;
-    }
-
-    public boolean matchedWriter(User user) {
-        return writer.equals(user);
     }
 
     @Override

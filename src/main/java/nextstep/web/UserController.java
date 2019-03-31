@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
@@ -42,15 +43,28 @@ public class UserController {
 
     @GetMapping("/{id}")
     public String profile(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        User user = userService.findById(loginUser, id);
-        model.addAttribute("user", user);
-        return "/user/profile";
+        if (addCurrentUserToModel(loginUser, id, model)) {
+            return "/user/profile";
+        }
+        return "redirect:/login";
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("user", userService.findById(loginUser, id));
-        return "/user/updateForm";
+        if (addCurrentUserToModel(loginUser, id, model)) {
+            return "/user/updateForm";
+        }
+        return "redirect:/login";
+    }
+
+    private boolean addCurrentUserToModel(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        try {
+            model.addAttribute("user", userService.findById(loginUser, id));
+        } catch (UnAuthorizedException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @PutMapping("/{id}")

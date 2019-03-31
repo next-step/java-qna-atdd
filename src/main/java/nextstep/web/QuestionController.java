@@ -1,9 +1,9 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
-import nextstep.security.HttpSessionUtils;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.springframework.data.domain.Page;
@@ -15,9 +15,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpSession;
-
-import static nextstep.security.HttpSessionUtils.USER_SESSION_KEY;
 
 @Controller
 @RequestMapping("/questions")
@@ -40,20 +39,21 @@ public class QuestionController {
     @GetMapping("")
     public String list(Model model, HttpSession httpSession, @PageableDefault(sort = {"id"}, direction = Sort.Direction.DESC, size = 5) Pageable pageable) {
         Page<Question> questions = qnaService.findAll(pageable);
-        for( Question question : questions) {
-            setModifiable(httpSession, question);
-        }
-
         model.addAttribute("questions", questions);
         model.addAttribute("number", questions.getNumber()+1);
         return "home";
     }
 
     @GetMapping("/{id}")
-    public String detail(Model model, @PathVariable Long id, HttpSession httpSession) {
-        Question question = qnaService.findById(id);
-        setModifiable(httpSession, question);
-        model.addAttribute("question", question);
+    public String detail(Model model, @PathVariable Long id) {
+        try {
+            Question question = qnaService.findById(id);
+            model.addAttribute("question", question);
+        } catch( EntityNotFoundException e) {
+            e.printStackTrace();
+            return "redirect:/questions";
+        }
+
         return "/qna/show";
     }
 
@@ -65,21 +65,22 @@ public class QuestionController {
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
-        qnaService.update(loginUser, id, target);
+        try {
+            qnaService.update(loginUser, id, target);
+        } catch (UnAuthorizedException e) {
+            return "redirect:/login";
+        }
         return "redirect:/questions/" + id;
     }
 
     @DeleteMapping("/{id}")
     public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
-        qnaService.deleteQuestion(loginUser, id);
-        return "redirect:/questions";
-    }
-
-    private void setModifiable(HttpSession httpSession, Question question) {
-        User loginUser = HttpSessionUtils.getUserFromSession(httpSession);
-
-        if(question.matchedWriter(loginUser)) {
-            question.setModifiable(true);
+        try {
+            qnaService.deleteQuestion(loginUser, id);
+        } catch (UnAuthorizedException e) {
+            return "redirect:/login";
         }
+
+        return "redirect:/questions";
     }
 }

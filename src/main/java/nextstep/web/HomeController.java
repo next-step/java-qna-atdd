@@ -1,23 +1,17 @@
 package nextstep.web;
 
 import nextstep.UnAuthenticationException;
-import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.service.QnaService;
 import nextstep.service.UserService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-
-import java.util.List;
 
 import static nextstep.security.HttpSessionUtils.USER_SESSION_KEY;
 
@@ -41,7 +35,7 @@ public class HomeController {
     }
 
     @PostMapping("/login")
-    public String login(String userId, String password, HttpSession httpSession) {
+    public String login(String userId, String password, HttpSession httpSession, HttpServletRequest request) {
         try {
             User user = userService.login(userId, password);
             httpSession.setAttribute(USER_SESSION_KEY, user);

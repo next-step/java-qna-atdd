@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -25,6 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 public class QuestionAcceptanceTest extends AcceptanceTest {
+    private static final long DEFAULT_QUESTION = 1L;
+
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
     @Autowired
@@ -201,4 +204,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
     }
 
+    protected Question defaultQuestion() {
+        return findByQuestionId(DEFAULT_QUESTION);
+    }
+
+    protected Question findByQuestionId(long id) {
+        return questionRepository.findById(id).get();
+    }
 }
