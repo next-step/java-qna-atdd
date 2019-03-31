@@ -78,6 +78,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public Question modify(String title, String contents) {
+        this.title = title;
+        this.contents = contents;
+        return this;
+    }
+
+    public Question delete() {
+        this.deleted = true;
+        return this;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
@@ -86,11 +97,5 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
-    }
-
-    public Question modify(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
-        return this;
     }
 }
