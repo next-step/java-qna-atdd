@@ -54,7 +54,7 @@ public class QuestionController {
         try {
             model.addAttribute("question", qnaService.findByIdAndUser(loginUser, id));
         } catch (NoSuchElementException e) {
-            log.error("{}", e.getMessage());
+            log.error("cannot find Question by id: {}, userId: {}", id, loginUser.getUserId());
             return "redirect:/";
         }
         return "/qna/updateForm";

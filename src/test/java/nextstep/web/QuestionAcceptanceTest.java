@@ -24,12 +24,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     //TODO : Read -> Create -> Delete -> Update 순서로 진행
 
     //1. 목록보기 (get) : /qna
-        //TODO : 삭제된 목록은 제외하고 출력
+    //TODO : 삭제된 목록은 제외하고 출력
     //2. 상세보기 (get) : /qna/{id}
 
     //3. 등록하기 (post) : /qna
     //4. 삭제하기 (delete) : /qna/{id}
-        //TODO : 실제 삭제하는게 아니고 deleted field를 true로 변경
+    //TODO : 실제 삭제하는게 아니고 deleted field를 true로 변경
 
     //5. 수정하기 (put) : /qna/{id}
 
@@ -64,7 +64,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show() throws Exception {
-        ResponseEntity<String> response = template().getForEntity("/questions/1", String.class);
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d", testQuestionId), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
     }
@@ -86,7 +86,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    //create_no_login
     @Test
     public void create_no_login() throws Exception {
         ResponseEntity<String> response = create(template());
@@ -97,7 +96,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void create_login() throws Exception {
         ResponseEntity<String> response = create(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 
     private ResponseEntity<String> create(TestRestTemplate template) throws Exception {
@@ -132,14 +130,20 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void updateForm_no_login() {
-        ResponseEntity<String> response = template().getForEntity("/questions/1/form", String.class);
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", testQuestionId), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void updateForm_login() {
-        ResponseEntity<String> response = basicAuthTemplate().getForEntity("/questions/1/form", String.class);
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/%d/form", testQuestionId), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void updateForm_login_no_data() {
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/999/form", testQuestionId), String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
 
     @Test

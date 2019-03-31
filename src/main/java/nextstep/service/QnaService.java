@@ -38,7 +38,7 @@ public class QnaService {
     }
 
     public Question findByIdAndUser(User loginUser, long id) {
-        return questionRepository.findById(id)
+        return findById(id)
                 .filter(question -> question.isOwner(loginUser))
                 .orElseThrow(NoSuchElementException::new);
     }
