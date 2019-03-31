@@ -173,10 +173,4 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
-
-  private HttpEntity createHttpEntity(Object body) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    return new HttpEntity(body, headers);
-  }
 }

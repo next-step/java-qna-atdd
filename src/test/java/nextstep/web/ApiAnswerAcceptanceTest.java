@@ -5,6 +5,7 @@ import nextstep.domain.Question;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
@@ -105,5 +106,75 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void delete() throws Exception {
+
+    // Given
+    long questionId = 1L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  public void delete_notFound_question() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void delete_notFound_answer() throws Exception {
+
+    // Given
+    long questionId = 1L;
+    long answerId = 100L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void delete_notQuestion_answer() throws Exception {
+
+    // Given
+    long questionId = 2L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void delete_notOwner() throws Exception {
+
+    // Given
+    long questionId = 1L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(findByUserId("sanjigi")).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 }
