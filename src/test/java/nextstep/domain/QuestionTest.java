@@ -80,4 +80,10 @@ public class QuestionTest extends BaseTest {
   public static Question newQuestion(String title, String content) {
     return new Question(title, content);
   }
+
+  public static Question editQuestion(long id, String title, String content) {
+    Question editQuestion = new Question(title, content);
+    editQuestion.setId(id);
+    return editQuestion;
+  }
 }

@@ -50,10 +50,11 @@ public class QnaService {
     }
 
     @Transactional
-    public void update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, Question updatedQuestion) {
 
         Question original = findById(id).orElseThrow(EntityNotFoundException::new);
         original.update(loginUser, updatedQuestion);
+        return original;
     }
 
     @Transactional
