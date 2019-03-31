@@ -1,6 +1,6 @@
 package nextstep.web;
 
-import nextstep.UnAuthenticationException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
@@ -11,16 +11,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
 import java.util.List;
-
-import static nextstep.security.HttpSessionUtils.USER_SESSION_KEY;
 
 @Controller
 @RequestMapping("/users")
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
+    private static final String REFERER = "Referer";
     @Resource(name = "userService")
     private UserService userService;
 
@@ -43,28 +41,35 @@ public class UserController {
         return "/user/list";
     }
 
+    @GetMapping("/{id}")
+    public String profile(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        if (addCurrentUserToModel(loginUser, id, model)) {
+            return "/user/profile";
+        }
+        return "redirect:/login";
+    }
+
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("user", userService.findById(loginUser, id));
-        return "/user/updateForm";
+        if (addCurrentUserToModel(loginUser, id, model)) {
+            return "/user/updateForm";
+        }
+        return "redirect:/login";
+    }
+
+    private boolean addCurrentUserToModel(@LoginUser User loginUser, @PathVariable long id, Model model) {
+        try {
+            model.addAttribute("user", userService.findById(loginUser, id));
+        } catch (UnAuthorizedException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, User target) {
         userService.update(loginUser, id, target);
-        return "redirect:/users";
-    }
-
-    @PostMapping("/login")
-    public String login(String userId, String password, HttpSession httpSession) {
-        try {
-            User user = userService.login(userId, password);
-            httpSession.setAttribute(USER_SESSION_KEY, user);
-        } catch (UnAuthenticationException e) {
-            e.printStackTrace();
-            return "user/login_failed";
-        }
-
         return "redirect:/users";
     }
 }

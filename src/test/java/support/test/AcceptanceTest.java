@@ -1,5 +1,7 @@
 package support.test;
 
+import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.junit.runner.RunWith;
