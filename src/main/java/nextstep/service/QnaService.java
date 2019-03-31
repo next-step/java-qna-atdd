@@ -13,6 +13,7 @@ import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service("qnaService")
 public class QnaService {
@@ -37,7 +38,7 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
-    public Question findByIdAndUser(User loginUser, long id) {
+    public Question findByIdAndUser(long id, User loginUser) {
         return findById(id)
                 .filter(question -> question.isOwner(loginUser))
                 .orElseThrow(NoSuchElementException::new);
@@ -45,12 +46,8 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question question = questionRepository.findById(id).get();
-
-        if (question.isOwner(loginUser)) {
-            return questionRepository.save(updatedQuestion);
-        }
-        return new Question();
+        Question question = findByIdAndUser(id, loginUser);
+        return questionRepository.save(question.modify(updatedQuestion.getTitle(), updatedQuestion.getContents()));
     }
 
     @Transactional

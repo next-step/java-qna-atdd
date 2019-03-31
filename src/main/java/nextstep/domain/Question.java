@@ -8,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -85,5 +86,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public Question modify(String title, String contents) {
+        this.title = title;
+        this.contents = contents;
+        return this;
     }
 }

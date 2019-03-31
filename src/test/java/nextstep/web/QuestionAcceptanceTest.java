@@ -36,20 +36,20 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
-    private static long testQuestionId;
+    private static Question testQuestion;
 
     @Before
     public void setUp() throws Exception {
         Question question = new Question("title", "contents");
         question.writeBy(defaultUser());
 
-        this.testQuestionId = questionRepository.save(question).getId();
+        this.testQuestion = questionRepository.save(question);
     }
 
     @After
     public void tearDown() throws Exception {
-        if (questionRepository.existsById(testQuestionId)) {
-            questionRepository.deleteById(this.testQuestionId);
+        if (questionRepository.existsById(testQuestion.getId())) {
+            questionRepository.deleteById(testQuestion.getId());
         }
     }
 
@@ -64,7 +64,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show() throws Exception {
-        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d", testQuestionId), String.class);
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d", testQuestion.getId()), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
     }
@@ -125,24 +125,24 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .delete()
                 .build();
-        return template.postForEntity(String.format("/questions/%d", testQuestionId), request, String.class);
+        return template.postForEntity(String.format("/questions/%d", testQuestion.getId()), request, String.class);
     }
 
     @Test
     public void updateForm_no_login() {
-        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", testQuestionId), String.class);
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", testQuestion.getId()), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void updateForm_login() {
-        ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/%d/form", testQuestionId), String.class);
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/%d/form", testQuestion.getId()), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
     public void updateForm_login_no_data() {
-        ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/999/form", testQuestionId), String.class);
+        ResponseEntity<String> response = basicAuthTemplate().getForEntity("/questions/999/form", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
 
@@ -167,6 +167,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .addParameter("contents", "내용도 수정")
                 .build();
 
-        return template.postForEntity(String.format("/questions/%d", testQuestionId), request, String.class);
+        return template.postForEntity(String.format("/questions/%d", testQuestion.getId()), request, String.class);
     }
 }

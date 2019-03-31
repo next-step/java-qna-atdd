@@ -24,7 +24,12 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String show(@PathVariable long id, Model model) {
-        model.addAttribute("question", qnaService.findById(id).get());
+        try {
+            model.addAttribute("question", qnaService.findById(id).orElseThrow(NoSuchElementException::new));
+        } catch(NoSuchElementException e) {
+            log.error("cannot find Question by id: {}", id);
+            return "redirect:/";
+        }
         return "/qna/show";
     }
 
@@ -52,7 +57,7 @@ public class QuestionController {
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         try {
-            model.addAttribute("question", qnaService.findByIdAndUser(loginUser, id));
+            model.addAttribute("question", qnaService.findByIdAndUser(id, loginUser));
         } catch (NoSuchElementException e) {
             log.error("cannot find Question by id: {}, userId: {}", id, loginUser.getUserId());
             return "redirect:/";
@@ -61,16 +66,11 @@ public class QuestionController {
     }
 
     @PutMapping("/{id}")
-    public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, String title, String contents, Model model) {
+    public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, Question updatedQuetion, Model model) {
         try {
-            Question question = qnaService.findByIdAndUser(loginUser, id);
-            question.setTitle(title);
-            question.setContents(contents);
-
-            qnaService.update(loginUser, id, question);
-            model.addAttribute("question", qnaService.findById(id).get());
+            model.addAttribute("question", qnaService.update(loginUser, id, updatedQuetion));
         } catch (NoSuchElementException e) {
-            log.error("{}", e.getMessage());
+            log.error("cannot find Question by id: {}, userId: {}", updatedQuetion.getId(), loginUser.getUserId());
             return "redirect:/";
         }
         return "/qna/show";
