@@ -79,11 +79,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public void delete(User loginUser) {
-
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
-
         this.deleted = true;
+    }
+
+    public boolean matchId(long answerId) {
+        return getId() == answerId;
     }
 }

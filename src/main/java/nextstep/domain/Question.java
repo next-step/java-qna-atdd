@@ -109,6 +109,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean containAnswer(long answerId) {
         return answers.stream()
-            .anyMatch(answer -> answer.getId() == answerId);
+            .anyMatch(answer -> answer.matchId(answerId));
     }
 }
