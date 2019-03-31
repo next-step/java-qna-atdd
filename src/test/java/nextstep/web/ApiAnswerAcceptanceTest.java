@@ -31,4 +31,79 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     softly.assertThat(answer.getQuestion().getId()).isEqualTo(questionId);
     softly.assertThat(answer.getContents()).isEqualTo(contents);
   }
+
+  @Test
+  public void create_notFound() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    String contents = "답변 내용";
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).postForEntity(String.format("/api/questions/%d/answers", questionId), contents, Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void show() throws Exception {
+
+    // Given
+    long questionId = 1L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Answer> response = template().getForEntity(String.format("/api/questions/%d/answers/%d", questionId, answerId), Answer.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    Answer answer = response.getBody();
+    softly.assertThat(answer).isNotNull();
+    softly.assertThat(answer.getId()).isEqualTo(answerId);
+    softly.assertThat(answer.getQuestion().getId()).isEqualTo(questionId);
+  }
+
+  @Test
+  public void show_notFound_question() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Answer> response = template().getForEntity(String.format("/api/questions/%d/answers/%d", questionId, answerId), Answer.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void show_notFound_answer() throws Exception {
+
+    // Given
+    long questionId = 1L;
+    long answerId = 100L;
+
+    // When
+    ResponseEntity<Answer> response = template().getForEntity(String.format("/api/questions/%d/answers/%d", questionId, answerId), Answer.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void show_notQuestion_answer() throws Exception {
+
+    // Given
+    long questionId = 2L;
+    long answerId = 1L;
+
+    // When
+    ResponseEntity<Answer> response = template().getForEntity(String.format("/api/questions/%d/answers/%d", questionId, answerId), Answer.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
 }

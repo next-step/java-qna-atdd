@@ -75,8 +75,9 @@ public class QnaService {
     public Answer addAnswer(User loginUser, long questionId, String contents) {
 
         Answer answer = new Answer(loginUser, contents);
-        answer.toQuestion(findById(questionId)
-            .orElseThrow(EntityNotFoundException::new));
+        findById(questionId)
+            .orElseThrow(EntityNotFoundException::new)
+            .addAnswer(answer);
 
         return answerRepository.save(answer);
     }
@@ -84,5 +85,15 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현
         return null;
+    }
+
+    public Answer findAnswerById(long questionId, long id) {
+
+        Question question = findById(questionId)
+            .orElseThrow(EntityNotFoundException::new);
+
+        return answerRepository.findById(id)
+            .filter(answer -> answer.isQuestion(question))
+            .orElseThrow(EntityNotFoundException::new);
     }
 }
