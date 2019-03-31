@@ -1,5 +1,6 @@
 package nextstep.security;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.slf4j.Logger;
@@ -27,6 +28,12 @@ public class RestSecurityControllerAdvice {
     @ResponseStatus(value = HttpStatus.FORBIDDEN)
     public void unAuthorized() {
         log.debug("UnAuthorizedException is happened!");
+    }
+
+    @ExceptionHandler(CannotDeleteException.class)
+    @ResponseStatus(value = HttpStatus.FORBIDDEN)
+    public void cannotDeleted() {
+        log.debug("Cannot deleted!");
     }
 
     @ExceptionHandler(UnAuthenticationException.class)

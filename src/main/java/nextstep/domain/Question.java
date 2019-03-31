@@ -1,5 +1,8 @@
 package nextstep.domain;
 
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -98,13 +101,24 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
 
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
+        List<DeleteHistory> deleteHistories;
+        try {
+            deleteHistories = this.answers.stream()
+                .map(answer -> answer.delete(loginUser))
+                .collect(Collectors.toList());
+        } catch(UnAuthorizedException unAuthorizedException) {
+            throw new CannotDeleteException("삭제가 불가능한 답변이 존재합니다.");
+        }
+
         this.deleted = true;
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
+        return deleteHistories;
     }
 
     public boolean containAnswer(long answerId) {

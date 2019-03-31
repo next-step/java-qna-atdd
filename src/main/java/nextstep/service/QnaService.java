@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import java.util.Collections;
 import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
@@ -58,7 +59,8 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
         Question target = findById(id).orElseThrow(EntityNotFoundException::new);
-        target.delete(loginUser);
+        List<DeleteHistory> deleteHistories = target.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Iterable<Question> findAll() {
@@ -80,7 +82,9 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         Answer answer = answerRepository.findById(id)
             .orElseThrow(EntityNotFoundException::new);
-        answer.delete(loginUser);
+
+        DeleteHistory answerDeleteHistory = answer.delete(loginUser);
+        deleteHistoryService.saveAll(Collections.singletonList(answerDeleteHistory));
         return answer;
     }
 

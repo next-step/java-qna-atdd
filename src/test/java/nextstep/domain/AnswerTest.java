@@ -14,10 +14,11 @@ public class AnswerTest extends BaseTest {
     Answer answer = new Answer(writer, "답변 내용");
 
     // When
-    answer.delete(writer);
+    DeleteHistory answerDeleteHistory = answer.delete(writer);
 
     // Then
     softly.assertThat(answer.isDeleted()).isTrue();
+    softly.assertThat(answerDeleteHistory).isNotNull();
   }
 
   @Test(expected = UnAuthorizedException.class)

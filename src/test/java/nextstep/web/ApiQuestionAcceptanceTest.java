@@ -139,10 +139,11 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
   public void delete() throws Exception {
 
     // Given
-    long questionId = 1L;
+    User loginUser = findByUserId("sanjigi");
+    long questionId = 2L;
 
     // When
-    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+    ResponseEntity<Void> response = basicAuthTemplate(loginUser).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
 
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -165,10 +166,25 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
   public void delete_notOwner() throws Exception {
 
     // Given
+    User loginUser = defaultUser();
+    long questionId = 2L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(loginUser).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  public void delete_existsOtherOwnerAnswer() throws Exception {
+
+    // Given
+    User loginUser = defaultUser();
     long questionId = 1L;
 
     // When
-    ResponseEntity<Void> response = basicAuthTemplate(findByUserId("sanjigi")).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+    ResponseEntity<Void> response = basicAuthTemplate(loginUser).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
 
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
