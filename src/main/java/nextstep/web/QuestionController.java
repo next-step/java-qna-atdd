@@ -1,7 +1,6 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -11,11 +10,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/questions")
 public class QuestionController {
+
     private static final Logger log = LoggerFactory.getLogger(QuestionController.class);
 
     @Autowired
@@ -27,8 +32,8 @@ public class QuestionController {
     }
 
     @PostMapping("/")
-    public String create(@LoginUser User loginUser, Question question) {
-        Question createdQuestion = qnaService.create(loginUser, question);
+    public String create(@LoginUser User loginUser, String title, String contents) {
+        Question createdQuestion = qnaService.create(loginUser, new Question(title, contents));
 
         return "redirect:" + createdQuestion.generateUrl();
     }
@@ -40,17 +45,28 @@ public class QuestionController {
         return "/qna/show";
     }
 
-    @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id) throws UnAuthenticationException {
-        Question updatedQuestion = qnaService.update(loginUser, id, qnaService.findById(id));
+    @GetMapping("/{id}/form")
+    public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
 
-        return "redirect:" + updatedQuestion.generateUrl();
+        model.addAttribute("question", qnaService.findById(id));
+
+        return "/qna/updateForm";
+    }
+
+    @PutMapping("/{id}")
+    public String update(@LoginUser User loginUser, @PathVariable long id,
+        String title, String contents) {
+
+        qnaService.update(loginUser, id, new Question(title, contents));
+
+        return "redirect:" + qnaService.findById(id).generateUrl();
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
+    public String delete(@LoginUser User loginUser, @PathVariable long id)
+        throws CannotDeleteException {
         qnaService.deleteQuestion(loginUser, id);
 
-        return "redirect:/questions";
+        return "redirect:/";
     }
 }

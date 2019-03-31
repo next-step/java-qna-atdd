@@ -1,23 +1,23 @@
 package nextstep.service;
 
+import java.util.List;
+import javax.annotation.Resource;
 import nextstep.CannotDeleteException;
 import nextstep.NotFoundException;
-import nextstep.UnAuthenticationException;
-import nextstep.UnAuthorizedException;
-import nextstep.domain.*;
+import nextstep.domain.Answer;
+import nextstep.domain.AnswerRepository;
+import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
+import nextstep.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.List;
-import java.util.Optional;
-
 @Service("qnaService")
 public class QnaService {
+
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
     @Resource(name = "questionRepository")
@@ -38,27 +38,19 @@ public class QnaService {
 
     public Question findById(long id) throws NotFoundException {
         return questionRepository.findById(id)
-                .orElseThrow(NotFoundException::new);
+            .orElseThrow(NotFoundException::new);
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
+    public void update(User loginUser, long id, Question updatedQuestion) {
         Question original = findById(id);
-
         original.update(loginUser, updatedQuestion);
-
-        return questionRepository.save(original);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question deletedQuestion = findById(questionId);
-
-        if (!deletedQuestion.isOwner(loginUser)) {
-            throw new CannotDeleteException("not owner");
-        }
-
-        questionRepository.delete(deletedQuestion);
+        deletedQuestion.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {

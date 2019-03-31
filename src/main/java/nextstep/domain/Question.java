@@ -1,6 +1,6 @@
 package nextstep.domain;
 
-import nextstep.UnAuthenticationException;
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -13,6 +13,7 @@ import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
+
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -79,21 +80,29 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void update(User loginUser, Question target) throws UnAuthenticationException {
-        if (loginUser == User.GUEST_USER) {
-            throw new UnAuthenticationException();
-        }
-
+    public void update(User loginUser, Question target) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
-        if (!this.equals(target)) {
-            throw new IllegalArgumentException();
+        if (isDeleted()) {
+            throw new UnAuthorizedException();
         }
 
         this.title = target.title;
         this.contents = target.contents;
+    }
+
+    public void delete(User loginUser) throws CannotDeleteException {
+        if (!isOwner(loginUser)) {
+            throw new CannotDeleteException("not owner");
+        }
+
+        if (isDeleted()) {
+            throw new CannotDeleteException("deleted question");
+        }
+
+        this.deleted = true;
     }
 
     @Override
@@ -103,6 +112,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents
+            + ", writer=" + writer + "]";
     }
 }
