@@ -64,4 +64,6 @@ public class ApiAnswerController {
     qnaService.deleteAnswer(loginUser, id);
     return ResponseEntity.ok(null);
   }
+
+
 }

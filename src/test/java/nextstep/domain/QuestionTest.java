@@ -77,6 +77,39 @@ public class QuestionTest extends BaseTest {
     question.delete(loginUser);
   }
 
+  @Test
+  public void containAnswer() {
+
+    // Given
+    long answerId = 100L;
+
+    User loginUser = new User("sanjigi", "password", "name", "javajigi@slipp.net");
+
+    Question question = new Question("질문 제목", "질문 내용");
+    Answer answer = new Answer(answerId, loginUser, question, "답변 내용");
+    question.addAnswer(answer);
+
+    // When
+    boolean result = question.containAnswer(answerId);
+
+    // Then
+    softly.assertThat(result).isTrue();
+  }
+
+  @Test
+  public void not_containAnswer() {
+
+    // Given
+    long answerId = 100L;
+    Question question = new Question("질문 제목", "질문 내용");
+
+    // When
+    boolean result = question.containAnswer(answerId);
+
+    // Then
+    softly.assertThat(result).isFalse();
+  }
+
   public static Question newQuestion(String title, String content) {
     return new Question(title, content);
   }
