@@ -9,6 +9,11 @@ import org.springframework.util.MultiValueMap;
 import java.util.Arrays;
 
 public class HtmlFormDataBuilder {
+
+    public static final String PUT = "put";
+    public static final String POST = "post";
+    public static final String DELETE = "delete";
+
     private HttpHeaders headers;
     private MultiValueMap<String, Object> params;
 
@@ -17,18 +22,23 @@ public class HtmlFormDataBuilder {
         this.params = new LinkedMultiValueMap<>();
     }
 
+    public HtmlFormDataBuilder method(String method) {
+        this.params.add("_method", method);
+        return this;
+    }
+
     public HtmlFormDataBuilder put() {
-        this.params.add("_method", "put");
+        method(PUT);
         return this;
     }
 
     public HtmlFormDataBuilder post() {
-        this.params.add("_method", "post");
+        method(POST);
         return this;
     }
 
     public HtmlFormDataBuilder delete() {
-        this.params.add("_method", "delete");
+        method(DELETE);
         return this;
     }
 
