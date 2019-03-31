@@ -12,10 +12,11 @@ import support.test.AcceptanceTest;
 
 public class LoginAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(LoginAcceptanceTest.class);
+    public static final String LOGIN_URL = "/login";
 
     @Test
     public void loginForm() {
-        ResponseEntity<String> response = template().getForEntity("/login", String.class);
+        ResponseEntity<String> response = template().getForEntity(LOGIN_URL, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -47,6 +48,6 @@ public class LoginAcceptanceTest extends AcceptanceTest {
                 .addParameter("userId", userId)
                 .addParameter("password", password)
                 .build();
-        return template().postForEntity("/users/login", request, String.class);
+        return template().postForEntity(LOGIN_URL, request, String.class);
     }
 }
