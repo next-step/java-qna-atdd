@@ -5,6 +5,7 @@ import java.net.URI;
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 import javax.validation.Valid;
+import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -12,6 +13,7 @@ import nextstep.service.QnaService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,4 +57,12 @@ public class ApiQuestionController {
     return qnaService.update(loginUser, id, updatedQuestion);
   }
 
+  @DeleteMapping("{id}")
+  public ResponseEntity<Void> delete(
+      @LoginUser User loginUser,
+      @PathVariable long id) throws CannotDeleteException {
+
+    qnaService.deleteQuestion(loginUser, id);
+    return ResponseEntity.ok(null);
+  }
 }

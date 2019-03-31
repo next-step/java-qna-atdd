@@ -121,6 +121,45 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
+  @Test
+  public void delete() throws Exception {
+
+    // Given
+    long questionId = 1L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+  }
+
+  @Test
+  public void delete_notFound() throws Exception {
+
+    // Given
+    long questionId = 100L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  public void delete_notOwner() throws Exception {
+
+    // Given
+    long questionId = 1L;
+
+    // When
+    ResponseEntity<Void> response = basicAuthTemplate(findByUserId("sanjigi")).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
   private HttpEntity createHttpEntity(Object body) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
