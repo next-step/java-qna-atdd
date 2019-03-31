@@ -12,8 +12,8 @@ import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
 public class LoginAcceptanceTest extends AcceptanceTest {
-    private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
 
+    private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
 
     @Test
     public void loginForm_no_login() {
@@ -36,10 +36,10 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     @Test
     public void login_success() {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .post()
-                .addParameter("userId", "javajigi")
-                .addParameter("password", "test")
-                .build();
+            .post()
+            .addParameter("userId", "javajigi")
+            .addParameter("password", "test")
+            .build();
 
         ResponseEntity<String> response = template().postForEntity("/login", request, String.class);
 
@@ -50,10 +50,10 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     @Test
     public void login_fail() {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .post()
-                .addParameter("userId", "javajigi")
-                .addParameter("password", "test111")
-                .build();
+            .post()
+            .addParameter("userId", "javajigi")
+            .addParameter("password", "test111")
+            .build();
 
         ResponseEntity<String> response = template().postForEntity("/login", request, String.class);
 
