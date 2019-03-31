@@ -38,7 +38,6 @@ public class QnaService {
     }
 
     public Question findById(User loginUser, long id) {
-
         Optional<Question> optionalQuestion = findById(id);
         if(!optionalQuestion.isPresent()) {
             throw new EntityNotFoundException();
@@ -51,7 +50,6 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-
         Question original = findById(id).orElseThrow(EntityNotFoundException::new);
         original.update(loginUser, updatedQuestion);
         return original;
@@ -59,7 +57,6 @@ public class QnaService {
 
     @Transactional
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
-
         Question target = findById(id).orElseThrow(EntityNotFoundException::new);
         target.delete(loginUser);
     }
@@ -73,30 +70,24 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-
         Answer answer = new Answer(loginUser, contents);
         findById(questionId)
             .orElseThrow(EntityNotFoundException::new)
             .addAnswer(answer);
-
         return answerRepository.save(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-
         Answer answer = answerRepository.findById(id)
             .orElseThrow(EntityNotFoundException::new);
-
         answer.delete(loginUser);
         return answer;
     }
 
     public Answer findAnswerById(long questionId, long id) {
-
         findById(questionId)
             .filter(question -> question.containAnswer(id))
             .orElseThrow(EntityNotFoundException::new);
-
         return answerRepository.findById(id)
             .orElseThrow(EntityNotFoundException::new);
     }
