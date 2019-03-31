@@ -76,4 +76,8 @@ public class QuestionTest extends BaseTest {
     // When
     question.delete(loginUser);
   }
+
+  public static Question newQuestion(String title, String content) {
+    return new Question(title, content);
+  }
 }
