@@ -45,7 +45,6 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
         Question question = questionRepository.findById(id).get();
 
         if (question.isOwner(loginUser)) {
