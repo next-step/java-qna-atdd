@@ -180,8 +180,11 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
   public void delete_existsOtherOwnerAnswer() throws Exception {
 
     // Given
-    User loginUser = defaultUser();
     long questionId = 1L;
+    String contents = "답변 내용";
+    basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/api/questions/%d/answers", questionId), contents, Void.class);
+
+    User loginUser = defaultUser();
 
     // When
     ResponseEntity<Void> response = basicAuthTemplate(loginUser).exchange(String.format("/api/questions/%d", questionId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
