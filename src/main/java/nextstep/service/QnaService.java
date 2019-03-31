@@ -46,10 +46,10 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = findById(questionId).orElseThrow(IllegalAccessError::new);
-        if (question.isOwner(loginUser)) {
-            throw new CannotDeleteException("자신의 글만 삭제 가능합니다.");
+    public void deleteQuestion(User loginUser, long questionId) throws UnAuthenticationException {
+        Question question = findById(questionId).get();
+        if (!question.isOwner(loginUser)) {
+            throw new UnAuthenticationException("자신의 글만 삭제 가능합니다.");
         }
          questionRepository.delete(question);
     }
