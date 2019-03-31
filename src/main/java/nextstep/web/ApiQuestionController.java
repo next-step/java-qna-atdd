@@ -41,7 +41,7 @@ public class ApiQuestionController {
 
     HttpHeaders headers = new HttpHeaders();
     headers.setLocation(URI.create("/api/questions/" + savedQuestion.getId()));
-    return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+    return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
 
   @GetMapping("")
