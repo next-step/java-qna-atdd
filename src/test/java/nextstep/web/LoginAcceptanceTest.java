@@ -14,6 +14,12 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(LoginAcceptanceTest.class);
 
     @Test
+    public void loginForm() {
+        ResponseEntity<String> response = template().getForEntity("/login", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
     public void login_success() throws Exception {
         String userId = "sanjigi";
         String password = "test";

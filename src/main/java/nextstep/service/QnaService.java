@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -35,15 +37,31 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
+    public Question findByIdAndUser(User loginUser, long id) {
+        return questionRepository.findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(NoSuchElementException::new);
+    }
+
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
         // TODO 수정 기능 구현
-        return null;
+        Question question = questionRepository.findById(id).get();
+
+        if (question.isOwner(loginUser)) {
+            return questionRepository.save(updatedQuestion);
+        }
+        return new Question();
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         // TODO 삭제 기능 구현
+        Question question = findById(questionId).orElseThrow(() -> new CannotDeleteException("Cannot find Question By Id"));
+        if(!question.isOwner(loginUser)) {
+            throw new CannotDeleteException("you are not owner of this question");
+        }
+        questionRepository.deleteById(questionId);
     }
 
     public Iterable<Question> findAll() {
@@ -60,7 +78,7 @@ public class QnaService {
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
+        // TODO 답변 삭제 기능 구현
         return null;
     }
 }
