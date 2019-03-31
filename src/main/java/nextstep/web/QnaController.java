@@ -1,19 +1,15 @@
 package nextstep.web;
 
-import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import nextstep.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/questions")
@@ -36,7 +32,7 @@ public class QnaController {
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
-         qnaService.findById(id);
+        qnaService.findById(id);
         model.addAttribute(qnaService.findById(id).get());
         return "qna/updateForm";
     }
@@ -54,7 +50,7 @@ public class QnaController {
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable long id) throws  UnAuthenticationException {
+    public String delete(@LoginUser User loginUser, @PathVariable long id) throws UnAuthenticationException {
         qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }

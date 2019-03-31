@@ -40,6 +40,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public void delete(User loginUser) throws UnAuthenticationException {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthenticationException();
+        }
+        if (isDeleted()) {
+            throw new UnAuthenticationException();
+        }
+        this.deleted = true;
+    }
+
     public String getTitle() {
         return title;
     }

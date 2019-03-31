@@ -39,19 +39,15 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
-        // TODO 업데이트 기능 구현
         Question question = findById(id).orElseThrow(UnAuthenticationException::new);
         question.update(loginUser, updatedQuestion);
-        return questionRepository.save(question);
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws UnAuthenticationException {
-        Question question = findById(questionId).get();
-        if (!question.isOwner(loginUser)) {
-            throw new UnAuthenticationException("자신의 글만 삭제 가능합니다.");
-        }
-         questionRepository.delete(question);
+        Question question = findById(questionId).orElseThrow(UnAuthenticationException::new);
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -64,7 +60,6 @@ public class QnaService {
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현
-
         return null;
     }
 
