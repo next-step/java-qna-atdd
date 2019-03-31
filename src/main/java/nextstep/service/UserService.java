@@ -1,7 +1,7 @@
 package nextstep.service;
 
-import nextstep.UnAuthenticationException;
-import nextstep.UnAuthorizedException;
+import nextstep.exception.UnAuthenticationException;
+import nextstep.exception.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.springframework.stereotype.Service;
@@ -37,7 +37,6 @@ public class UserService {
     }
 
     public User login(String userId, String password) throws UnAuthenticationException {
-        // TODO 로그인 기능 구현
         return userRepository.findByUserId(userId)
                 .filter(user -> user.matchPassword(password))
                 .orElseThrow(UnAuthenticationException::new);

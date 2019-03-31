@@ -1,6 +1,6 @@
 package nextstep.web;
 
-import nextstep.UnAuthenticationException;
+import nextstep.exception.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.security.HttpSessionUtils;
 import nextstep.security.LoginUser;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/users")
@@ -58,14 +57,10 @@ public class UserController {
     @PostMapping("/login")
     public String login(String userId, String password, HttpSession httpSession) {
         try {
-            Optional.of(userService.login(userId, password))
-                    .map(user -> {
-                        httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, user);
-                        return user;
-                    });
+            httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, userService.login(userId, password));
+            return "redirect:/users";
         } catch (UnAuthenticationException e) {
             return "/user/login_failed";
         }
-        return "redirect:/users";
     }
 }
