@@ -1,12 +1,9 @@
 package nextstep.web;
 
 
-import java.util.List;
-import java.util.Optional;
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;

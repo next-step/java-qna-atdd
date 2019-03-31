@@ -5,6 +5,8 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import javax.persistence.EntityNotFoundException;
 import nextstep.UnAuthorizedException;
+import nextstep.domain.Answer;
+import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -15,11 +17,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class QnaServiceTest extends BaseTest {
 
   @Mock
   private QuestionRepository questionRepository;
+
+  @Mock
+  private AnswerRepository answerRepository;
 
   @InjectMocks
   private QnaService qnaService;
@@ -66,5 +71,76 @@ public class QnaServiceTest extends BaseTest {
     when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
     qnaService.findById(loginUser, question.getId());
+  }
+
+  @Test
+  public void findAnswerById_success() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    long answerId = 200L;
+    User writer = new User("sanjigi", "password", "name", "javajigi@slipp.net");
+
+    Question question = new Question("질문 제목", "질문 내용");
+    question.setId(questionId);
+
+    Answer answer = new Answer(answerId, writer, question, "답변 내용");
+    question.addAnswer(answer);
+    when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
+    when(answerRepository.findById(answerId)).thenReturn(Optional.of(answer));
+
+    // When
+    Answer findAnswer = qnaService.findAnswerById(questionId, answerId);
+
+    // Then
+    softly.assertThat(findAnswer).isEqualTo(answer);
+    softly.assertThat(findAnswer.getQuestion()).isEqualTo(question);
+  }
+
+  @Test(expected = EntityNotFoundException.class)
+  public void findAnswerById_notFound_question() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    long answerId = 200L;
+    when(questionRepository.findById(questionId)).thenReturn(Optional.empty());
+
+    // When
+    qnaService.findAnswerById(questionId, answerId);
+  }
+
+  @Test(expected = EntityNotFoundException.class)
+  public void findAnswerById_notQuestion_answer() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    long answerId = 200L;
+
+    Question question = new Question("질문 제목", "질문 내용");
+    question.setId(questionId);
+    when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
+
+    // When
+    qnaService.findAnswerById(questionId, answerId);
+  }
+
+  @Test(expected = EntityNotFoundException.class)
+  public void findAnswerById_notFound_answer() throws Exception {
+
+    // Given
+    long questionId = 100L;
+    long answerId = 200L;
+    User writer = new User("sanjigi", "password", "name", "javajigi@slipp.net");
+
+    Question question = new Question("질문 제목", "질문 내용");
+    question.setId(questionId);
+
+    Answer answer = new Answer(300L, writer, question, "답변 내용");
+    question.addAnswer(answer);
+    when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
+    when(answerRepository.findById(answerId)).thenReturn(Optional.empty());
+
+    // When
+    qnaService.findAnswerById(questionId, answerId);
   }
 }

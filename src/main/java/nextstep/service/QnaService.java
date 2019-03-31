@@ -50,10 +50,11 @@ public class QnaService {
     }
 
     @Transactional
-    public void update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, Question updatedQuestion) {
 
         Question original = findById(id).orElseThrow(EntityNotFoundException::new);
         original.update(loginUser, updatedQuestion);
+        return original;
     }
 
     @Transactional
@@ -72,12 +73,31 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+
+        Answer answer = new Answer(loginUser, contents);
+        findById(questionId)
+            .orElseThrow(EntityNotFoundException::new)
+            .addAnswer(answer);
+
+        return answerRepository.save(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현
-        return null;
+
+        Answer answer = answerRepository.findById(id)
+            .orElseThrow(EntityNotFoundException::new);
+
+        answer.delete(loginUser);
+        return answer;
+    }
+
+    public Answer findAnswerById(long questionId, long id) {
+
+        findById(questionId)
+            .filter(question -> question.containAnswer(id))
+            .orElseThrow(EntityNotFoundException::new);
+
+        return answerRepository.findById(id)
+            .orElseThrow(EntityNotFoundException::new);
     }
 }
