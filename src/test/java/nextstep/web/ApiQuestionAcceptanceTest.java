@@ -3,6 +3,7 @@ package nextstep.web;
 import static nextstep.domain.QuestionTest.editQuestion;
 import static nextstep.domain.QuestionTest.newQuestion;
 
+import java.util.List;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -38,6 +39,19 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     Question question = template().getForObject(location, Question.class);
     softly.assertThat(question.getTitle()).isEqualTo(title);
     softly.assertThat(question.getContents()).isEqualTo(content);
+  }
+
+  @Test
+  public void list() throws Exception {
+
+    // When
+    ResponseEntity<List> response = template().getForEntity("/api/questions", List.class);
+
+    // Then
+    softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    List<Question> questions = response.getBody();
+    softly.assertThat(questions.size()).isNotEqualTo(0);
   }
 
   @Test
