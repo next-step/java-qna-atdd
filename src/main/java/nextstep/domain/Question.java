@@ -77,14 +77,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         answer.toQuestion(this);
         answers.add(answer);
     }
-
-    //FIXED : 유저 업데이트 테스트 중인데... 분명히 데이터가 다른데
-    //같다고 나옵니다.. 왜그러는 거죠;;;
+    
     public boolean isOwner(User loginUser) {
-        System.out.println("넌 이게 같냐? " + writer) ;
-        System.out.println("유저는 ? " + loginUser);
-        System.out.println("가아? " + writer.equals(loginUser));
-        return writer.equals(loginUser);
+        return writer.equalsNameAndEmail(loginUser);
     }
 
     public Question update(User loginUser, Question question) throws UnAuthenticationException {

@@ -57,8 +57,8 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(new Long(0))).thenReturn(returnCacheValue);
 
         Question result = qnaService.update(new User("sanjigi", "password", "name", "javajigi@slipp.net"), 0, new Question("아기상어", "아빠상어"));
-        softly.assertThat(result.getContents()).isEqualTo("뚜루루뚜루");
-        softly.assertThat(result.getTitle()).isEqualTo("아빠상어");
+        softly.assertThat(result.getTitle()).isEqualTo("아기상어");
+        softly.assertThat(result.getContents()).isEqualTo("아빠상어");
         softly.assertThat(result.getWriter()).isNotNull();
     }
 
