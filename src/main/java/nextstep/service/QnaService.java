@@ -62,6 +62,10 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    public List<Question> findUsedAll(Pageable pageable) {
+        return questionRepository.findAllByDeleted(false, pageable);
+    }
+
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         // TODO 답변 추가 기능 구현
         return null;
