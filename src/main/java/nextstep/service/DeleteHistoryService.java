@@ -1,18 +1,19 @@
 package nextstep.service;
 
+import lombok.RequiredArgsConstructor;
 import nextstep.domain.DeleteHistory;
 import nextstep.domain.DeleteHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Service("deleteHistoryService")
+@RequiredArgsConstructor
 public class DeleteHistoryService {
-    @Resource(name = "deleteHistoryRepository")
-    private DeleteHistoryRepository deleteHistoryRepository;
+
+    private final DeleteHistoryRepository deleteHistoryRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveAll(List<DeleteHistory> deleteHistories) {
