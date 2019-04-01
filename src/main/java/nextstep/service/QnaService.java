@@ -27,7 +27,6 @@ public class QnaService {
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
-        log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
@@ -46,12 +45,8 @@ public class QnaService {
         // TODO 삭제 기능 구현
     }
 
-    public Iterable<Question> findAll() {
-        return questionRepository.findByDeleted(false);
-    }
-
-    public List<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable).getContent();
+    public List<Question> findAll() {
+        return questionRepository.findAll();
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
