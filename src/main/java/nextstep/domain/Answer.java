@@ -23,8 +23,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Answer() {
-    }
+    public Answer() { }
 
     public Answer(User writer, String contents) {
         this.writer = writer;
@@ -62,6 +61,19 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public boolean isOwner(User loginUser) {
         return writer.equals(loginUser);
+    }
+
+    public Answer update(User loginUser, String contents) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        if (isDeleted()) {
+            throw new UnAuthorizedException();
+        }
+
+        this.contents = contents;
+        return this;
     }
 
     public Answer delete(User loginUser) {

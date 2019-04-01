@@ -96,7 +96,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public void delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
-            throw new CannotDeleteException("not owner");
+            throw new UnAuthorizedException();
         }
 
         if (isDeleted()) {
