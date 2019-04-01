@@ -1,7 +1,6 @@
 package nextstep.web;
 
 import nextstep.service.QnaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
     private QnaService qnaService;
 
-    @Autowired
     public HomeController(QnaService qnaService) {
         this.qnaService = qnaService;
     }

@@ -1,22 +1,21 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/questions")
 public class QnaController {
     private QnaService qnaService;
 
-    @Autowired
     public QnaController(QnaService qnaService) {
         this.qnaService = qnaService;
     }
@@ -34,19 +33,17 @@ public class QnaController {
 
     @GetMapping("/show/{id}")
     public String showQuestion(@PathVariable("id") long questionId, Model model) {
-        Question question = qnaService.findById(questionId)
-                .orElseThrow(EntityNotFoundException::new);
+        Question question = qnaService.findById(questionId);
+        List<Answer> answers = question.getAnswers();
         model.addAttribute("question", question);
+        model.addAttribute("answersSize", answers.size());
 
         return "/qna/show";
     }
 
     @GetMapping("/update/{id}/form")
     public String updateForm(@PathVariable("id") long questionId, @LoginUser User loginUser, Model model) {
-        Question question = qnaService.findById(questionId)
-                .filter(q -> q.isOwner(loginUser))
-                .orElseThrow(EntityNotFoundException::new);
-        model.addAttribute("question", question);
+        model.addAttribute("question", qnaService.findById(questionId));
 
         return "/qna/updateForm";
     }
@@ -61,5 +58,17 @@ public class QnaController {
     public String deleteQuestion(@PathVariable("id") long questionId, @LoginUser User loginUser) {
         qnaService.deleteQuestion(loginUser, questionId);
         return "redirect:/";
+    }
+
+    @PostMapping("/{id}/answer/add")
+    public String addAnswer(@PathVariable("id") long questionId, @LoginUser User loginUser, String contents) {
+        qnaService.addAnswer(loginUser, questionId, contents);
+        return "redirect:/questions/show/" + questionId;
+    }
+
+    @DeleteMapping("/{id}/answer/delete/{answerId}")
+    public String deleteAnswer(@PathVariable("id") long questionId, @LoginUser User loginUser, @PathVariable("answerId") long answerId) {
+        qnaService.deleteAnswer(loginUser, answerId);
+        return "redirect:/questions/show/" + questionId;
     }
 }

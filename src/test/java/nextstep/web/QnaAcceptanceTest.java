@@ -24,14 +24,12 @@ public class QnaAcceptanceTest extends AcceptanceTest {
     public void showQuestion() {
         ResponseEntity<String> response = template().getForEntity(String.format("/questions/show/%d", 1L), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void createQuestionForm_no_login() {
         ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
@@ -39,7 +37,6 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser).getForEntity("/questions/form", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
@@ -66,7 +63,6 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         User loginUser = defaultUser();
         Question question = new Question("question title", "question contents update");
         HtmlFormDataBuilder builder = HtmlFormDataBuilder.urlEncodedForm();
-//        builder.put();
         builder.addParameter("userId", loginUser.getUserId());
         builder.addParameter("name", loginUser.getName());
         builder.addParameter("email", loginUser.getEmail());
@@ -100,4 +96,39 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
 
+    @Test
+    public void addAnswer() {
+        User loginUser = defaultUser();
+        HtmlFormDataBuilder builder = HtmlFormDataBuilder.urlEncodedForm();
+        builder.addParameter("userId", loginUser.getUserId());
+        builder.addParameter("name", loginUser.getName());
+        builder.addParameter("email", loginUser.getEmail());
+        builder.addParameter("contents", "answer test");
+
+        HttpEntity<MultiValueMap<String, Object>> request = builder.build();
+
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%d/answer/add", 1L), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
+    @Test
+    public void deleteAnswer() {
+        User loginUser = defaultUser();
+        HtmlFormDataBuilder builder = HtmlFormDataBuilder.urlEncodedForm();
+        builder.delete();
+        builder.addParameter("userId", loginUser.getUserId());
+        builder.addParameter("name", loginUser.getName());
+        builder.addParameter("email", loginUser.getEmail());
+
+        HttpEntity<MultiValueMap<String, Object>> request = builder.build();
+
+        addAnswer();
+
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%d/answer/delete/%d", 1L, 3L), request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
 }

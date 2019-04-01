@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import support.test.BaseTest;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -78,8 +77,7 @@ public class QnaServiceTest extends BaseTest {
     public void findById() {
         Question question = new Question("질문하기", "질문하기 테스트");
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-        Question result = qnaService.findById(question.getId())
-                .orElseThrow(EntityNotFoundException::new);
+        Question result = qnaService.findById(question.getId());
         softly.assertThat(result).isEqualTo(question);
     }
 
