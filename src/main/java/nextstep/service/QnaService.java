@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -35,15 +36,23 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
+    public Question findQuestion(long id, User loginUser) {
+        return findById(id).filter(question -> question
+                .isOwner(loginUser)).orElseThrow(NoSuchElementException::new);
+    }
+
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question question = findById(id).orElseThrow(NoSuchElementException::new);
+        return question.modify(loginUser, updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question question = findById(questionId)
+                .orElseThrow(() -> new CannotDeleteException("Cannot findById : {}" + questionId));
+
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -60,7 +69,7 @@ public class QnaService {
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
+        // TODO 답변 삭제 기능 구현
         return null;
     }
 }
