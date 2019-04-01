@@ -31,6 +31,13 @@ public class QuestionController {
         return "/qna/form";
     }
 
+    @PostMapping
+    public String create(@LoginUser User user, Question question) {
+        Question createdQuestion = qnaService.create(user, question);
+        return "redirect:" + createdQuestion.generateUrl();
+    }
+
+
     @DeleteMapping("/{id}")
     public String delete(@LoginUser User user, @PathVariable long id) throws CannotDeleteException {
         qnaService.deleteQuestion(user, id);

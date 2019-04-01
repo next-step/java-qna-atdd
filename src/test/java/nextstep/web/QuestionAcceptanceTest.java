@@ -29,19 +29,23 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
-    public void question_form_no_login() {
+    public void question_create_form_no_login() {
         // when
         ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
-    public void question_form_login() {
+    public void question_create_form_login() {
         // given
         User loginUser = defaultUser();
 
@@ -50,6 +54,52 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        log.debug("response body : {}", response.getBody());
+    }
+
+    @Test
+    public void question_create_no_login() {
+        // given
+        String title = "Hello";
+        String contents = "World";
+
+        // when
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", title)
+                .addParameter("contents", contents)
+                .build();
+
+        ResponseEntity<String> response = template().postForEntity("/questions", request, String.class);
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void question_create_login() {
+        // given
+        User loginUser = defaultUser();
+        String title = "Hello";
+        String contents = "World";
+
+        // when
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("title", title)
+                .addParameter("contents", contents)
+                .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+                .postForEntity("/questions", request, String.class);
+
+        // then
+        long idOfCreatedQuestion = questionRepository.findAll().stream().mapToLong(Question::getId).max().getAsLong();
+        Question createdQuestion = questionRepository.findById(idOfCreatedQuestion).get();
+
+        softly.assertThat(createdQuestion.getTitle()).isEqualTo(title);
+        softly.assertThat(createdQuestion.getContents()).isEqualTo(contents);
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/questions/" + idOfCreatedQuestion);
     }
 
     @Test
@@ -67,6 +117,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -87,6 +139,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
         softly.assertThat(questionRepository.findById(question.getId()).get().isDeleted()).isTrue();
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -106,6 +160,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
         softly.assertThat(questionRepository.findById(otherQuestion.getId()).get().isDeleted()).isFalse();
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -119,6 +175,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -133,6 +191,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -147,6 +207,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -191,7 +253,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .addParameter("contents", updatedContents)
                 .build();
 
-
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
 
@@ -220,7 +281,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .addParameter("title", updatedTitle)
                 .addParameter("contents", updatedContents)
                 .build();
-
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
