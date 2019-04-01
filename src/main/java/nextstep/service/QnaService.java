@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthenticationException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +29,6 @@ public class QnaService {
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
-        log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
@@ -36,14 +37,25 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
+        Question question = questionRepository.findById(id).orElseThrow(NullPointerException::new);
+//        System.out.println("이건여? " + loginUser);
+//        if(!question.isOwner(loginUser)) {
+//            System.out.println("여기 안오세요? " + question);
+//            throw new UnAuthenticationException("자기 것만 수정할 수 있어욧!");
+//        }
+//        System.out.println("그럼 여기 오세요? " + question);
+        question.update(loginUser, updatedQuestion);
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
+        if(!question.isOwner(loginUser)) {
+            throw new CannotDeleteException("This Question is Not Yours!");
+        }
+        question.setDeleted(true);
     }
 
     public Iterable<Question> findAll() {
@@ -54,13 +66,22 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+
+    // TODO : 제가 알기로는 mapped by의 주인이 save하면 자식도 save가 되는 걸로 기억하는데
+    // 안되는 이유가 뭘까요? 제가 잘못 알고 있나요?
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Question question = findById(questionId).orElseThrow(NullPointerException::new);
+        Answer answer = new Answer(loginUser, contents);
+//        answer.toQuestion(question);
+        question.addAnswer(answer);
+        questionRepository.save(question);
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        if(answer.isOwner(loginUser)) {
+            answerRepository.delete(answer);
+        }
     }
 }

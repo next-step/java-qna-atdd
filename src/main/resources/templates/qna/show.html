@@ -36,7 +36,7 @@
                                 </form>
                             </li>
                             <li>
-                                <a class="link-modify-article" href="/index.html">목록</a>
+                                <a class="link-modify-article" href="/home.html">목록</a>
                             </li>
                         </ul>
                     </div>
@@ -47,7 +47,7 @@
                         <p class="qna-comment-count"><strong>2</strong>개의 의견</p>
                         <div class="qna-comment-slipp-articles">
 
-                            <article class="article" id="answer-1405">
+                            <!--<article class="article" id="answer-1405">
                                 <div class="article-header">
                                     <div class="article-header-thumb">
                                         <img src="https://graph.facebook.com/v2.3/1324855987/picture"
@@ -78,7 +78,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                            </article>
+                            </article>-->
                             <article class="article" id="answer-1406">
                                 <div class="article-header">
                                     <div class="article-header-thumb">
@@ -111,11 +111,12 @@
                                     </ul>
                                 </div>
                             </article>
-                            <form class="submit-write">
+                            <!--답변 새로운 걸 만드는 거임 -->
+                            <form class="submit-write" action="/questions/{{question.id}}/answers" method="POST">
                                 <div class="form-group" style="padding:14px;">
-                                    <textarea class="form-control" placeholder="Update your status"></textarea>
+                                    <textarea class="form-control" placeholder="Update your status" id="contents"></textarea>
                                 </div>
-                                <button class="btn btn-success pull-right" type="button">답변하기</button>
+                                <button class="btn btn-success pull-right" type="submit">답변하기</button>
                                 <div class="clearfix"/>
                             </form>
                         </div>
