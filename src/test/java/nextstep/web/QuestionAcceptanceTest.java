@@ -138,7 +138,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = makeDeleteResponseEntity(basicAuthTemplate(), 2);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
         log.debug("body : {}", response.getBody());
     }
 
