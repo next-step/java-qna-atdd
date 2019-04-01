@@ -110,14 +110,43 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void question_update_form_no_login() {
+        // given
+        Question question = defaultQuestion();
+
+        // when
+        ResponseEntity<String> response = template()
+                .getForEntity(String.format("/questions/%d/form", question.getId()), String.class);
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void question_update_form_login_작성자() {
+        // given
+        User loginUser = defaultUser();
+        Question question = defaultQuestion();
+
+        // when
+        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+                .getForEntity(String.format("/questions/%d/form", question.getId()), String.class);
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
     }
 
     @Test
     public void question_update_form_login_작성자_아닐_경우() {
+        // given
+        User loginUser = defaultUser();
+        Question otherQuestion = otherQuestion();
+
+        // when
+        ResponseEntity<String> response = basicAuthTemplate(loginUser)
+                .getForEntity(String.format("/questions/%d/form", otherQuestion.getId()), String.class);
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
     }
 
     @Test

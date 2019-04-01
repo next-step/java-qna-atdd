@@ -72,7 +72,7 @@ public class QnaService {
         return null;
     }
 
-    private Question findByIdAndOwner(long id, User loginUser) {
+    public Question findByIdAndOwner(long id, User loginUser) {
         return findById(id)
                 .filter(question -> question.isOwner(loginUser))
                 .orElseThrow(UnAuthorizedException::new);

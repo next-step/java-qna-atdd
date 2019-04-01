@@ -37,6 +37,13 @@ public class QuestionController {
         return "redirect:/";
     }
 
+    @GetMapping("/{id}/form")
+    public String updateForm(@LoginUser User user, @PathVariable long id, Model model) {
+        Question question = qnaService.findByIdAndOwner(id, user);
+        model.addAttribute("question", question);
+        return "/qna/updateForm";
+    }
+
     @PutMapping("/{id}")
     public String update(@LoginUser User user, @PathVariable long id, Question target) {
         Question update = qnaService.update(user, id, target);
