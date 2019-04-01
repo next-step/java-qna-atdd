@@ -38,18 +38,13 @@ public class QnaService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        questionRepository.findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
-
+        checkQuestionOwner(id, loginUser);
         return questionRepository.save(updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) {
-        Question question = questionRepository.findById(questionId)
-                .filter(q -> q.isOwner(loginUser))
-                .orElseThrow(EntityNotFoundException::new);
+        Question question = checkQuestionOwner(questionId, loginUser);
         questionRepository.delete(question);
     }
 
@@ -72,8 +67,19 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         Answer answer = answerRepository.findById(id)
                 .filter(a -> a.isOwner(loginUser))
-                .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(() -> new EntityNotFoundException("해당 답변을 찾을 수 없습니다."));
         answerRepository.delete(answer);
         return answer;
+    }
+
+    private Question checkQuestionOwner(long questionId, User loginUser) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("질문글을 찾을 수 없습니다."));
+
+        if(!question.isOwner(loginUser)) {
+            throw new UnAuthorizedException("해당 사용자가 작성한 글이 아닙니다.");
+        }
+
+        return question;
     }
 }
