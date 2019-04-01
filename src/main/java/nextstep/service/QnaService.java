@@ -2,8 +2,8 @@ package nextstep.service;
 
 import java.util.List;
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
-import nextstep.NotFoundException;
 import nextstep.domain.Answer;
 import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
@@ -36,15 +36,17 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Question findById(long id) throws NotFoundException {
+    public Question findById(long id) {
         return questionRepository.findById(id)
-            .orElseThrow(NotFoundException::new);
+            .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
-    public void update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, Question updatedQuestion) {
         Question original = findById(id);
         original.update(loginUser, updatedQuestion);
+
+        return original;
     }
 
     @Transactional

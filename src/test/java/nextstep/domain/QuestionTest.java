@@ -1,6 +1,5 @@
 package nextstep.domain;
 
-import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
@@ -9,8 +8,8 @@ public class QuestionTest extends BaseTest {
     public static final User WEATHERMAN = new User(1L, "weatherman", "password", "wea man", "today@weather.com");
     public static final Question QUESTION_WEATHER = new Question("오늘의 날씨는?", "강수 확률 높습니다! 우산 챙기세요");
 
-    @Test(expected = UnAuthenticationException.class)
-    public void update_guest() throws UnAuthenticationException {
+    @Test(expected = UnAuthorizedException.class)
+    public void update_guest() {
         Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
         origin.writeBy(WEATHERMAN);
 
@@ -19,7 +18,7 @@ public class QuestionTest extends BaseTest {
     }
 
     @Test
-    public void update_owner() throws UnAuthenticationException {
+    public void update_owner() {
         Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
         origin.writeBy(WEATHERMAN);
 
@@ -28,7 +27,7 @@ public class QuestionTest extends BaseTest {
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void update_not_owner() throws UnAuthenticationException {
+    public void update_not_owner() {
         Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
         origin.writeBy(WEATHERMAN);
 

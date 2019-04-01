@@ -1,5 +1,6 @@
 package nextstep.security;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.slf4j.Logger;
@@ -17,12 +18,12 @@ public class SecurityControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(SecurityControllerAdvice.class);
 
     @ExceptionHandler(EntityNotFoundException.class)
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public void emptyResultData() {
         log.debug("EntityNotFoundException is happened!");
     }
 
-    @ExceptionHandler(UnAuthorizedException.class)
+    @ExceptionHandler({UnAuthorizedException.class, CannotDeleteException.class})
     @ResponseStatus(value = HttpStatus.FORBIDDEN)
     public void unAuthorized() {
         log.debug("UnAuthorizedException is happened!");
