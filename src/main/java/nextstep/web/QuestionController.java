@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -57,7 +58,7 @@ public class QuestionController {
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
         try {
-            model.addAttribute("question", qnaService.findByIdAndUser(id, loginUser));
+            model.addAttribute("question", qnaService.findQuestion(id, loginUser));
         } catch (NoSuchElementException e) {
             log.error("cannot find Question by id: {}, userId: {}", id, loginUser.getUserId());
             return "redirect:/";
@@ -69,7 +70,7 @@ public class QuestionController {
     public String updateQuestion(@LoginUser User loginUser, @PathVariable long id, Question updatedQuetion, Model model) {
         try {
             model.addAttribute("question", qnaService.update(loginUser, id, updatedQuetion));
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException | UnAuthorizedException e) {
             log.error("cannot find Question by id: {}, userId: {}", updatedQuetion.getId(), loginUser.getUserId());
             return "redirect:/";
         }

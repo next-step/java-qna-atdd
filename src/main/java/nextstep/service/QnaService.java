@@ -9,11 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service("qnaService")
 public class QnaService {
@@ -38,25 +36,23 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
-    public Question findByIdAndUser(long id, User loginUser) {
-        return findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .orElseThrow(NoSuchElementException::new);
+    public Question findQuestion(long id, User loginUser) {
+        return findById(id).filter(question -> question
+                .isOwner(loginUser)).orElseThrow(NoSuchElementException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question question = findByIdAndUser(id, loginUser);
-        return questionRepository.save(question.modify(updatedQuestion.getTitle(), updatedQuestion.getContents()));
+        Question question = findById(id).orElseThrow(NoSuchElementException::new);
+        return question.modify(loginUser, updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        findById(questionId)
-                .filter(question -> question.isOwner(loginUser))
-                .map(question -> question.delete())
-                .map(question -> questionRepository.save(question))
-                .orElseThrow(() -> new CannotDeleteException("Cannot delete Question. Id" + questionId));
+        Question question = findById(questionId)
+                .orElseThrow(() -> new CannotDeleteException("Cannot findById : {}" + questionId));
+
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
