@@ -84,10 +84,10 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
 
         // then
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
         softly.assertThat(questionRepository.findById(question.getId()).get().isDeleted()).isTrue();
     }
-
 
     @Test
     public void question_delete_login_작성자가_아닐_경우() {
@@ -105,6 +105,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(questionRepository.findById(otherQuestion.getId()).get().isDeleted()).isFalse();
     }
 
     @Test

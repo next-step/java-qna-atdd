@@ -82,6 +82,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedQuestion.contents;
     }
 
+    public void delete() {
+        this.deleted = true;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
