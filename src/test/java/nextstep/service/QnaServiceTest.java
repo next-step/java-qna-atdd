@@ -1,12 +1,15 @@
 package nextstep.service;
 
+import static nextstep.domain.UserTest.newUser;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
+import nextstep.domain.Answer;
+import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -24,6 +27,9 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     private QuestionRepository questionRepository;
 
+    @Mock
+    private AnswerRepository answerRepository;
+
     @InjectMocks
     private QnaService qnaService;
 
@@ -38,7 +44,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void update_question_success() throws UnAuthenticationException {
+    public void update_question_success() {
         // Given :: setUp
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
@@ -54,7 +60,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void update_question_failed_when_not_owner() throws UnAuthenticationException {
+    public void update_question_failed_when_not_owner() {
         // Given :: setUp
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
         final User other = new User(2, "other", "passwd", "other", "other@test.com");
@@ -66,8 +72,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void update_question_failed_when_deleted()
-        throws UnAuthenticationException, CannotDeleteException {
+    public void update_question_failed_when_deleted() throws CannotDeleteException {
 
         // Given :: setUp
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
@@ -80,7 +85,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void delete_question_success() throws UnAuthenticationException, CannotDeleteException {
+    public void delete_question_success() throws CannotDeleteException {
         // Given :: setUp
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
@@ -113,5 +118,59 @@ public class QnaServiceTest extends BaseTest {
         qnaService.deleteQuestion(writer, 1L);
 
         // Then :: expected
+    }
+
+    @Test
+    public void add_answer() {
+        // Given :: setUp
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        User answerWriter = newUser("answriter");
+        String answerContents = "comment~~~~";
+
+        // When
+        Answer answer = qnaService.addAnswer(answerWriter, 1L, answerContents);
+
+        // Then
+        assertThat(answer.getQuestion()).isEqualTo(question);
+        assertThat(answer.getWriter()).isEqualTo(answerWriter);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void add_answer_to_not_found_question() {
+        // Given :: setUp
+        User answerWriter = newUser("answriter");
+        String answerContents = "comment~~~~";
+
+        // When
+        Answer answer = qnaService.addAnswer(answerWriter, 2L, answerContents);
+    }
+
+    @Test
+    public void delete_answer() {
+        // Given :: setUp
+        User answerWriter = newUser("answriter");
+        String comment = "comment~~~~";
+        Answer answer = new Answer(answerWriter, comment);
+        answer.toQuestion(question);
+        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
+
+        // When
+        qnaService.deleteAnswer(answerWriter, 1L);
+
+        // Then
+        assertThat(answer.isDeleted()).isEqualTo(true);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_not_owner() {
+        // Given :: setUp
+        User answerWriter = newUser(1L, "answriter", "test");
+        String comment = "comment~~~~";
+        Answer answer = new Answer(answerWriter, comment);
+        answer.toQuestion(question);
+        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
+
+        // When
+        qnaService.deleteAnswer(newUser(2L, "other", "tt"), 1L);
     }
 }

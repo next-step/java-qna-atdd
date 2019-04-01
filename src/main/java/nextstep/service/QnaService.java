@@ -64,12 +64,18 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Question question = questionRepository.findById(questionId)
+            .orElseThrow(EntityNotFoundException::new);
+
+        Answer answer = new Answer(loginUser, contents);
+        answer.toQuestion(question);
+
+        return answer;
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+        Answer answer = answerRepository.findById(id)
+            .orElseThrow(EntityNotFoundException::new);
+        return answer.delete(loginUser);
     }
 }

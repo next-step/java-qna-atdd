@@ -20,6 +20,10 @@ public class UserTest extends BaseTest {
         return new User(0L, userId, password, "name", "javajigi@slipp.net");
     }
 
+    public static User newUser(long id, String userId, String password) {
+        return new User(id, userId, password, "name", "javajigi@slipp.net");
+    }
+
     @Test
     public void update_owner() throws Exception {
         User origin = newUser("sanjigi");
