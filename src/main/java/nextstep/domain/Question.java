@@ -64,6 +64,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
+    public boolean isWriter(User user) {
+        return this.getWriter().getUserId().equals(user.getUserId());
+    }
+
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
@@ -75,6 +79,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void delete() {
+        this.deleted = true;
     }
 
     @Override

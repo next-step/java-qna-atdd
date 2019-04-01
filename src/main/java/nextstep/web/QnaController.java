@@ -4,7 +4,6 @@ import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import org.apache.catalina.authenticator.NonLoginAuthenticator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -40,12 +39,25 @@ public class QnaController {
         return "redirect:/";
     }
 
-
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
-        Optional<Question> question = qnaService.findByIdAndUser(id, loginUser);
-        model.addAttribute("question", question.get());
-        return "/qna/updateForm";
+        try {
+            model.addAttribute("question", qnaService.findById(id).get());
+            return "/qna/updateForm";
+
+        } catch (Exception e) {
+            return "redirect:/";
+        }
+    }
+
+    @PutMapping("{id}")
+    public String update(@LoginUser User user, @PathVariable Long id,  Question question) {
+        try {
+            qnaService.update(user, id, question);
+            return "redirect:/"+id;
+        } catch (Exception e) {
+            return "redirect:/";
+        }
     }
 
     @DeleteMapping("{id}")

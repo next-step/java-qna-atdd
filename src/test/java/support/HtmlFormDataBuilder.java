@@ -3,6 +3,7 @@ package support;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 
 public class HtmlFormDataBuilder {
     private HttpHeaders headers;
+    private HttpMethod httpMethod;
     private MultiValueMap<String, Object> params;
 
     private HtmlFormDataBuilder(HttpHeaders headers) {
@@ -32,5 +34,15 @@ public class HtmlFormDataBuilder {
         headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return new HtmlFormDataBuilder(headers);
+    }
+
+    public HtmlFormDataBuilder put() {
+        this.params.add("_method", "put");
+        return this;
+    }
+
+    public HtmlFormDataBuilder delete() {
+        this.params.add("_method", "delete");
+        return this;
     }
 }

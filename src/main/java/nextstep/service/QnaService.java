@@ -9,8 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityNotFoundException;
+import java.security.acl.NotOwnerException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -36,20 +37,28 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
-    public Optional<Question> findByIdAndUser(long id, User user) {
-        return questionRepository.findByIdAndWriter(id, user);
-    }
-
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        updatedQuestion.setId(id);
-        updatedQuestion.writeBy(loginUser);
-        return questionRepository.save(updatedQuestion);
+    public Question update(User loginUser, long id, Question updatedQuestion) throws NotOwnerException {
+        Question question = getQuestion(id);
+        if ( !question.isWriter(loginUser)) {
+            throw new NotOwnerException();
+        }
+
+        question.setTitle(updatedQuestion.getTitle());
+        question.setContents(updatedQuestion.getContents());
+        question.writeBy(loginUser);
+        return questionRepository.save(question);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        questionRepository.deleteByIdAndWriter(questionId, loginUser);
+        Question question = getQuestion(questionId);
+        if ( !question.isWriter(loginUser)) {
+            throw new CannotDeleteException("writer is not matched");
+        }
+
+        question.delete();
+        questionRepository.save(question);
     }
 
     public Iterable<Question> findAll() {
@@ -68,5 +77,9 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현 
         return null;
+    }
+
+    private Question getQuestion(Long id) {
+        return questionRepository.findById(id).orElseThrow(NoSuchElementException::new);
     }
 }
