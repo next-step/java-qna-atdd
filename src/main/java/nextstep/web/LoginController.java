@@ -28,8 +28,8 @@ public class LoginController {
     @PostMapping
     public String login(HttpSession session, User user) {
         try {
-            userService.login(user.getUserId(), user.getPassword());
-            HttpSessionUtils.login(session, user);
+            User loginUser = userService.login(user.getUserId(), user.getPassword());
+            HttpSessionUtils.login(session, loginUser);
         } catch (UnAuthenticationException e) {
             return "/user/login_failed";
         }
