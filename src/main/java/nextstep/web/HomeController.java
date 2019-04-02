@@ -20,7 +20,6 @@ public class HomeController {
     public String home(Model model) {
         Iterable<Question> questionsIterable = qnaService.findAll();
         List<Question> questions = new ArrayList<>();
-
         questionsIterable.forEach(questions::add);
         model.addAttribute("questions",questions);
         return "home";
