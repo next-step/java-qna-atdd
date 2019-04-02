@@ -1,6 +1,5 @@
 package support.test;
 
-import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.junit.runner.RunWith;
@@ -56,7 +55,7 @@ public abstract class AcceptanceTest extends BaseTest {
         return response.getHeaders().getLocation().getPath();
     }
 
-    protected String createLoginUserResource(String path, Question bodyPayload, User loginUser) {
+    protected String createLoginUserResource(String path, Object bodyPayload, User loginUser) {
         ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(path, bodyPayload, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return response.getHeaders().getLocation().getPath();

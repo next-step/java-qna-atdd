@@ -70,4 +70,9 @@ public class QnaService {
         answer.delete(loginUser);
         return answer;
     }
+
+    public Answer findByAnswerId(long id) throws UnAuthenticationException {
+        return answerRepository.findById(id).orElseThrow(UnAuthenticationException::new);
+
+    }
 }
