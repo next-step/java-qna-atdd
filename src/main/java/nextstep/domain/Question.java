@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -36,6 +37,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(Long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
     }
 
     public String getTitle() {
@@ -77,6 +85,23 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public void update(User loginUser, Question target) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        title = target.title;
+        contents = target.contents;
+    }
+
+    public void delete(User loginUser) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        deleted = true;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
@@ -85,5 +110,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public boolean containsAnswer(long id) {
+        return answers.stream()
+                    .anyMatch(answer -> answer.getId() == id);
+
     }
 }

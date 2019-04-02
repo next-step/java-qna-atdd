@@ -15,6 +15,7 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/users")
 public class ApiUserController {
+
     @Resource(name = "userService")
     private UserService userService;
 
