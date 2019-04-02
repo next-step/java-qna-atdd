@@ -63,6 +63,7 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = questionRepository.findById(questionId)
             .orElseThrow(EntityNotFoundException::new);
@@ -73,6 +74,7 @@ public class QnaService {
         return answer;
     }
 
+    @Transactional
     public Answer deleteAnswer(User loginUser, long id) {
         Answer answer = answerRepository.findById(id)
             .orElseThrow(EntityNotFoundException::new);
