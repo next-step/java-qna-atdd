@@ -21,6 +21,7 @@ public class QnaController {
     public String detail(@PathVariable Long id, Model model) {
         Optional<Question> question = qnaService.findById(id);
         model.addAttribute("question", question.get());
+
         return "/qna/show";
     }
 
@@ -36,6 +37,7 @@ public class QnaController {
     @PostMapping
     public String create(@LoginUser User user, Question question) {
         qnaService.create(user, question);
+
         return "redirect:/";
     }
 
@@ -43,18 +45,19 @@ public class QnaController {
     public String updateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
         try {
             model.addAttribute("question", qnaService.findById(id).get());
-            return "/qna/updateForm";
 
+            return "/qna/updateForm";
         } catch (Exception e) {
             return "redirect:/";
         }
     }
 
     @PutMapping("{id}")
-    public String update(@LoginUser User user, @PathVariable Long id,  Question question) {
+    public String update(@LoginUser User user, @PathVariable Long id, Question question) {
         try {
             qnaService.update(user, id, question);
-            return "redirect:/"+id;
+
+            return "redirect:/" + id;
         } catch (Exception e) {
             return "redirect:/";
         }
@@ -64,9 +67,10 @@ public class QnaController {
     public String delete(@LoginUser User loginUser, @PathVariable Long id) {
         try {
             qnaService.deleteQuestion(loginUser, id);
+
             return "redirect:/";
         } catch (Exception ex) {
-            return "redirect:/questions/"+id;
+            return "redirect:/questions/" + id;
         }
 
     }

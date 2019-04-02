@@ -40,24 +40,14 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) throws NotOwnerException {
         Question question = getQuestion(id);
-        if ( !question.isWriter(loginUser)) {
-            throw new NotOwnerException();
-        }
-
-        question.setTitle(updatedQuestion.getTitle());
-        question.setContents(updatedQuestion.getContents());
-        question.writeBy(loginUser);
+        question.update(loginUser, updatedQuestion);
         return questionRepository.save(question);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+    public void deleteQuestion(User loginUser, long questionId) throws NotOwnerException {
         Question question = getQuestion(questionId);
-        if ( !question.isWriter(loginUser)) {
-            throw new CannotDeleteException("writer is not matched");
-        }
-
-        question.delete();
+        question.delete(loginUser);
         questionRepository.save(question);
     }
 
