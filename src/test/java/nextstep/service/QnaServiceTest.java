@@ -5,20 +5,27 @@ import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.PageRequest;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class QnaServiceTest extends BaseTest {
+
+    private User loginUser;
+    private Question question;
+    private User writer;
 
     @Mock
     private QuestionRepository questionRepository;
@@ -26,11 +33,15 @@ public class QnaServiceTest extends BaseTest {
     @InjectMocks
     private QnaService qnaService;
 
+    @Before
+    public void setUp() throws Exception {
+        this.loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
+        this.question = new Question("제목입니다", "내용입니다");
+        this.writer = new User("nj", "test", "nj", "nj@slipp.net");
+    }
+
     @Test
     public void 질문_조회() throws Exception {
-
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
-        Question question = new Question("제목입니다", "내용입니다");
         question.setId(1L);
         question.writeBy(loginUser);
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
@@ -41,8 +52,6 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = EntityNotFoundException.class)
     public void 질문_조회_EntityNotFoundException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(loginUser);
         question.setId(1L);
 
@@ -53,10 +62,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void 질문_조회_UnAuthorizedException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        User writer = new User("nj", "test", "nj", "nj@slipp.net");
         writer.setId(1L);
 
         Question question = new Question("제목입니다", "내용입니다");
@@ -70,29 +77,22 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = EntityNotFoundException.class)
     public void 질문_업데이트_EntityNotFoundException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
-
-        User writer = new User("nj", "test", "nj", "nj@slipp.net");
         writer.setId(1L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(writer);
         question.setId(1L);
 
-
+        //then
         qnaService.update(loginUser, 2L, question);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 질문_업데이트_UnAuthorizedException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        User writer = new User("nj", "test", "nj", "nj@slipp.net");
         writer.setId(1L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(writer);
         question.setId(1L);
 
@@ -103,10 +103,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void 질문_업데이트_CannotDeleteException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(loginUser);
         question.setId(1L);
 
@@ -118,10 +116,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void 질문_업데이트_성공() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(loginUser);
         question.setId(1L);
 
@@ -132,29 +128,23 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = EntityNotFoundException.class)
     public void 질문_삭제_EntityNotFoundException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        User writer = new User("nj", "test", "nj", "nj@slipp.net");
         writer.setId(1L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(writer);
         question.setId(1L);
 
-
+        //then
         qnaService.deleteQuestion(loginUser, 2L);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 질문_삭제_UnAuthorizedException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        User writer = new User("nj", "test", "nj", "nj@slipp.net");
         writer.setId(1L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(writer);
         question.setId(1L);
 
@@ -165,10 +155,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void 질문_삭제_CannotDeleteException() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(loginUser);
         question.setId(1L);
 
@@ -180,10 +168,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void 질문_삭제_성공() {
-        User loginUser = new User("namjunemy", "1234", "njkim", "njkim@slipp.net");
         loginUser.setId(2L);
 
-        Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(loginUser);
         question.setId(1L);
 

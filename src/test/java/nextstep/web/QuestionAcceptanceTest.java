@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -283,5 +284,22 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         return testRestTemplate
             .postForEntity(String.format("/questions/%d", id), request, String.class);
+    }
+
+    @Test
+    public void 삭제_후_조회_불가() {
+        // Given
+        User loginUser = defaultUser();
+        Question question = questionRepository.findById(3L)
+            .orElseThrow(EntityNotFoundException::new);
+
+        //When
+        ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
+        softly.assertThat(questionRepository
+            .findAllByDeleted(false, PageRequest.of(1, 10)).size()).isEqualTo(0);
     }
 }

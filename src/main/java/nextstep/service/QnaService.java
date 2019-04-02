@@ -10,6 +10,7 @@ import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,8 +65,8 @@ public class QnaService {
         return questionRepository.findByDeleted(false);
     }
 
-    public List<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable).getContent();
+    public List<Question> findAll(int page, int size) {
+        return questionRepository.findAllByDeleted(false, PageRequest.of(page - 1, size));
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
