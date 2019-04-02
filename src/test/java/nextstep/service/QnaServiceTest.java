@@ -162,7 +162,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void delete_not_owner() {
+    public void delete_answer_not_owner() {
         // Given :: setUp
         User answerWriter = newUser(1L, "answriter", "test");
         String comment = "comment~~~~";
