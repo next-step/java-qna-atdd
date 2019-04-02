@@ -66,13 +66,9 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-
-    // TODO : 제가 알기로는 mapped by의 주인이 save하면 자식도 save가 되는 걸로 기억하는데
-    // 안되는 이유가 뭘까요? 제가 잘못 알고 있나요?
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = findById(questionId).orElseThrow(NullPointerException::new);
         Answer answer = new Answer(loginUser, contents);
-//        answer.toQuestion(question);
         question.addAnswer(answer);
         questionRepository.save(question);
         return answer;
