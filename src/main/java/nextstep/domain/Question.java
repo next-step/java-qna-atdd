@@ -1,10 +1,20 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +77,30 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
+    }
+
+    public Question update(User loginUser, Question target) {
+        if (isDeleted()) {
+            throw new CannotDeleteException();
+        }
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        this.title = target.title;
+        this.contents = target.contents;
+        return this;
+    }
+
+    public void delete(User loginUser) {
+        if (isDeleted()) {
+            throw new CannotDeleteException();
+        }
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        this.deleted = true;
     }
 
     public boolean isOwner(User loginUser) {

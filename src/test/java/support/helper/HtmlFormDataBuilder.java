@@ -22,6 +22,11 @@ public class HtmlFormDataBuilder {
         return this;
     }
 
+    public HtmlFormDataBuilder delete() {
+        this.params.add("_method", "delete");
+        return this;
+    }
+
     public static HtmlFormDataBuilder urlEncodedForm() {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Arrays.asList(MediaType.TEXT_HTML));
