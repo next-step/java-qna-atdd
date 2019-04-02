@@ -37,21 +37,26 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question originalQuestion = findByIdAndOwner(id, loginUser);
-        originalQuestion.update(updatedQuestion);
+    public Question update(User loginUser, long questionId, Question updatedQuestion) {
+        Question originalQuestion = findById(questionId)
+                .orElseThrow(IllegalArgumentException::new);
+        originalQuestion.update(loginUser, updatedQuestion);
+
         return originalQuestion;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question targetQuestion = findByIdAndOwner(questionId, loginUser);
+        Question targetQuestion = findById(questionId)
+                .orElseThrow(IllegalArgumentException::new);
 
-        if (targetQuestion.isDeleted()) {
-            throw new CannotDeleteException("This question has already deleted");
-        }
+        targetQuestion.delete(loginUser);
+    }
 
-        targetQuestion.delete();
+    public Question findByIdAndOwner(long id, User loginUser) {
+        return findById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     public Iterable<Question> findAll() {
@@ -74,11 +79,5 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현 
         return null;
-    }
-
-    public Question findByIdAndOwner(long id, User loginUser) {
-        return findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
     }
 }
