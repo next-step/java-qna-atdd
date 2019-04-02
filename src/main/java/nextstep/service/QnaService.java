@@ -1,8 +1,6 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +43,10 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws UnAuthenticationException {
+    public Question deleteQuestion(User loginUser, long questionId) throws UnAuthenticationException {
         Question question = findById(questionId).orElseThrow(UnAuthenticationException::new);
         question.delete(loginUser);
+        return question;
     }
 
     public Iterable<Question> findAll() {
@@ -58,13 +57,22 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer addAnswer(User loginUser, long questionId, String contents) throws UnAuthenticationException {
+        Answer answer = new Answer(loginUser, contents);
+        findById(questionId).orElseThrow(UnAuthenticationException::new)
+            .addAnswer(answer);
+        return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer deleteAnswer(User loginUser, long id) throws UnAuthenticationException {
+        Answer answer = answerRepository.findById(id).orElseThrow(UnAuthenticationException::new);
+
+        answer.delete(loginUser);
+        return answer;
+    }
+
+    public Answer findByAnswerId(long id) throws UnAuthenticationException {
+        return answerRepository.findById(id).orElseThrow(UnAuthenticationException::new);
+
     }
 }

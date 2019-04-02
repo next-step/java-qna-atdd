@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthenticationException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -36,6 +37,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.question = question;
         this.contents = contents;
         this.deleted = false;
+    }
+
+
+    public void delete(User loginUser) throws UnAuthenticationException {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthenticationException();
+        }
+        this.deleted = true;
     }
 
     public User getWriter() {

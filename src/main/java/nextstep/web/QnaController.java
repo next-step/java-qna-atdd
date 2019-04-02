@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.UnAuthenticationException;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -24,36 +25,52 @@ public class QnaController {
     }
 
     @PostMapping("")
-    public String create(@LoginUser User loginUser, Question question) {
+    public String createQuestion(@LoginUser User loginUser, Question question) {
         qnaService.create(loginUser, question);
         return "redirect:/";
     }
 
 
     @GetMapping("/{id}/form")
-    public String updateForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
+    public String updateQuestionForm(@LoginUser User loginUser, @PathVariable Long id, Model model) {
         qnaService.findById(id);
         model.addAttribute(qnaService.findById(id).get());
         return "qna/updateForm";
     }
 
     @GetMapping("/{id}")
-    public String questionsShow(@PathVariable Long id, Model model) {
+    public String showQuestion(@PathVariable Long id, Model model) {
         model.addAttribute("question", qnaService.findById(id).get());
         return "/qna/show";
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable Long id, Question question) throws UnAuthenticationException {
+    public String updateQuestion(@LoginUser User loginUser, @PathVariable Long id, Question question) throws UnAuthenticationException {
         Question updateQuestion = qnaService.update(loginUser, id, question);
         return "redirect:" + updateQuestion.generateUrl();
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable long id) throws UnAuthenticationException {
+    public String deleteQuestion(@LoginUser User loginUser, @PathVariable long id) throws UnAuthenticationException {
         qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }
+
+
+    @PostMapping("/{questionId}/answers")
+    public String createAnswer(@LoginUser User loginuser, @PathVariable long questionId, String contents) throws UnAuthenticationException {
+        Answer answer = qnaService.addAnswer(loginuser, questionId, contents);
+        return  "redirect:/questions/"+ questionId;
+    }
+
+
+    @DeleteMapping("/{questionId}/answers/{answerId}")
+    public String deleteAnswer(@LoginUser User loginuser, @PathVariable long questionId, @PathVariable long answerId) throws UnAuthenticationException {
+        Answer answer = qnaService.deleteAnswer(loginuser,answerId);
+        return  "redirect:/questions/" + questionId;
+    }
+
+
 
 
 }

@@ -127,7 +127,50 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
 
+    @Test
+    public void 로그인_사용자_댓글_작성_가능() {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+            .addParameter("댓글", "댓글")
+            .build();
 
+        ResponseEntity<String> response = basicAuthTemplate(defaultUser()).postForEntity("/questions/1/answers", request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", request.getBody());
+
+    }
+
+    @Test
+    public void 로그인_안한_사용자_댓글_작성_불가능() {
+        HttpEntity<MultiValueMap<String, Object>> build = HtmlFormDataBuilder.urlEncodedForm()
+            .addParameter("댓글", "댓글")
+            .post()
+            .build();
+        ResponseEntity<String> responseEntity = basicAuthTemplate(User.GUEST_USER).postForEntity("/questions/1/answers", build, String.class);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", build.getBody());
+    }
+
+    @Test
+    public void 자신의_댓글_삭제_가능() {
+        HttpEntity<MultiValueMap<String, Object>> build = HtmlFormDataBuilder.urlEncodedForm()
+            .delete()
+            .build();
+        ResponseEntity<String> responseEntity = basicAuthTemplate(defaultUser()).postForEntity("/questions/1/answers/3", build, String.class);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", build.getBody());
+    }
+
+
+    @Test
+    public void 다른_유저_댓글_삭제_불가능() {
+        HttpEntity<MultiValueMap<String, Object>> build = HtmlFormDataBuilder.urlEncodedForm()
+            .delete()
+            .build();
+        ResponseEntity<String> responseEntity = basicAuthTemplate(User.GUEST_USER).postForEntity("/questions/1/answers/3", build, String.class);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", build.getBody());
+    }
 
 
 }
