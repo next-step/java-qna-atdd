@@ -18,12 +18,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class QnaServiceTest extends BaseTest {
+public class QuestionServiceTest extends BaseTest {
     @Mock
     private QuestionRepository questionRepository;
 
     @InjectMocks
-    private QnaService qnaService;
+    private QuestionService questionService;
 
     @Test
     public void 질문_목록을_조회한다() {
@@ -32,7 +32,7 @@ public class QnaServiceTest extends BaseTest {
             new Question("This is title2", "This is contents2"),
             new Question("This is title3", "This is contents3")));
 
-        List<Question> list = qnaService.findAll();
+        List<Question> list = questionService.findAll();
         softly.assertThat(list).hasSize(3);
     }
 
@@ -41,7 +41,7 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(1L)).thenReturn(
             Optional.of(new Question("This is title", "This is contents")));
 
-        Optional<Question> optionalQuestion = qnaService.findById(1L);
+        Optional<Question> optionalQuestion = questionService.findById(1L);
         softly.assertThat(optionalQuestion.isPresent()).isTrue(); // hmm...
     }
 
@@ -50,7 +50,7 @@ public class QnaServiceTest extends BaseTest {
         User user = new User("myId", "myPassword", "myName", "myEmail");
         Question question = new Question("This is title", "This is content");
 
-        qnaService.create(user, question);
+        questionService.create(user, question);
         softly.assertThat(question.getWriter()).isEqualTo(user);
     }
 }

@@ -4,7 +4,6 @@ import nextstep.CannotDeleteException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,8 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service("qnaService")
-public class QnaService {
-    private static final Logger log = LoggerFactory.getLogger(QnaService.class);
+public class QuestionService {
+    private static final Logger log = LoggerFactory.getLogger(QuestionService.class);
 
     @Resource(name = "questionRepository")
     private QuestionRepository questionRepository;
