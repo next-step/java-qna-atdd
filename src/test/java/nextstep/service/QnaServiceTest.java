@@ -96,7 +96,7 @@ public class QnaServiceTest extends BaseTest {
         assertThat(question.isDeleted()).isEqualTo(true);
     }
 
-    @Test(expected = CannotDeleteException.class)
+    @Test(expected = UnAuthorizedException.class)
     public void delete_question_failed_when_not_owner() throws CannotDeleteException {
         // Given :: setUp
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));

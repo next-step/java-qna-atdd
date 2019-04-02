@@ -25,7 +25,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Iterable<Question> questions = response.getBody();
-        softly.assertThat(StreamSupport.stream(questions.spliterator(), false).count()).isGreaterThan(0);
+        softly.assertThat(StreamSupport.stream(questions.spliterator(), false).count())
+            .isGreaterThanOrEqualTo(0);
     }
 
     @Test
