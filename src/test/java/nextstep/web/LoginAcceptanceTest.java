@@ -27,7 +27,7 @@ public class LoginAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 로그인_성공() throws Exception {
-        String userId = "1";
+        String userId = "njkim";
         HttpEntity<MultiValueMap<String, Object>> request =
             HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("userId", userId)

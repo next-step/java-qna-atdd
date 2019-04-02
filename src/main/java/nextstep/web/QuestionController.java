@@ -45,21 +45,18 @@ public class QuestionController {
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-
         model.addAttribute("question", qnaService.findById(loginUser, id));
         return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
-
         qnaService.update(loginUser, id, target);
         return "redirect:/";
     }
 
     @DeleteMapping("/{id}")
     public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
-
         qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }
