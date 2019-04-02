@@ -39,6 +39,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public Question(Long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -103,5 +110,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    }
+
+    public boolean containsAnswer(long id) {
+        return answers.stream()
+                    .anyMatch(answer -> answer.getId() == id);
+
     }
 }
