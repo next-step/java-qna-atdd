@@ -33,8 +33,8 @@ public class QnaService {
 
     public Question findById(long id) {
         return questionRepository
-                    .findById(id)
-                    .orElseThrow(EntityNotFoundException::new);
+                .findById(id)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
