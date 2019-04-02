@@ -30,7 +30,7 @@ public class HomeAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 로그인하면_질문하기가_출력된다() {
+    public void 로그인하면_질문하기_버튼이_출력된다() {
         ResponseEntity<String> response = basicAuthTemplate().getForEntity("/", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).contains("질문하기");
@@ -38,7 +38,7 @@ public class HomeAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 로그인하지_않으면_질문하기가_출력되지_않는다() {
+    public void 로그인하지_않으면_질문하기_버튼이_출력되지_않는다() {
         ResponseEntity<String> response = template().getForEntity("/", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).doesNotContain("질문하기");

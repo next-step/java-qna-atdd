@@ -1,7 +1,8 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
 import nextstep.domain.*;
+import nextstep.web.exception.ForbiddenException;
+import nextstep.web.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -9,11 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Optional;
 
 @Service("qnaService")
-public class QuestionService {
-    private static final Logger log = LoggerFactory.getLogger(QuestionService.class);
+public class QnAService {
+    private static final Logger log = LoggerFactory.getLogger(QnAService.class);
 
     @Resource(name = "questionRepository")
     private QuestionRepository questionRepository;
@@ -24,28 +24,48 @@ public class QuestionService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
+    @Transactional(readOnly = true)
+    public List<Question> findAll() {
+        return questionRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Question findById(long id) {
+        return questionRepository.findById(id).orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Question findByOwner(User loginUser, long id) {
+        Question question = findById(id);
+
+        if (!question.isOwner(loginUser)) {
+            throw new ForbiddenException();
+        }
+
+        return question;
+    }
+
+    @Transactional
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
-    }
-
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question question = findByOwner(loginUser, id);
+
+        question.setTitle(updatedQuestion.getTitle());
+        question.setContents(updatedQuestion.getContents());
+
+        return question;
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
-    }
+    public void deleteQuestion(User loginUser, long id) {
+        Question question = findByOwner(loginUser, id);
 
-    public List<Question> findAll() {
-        return questionRepository.findAll();
+        questionRepository.delete(question);
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
