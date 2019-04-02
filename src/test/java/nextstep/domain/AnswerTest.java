@@ -20,10 +20,7 @@ public class AnswerTest extends BaseTest {
         User writeUser = new User("testid","test","testname","test@t.com");
         Answer answer = new Answer(writeUser, "writeUser 댓글.");
 
-        User otherUser = new User("other", "other", "othername", "other@other.com");
         User guestUser = User.GUEST_USER;
-        answer.delete(otherUser);
         answer.delete(guestUser);
-        softly.assertThat(answer.isDeleted()).isFalse();
     }
 }

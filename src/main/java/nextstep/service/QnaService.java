@@ -66,8 +66,6 @@ public class QnaService {
 
     public Answer deleteAnswer(User loginUser, long id) throws UnAuthenticationException {
         Answer answer = answerRepository.findById(id).orElseThrow(UnAuthenticationException::new);
-
-        answer.delete(loginUser);
         return answer;
     }
 

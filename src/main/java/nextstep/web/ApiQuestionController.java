@@ -16,18 +16,14 @@ import java.net.URI;
 
 @RestController
 @RequestMapping("/api/questions")
-public class ApiQnaController {
-
+public class ApiQuestionController {
     @Resource(name = "qnaService")
     private QnaService qnaService;
-
 
     @PostMapping("")
     public ResponseEntity<Void> create(
         @LoginUser User loginUser, @Valid @RequestBody Question question) {
-
         Question savedQuestion = qnaService.create(loginUser, question);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/questions/" + savedQuestion.getId()));
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
@@ -35,7 +31,6 @@ public class ApiQnaController {
 
     @GetMapping("{id}")
     public Question show(@PathVariable long id) throws UnAuthenticationException {
-
         return qnaService.findById(id).orElseThrow(UnAuthenticationException::new);
     }
 

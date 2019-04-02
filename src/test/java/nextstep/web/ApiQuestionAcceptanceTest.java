@@ -79,7 +79,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         ResponseEntity<Question> exchange =
             basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.DELETE, null, Question.class);
-
+//            basicAuthTemplate(defaultUser()).delete(template(),location);
         softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -87,12 +87,13 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void 다른_유저의_글_삭제_불가능() {
         Question createQuestion = new Question("제목원본", "내용원본");
         String location = createLoginUserResource("/api/questions", createQuestion, defaultUser());
-
         ResponseEntity<Question> exchange =
             basicAuthTemplate(User.GUEST_USER).exchange(location, HttpMethod.DELETE, createHttpEntity(null), Question.class);
 
         softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
+
+
 
 
 }
