@@ -3,6 +3,7 @@ package nextstep.web;
 import static nextstep.domain.QuestionTest.QUESTION_WEATHER;
 import static nextstep.domain.UserTest.newUser;
 
+import java.util.stream.StreamSupport;
 import nextstep.domain.Question;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -17,6 +18,15 @@ import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
+
+    @Test
+    public void list() {
+        ResponseEntity<Iterable> response = basicAuthTemplate().getForEntity("/api/questions", Iterable.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Iterable<Question> questions = response.getBody();
+        softly.assertThat(StreamSupport.stream(questions.spliterator(), false).count()).isGreaterThan(0);
+    }
 
     @Test
     public void create() {

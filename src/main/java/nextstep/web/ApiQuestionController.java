@@ -9,6 +9,9 @@ import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +29,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApiQuestionController {
     @Autowired
     private QnaService qnaService;
+
+    @GetMapping("")
+    public Iterable<Question> list(
+        @PageableDefault(sort = {"id"}, direction = Direction.DESC, size = 20) Pageable pageable) {
+
+        return qnaService.findAll(pageable);
+    }
 
     @PostMapping("")
     public ResponseEntity create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
