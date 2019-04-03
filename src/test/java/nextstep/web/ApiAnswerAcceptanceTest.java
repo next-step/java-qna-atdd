@@ -26,8 +26,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 로그인_사용자_댓글_작성_불가능() {
-
+    public void 로그인_안한_사용자_댓글_작성_불가능() {
         Answer answer = new Answer(defaultUser(), "댓글원본");
         ResponseEntity<String> responseEntity = basicAuthTemplate(User.GUEST_USER).postForEntity("/api/questions/1/answers", answer, String.class);
 

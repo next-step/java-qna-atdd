@@ -40,7 +40,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-        //질문 데이터를 완전히 삭제하는 것이 아니라 데이터의 상태를 삭제 상태(deleted - boolean type)로 변경한다.
+    //질문 데이터를 완전히 삭제하는 것이 아니라 데이터의 상태를 삭제 상태(deleted - boolean type)로 변경한다.
         //로그인 사용자와 질문한 사람이 같은 경우 삭제 가능하다.
         //답변이 없는 경우 삭제가 가능하다.
         //질문자와 답변 글의 모든 답변자 같은 경우 삭제가 가능하다.

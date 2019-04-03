@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -93,7 +94,15 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    @Test
+    public void 다른유저의_댓글이_있는_나의_글_삭제_불가능() {
+        long questionsId = 1L;
+        Answer answer = new Answer(findByUserId("testid"), "내용수정");
+        basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/api/questions/%d/answers", questionsId), createHttpEntity(answer), Void.class);
+
+        ResponseEntity<Question> exchange = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d",questionsId), HttpMethod.DELETE, null, Question.class);
+        softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 
 
-
+    }
 }

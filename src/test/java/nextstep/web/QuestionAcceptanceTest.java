@@ -105,11 +105,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 로그인_한_사용자_자신의_글삭제() throws Exception {
-        ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(), 1);
-
+        ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(), 4);
+//        basicAuthTemplate(defaultUser()).delete("/questions/4");
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
         log.debug("body : {}", response.getBody());
+//        softly.assertThat(questionRepository.findById(4L).get().isDeleted()).isTrue();
     }
 
     @Test

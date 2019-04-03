@@ -66,5 +66,6 @@ public class QuestionTest extends BaseTest {
         Answer otherUserAnswer = new Answer(User.GUEST_USER, "댓글2");
         question.addAnswer(myAnswer);
         question.addAnswer(otherUserAnswer);
+        question.delete(LOGIN_USER);
     }
 }
