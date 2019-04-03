@@ -1,5 +1,7 @@
 package support.test;
 
+import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
 import org.junit.runner.RunWith;
@@ -8,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Optional;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -19,6 +23,9 @@ public abstract class AcceptanceTest extends BaseTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     public TestRestTemplate template() {
         return template;
@@ -38,5 +45,13 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
+    }
+
+    protected User defaultQuestion() {
+        return findByUserId(DEFAULT_LOGIN_USER);
+    }
+
+    protected Optional<Question> findById(String userId) {
+        return questionRepository.findById(defaultUser());
     }
 }
