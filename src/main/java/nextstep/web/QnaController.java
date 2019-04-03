@@ -1,15 +1,13 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.dto.QuestionDTO;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/questions")
@@ -33,10 +31,10 @@ public class QnaController {
 
     @GetMapping("/show/{id}")
     public String showQuestion(@PathVariable("id") long questionId, Model model) {
-        Question question = qnaService.findById(questionId);
-        List<Answer> answers = question.getAnswers();
-        model.addAttribute("question", question);
-        model.addAttribute("answersSize", answers.size());
+//        Question question = qnaService.findById(questionId);
+        QuestionDTO questionDTO = qnaService.findQuestionAndAnswerById(questionId);
+        model.addAttribute("question", questionDTO.getQuestion());
+        model.addAttribute("answersSize", questionDTO.getAnswerSize());
 
         return "/qna/show";
     }

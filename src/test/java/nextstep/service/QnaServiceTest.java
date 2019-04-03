@@ -1,114 +1,91 @@
 package nextstep.service;
 
-import nextstep.domain.*;
+import nextstep.UnAuthenticationException;
+import nextstep.domain.Answer;
+import nextstep.domain.Question;
+import nextstep.domain.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.junit4.SpringRunner;
 import support.test.BaseTest;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class QnaServiceTest extends BaseTest {
 
-    @Mock
-    private QuestionRepository questionRepository;
-
-    @Mock
-    private AnswerRepository answerRepository;
-
-    @InjectMocks
+    @Autowired
     private QnaService qnaService;
 
+    @Autowired
+    private UserService userService;
+
     @Test
-    public void create() {
+    public void create() throws UnAuthenticationException {
         Question question = new Question("질문하기", "테스트");
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        when(questionRepository.save(question)).thenReturn(question);
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
         Question result = qnaService.create(user, question);
-        softly.assertThat(result).isEqualTo(question);
+        softly.assertThat(result.getTitle()).isEqualTo(question.getTitle());
     }
 
     @Test
-    public void update() {
+    public void update() throws UnAuthenticationException {
         Question question = new Question("질문하기", "테스트");
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
         question.writeBy(user);
-        when(questionRepository.save(question)).thenReturn(question);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-        Question result = qnaService.update(user, question.getId(), question);
-        softly.assertThat(result).isEqualTo(question);
+        Question result = qnaService.update(user, 2, question);
+        softly.assertThat(result.getContents()).isEqualTo(question.getContents());
     }
 
     @Test
-    public void findAll() {
-        Question question = new Question("질문하기", "질문하기 테스트");
-        List<Question> questions = new ArrayList<>();
-        questions.add(question);
-        when(questionRepository.findByDeleted(false)).thenReturn(questions);
+    public void findAll() throws UnAuthenticationException {
+        create();
         Iterable<Question> result = qnaService.findAll();
-        softly.assertThat(result).size().isEqualTo(1);
+        softly.assertThat(result).size().isGreaterThanOrEqualTo(1);
     }
 
     @Test
-    public void findAllWithPageable() {
-        Question question = new Question("질문하기", "질문하기 테스트");
-        List<Question> questions = new ArrayList<>();
-        questions.add(question);
-        Page<Question> page = new PageImpl<>(questions);
-
-        PageRequest pageRequest = PageRequest.of(5, 10);
-        when(questionRepository.findAll(pageRequest)).thenReturn(page);
+    public void findAllWithPageable() throws UnAuthenticationException {
+        create();
+        PageRequest pageRequest = PageRequest.of(0, 10);
         List<Question> result = qnaService.findAll(pageRequest);
-        softly.assertThat(result).isEqualTo(questions);
+        softly.assertThat(result).size().isGreaterThanOrEqualTo(1);
     }
 
     @Test
     public void findById() {
-        Question question = new Question("질문하기", "질문하기 테스트");
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-        Question result = qnaService.findById(question.getId());
-        softly.assertThat(result).isEqualTo(question);
+        Question result = qnaService.findById(2);
+        softly.assertThat(result.getWriter().getUserId()).isEqualTo("sanjigi");
     }
 
     @Test
-    public void deleteQuestion() {
-        Question question = new Question("질문하기", "테스트");
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        question.writeBy(user);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+    public void deleteQuestion() throws UnAuthenticationException {
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Question question = qnaService.findById(2);
         qnaService.deleteQuestion(user, question.getId());
-        verify(questionRepository).delete(question);
     }
 
     @Test
-    public void addAnswer() {
-        Question question = new Question("질문하기", "테스트");
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        Answer answer = new Answer(user, "답변");
-        answer.toQuestion(question);
-        when(answerRepository.save(answer)).thenReturn(answer);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-        Answer result = qnaService.addAnswer(user, question.getId(), "답변");
-        softly.assertThat(result).isEqualTo(answer);
+    public void addAnswer() throws UnAuthenticationException {
+        Question question = qnaService.findById(2);
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Answer result = qnaService.addAnswer(user, question.getId(), "answer test");
+        softly.assertThat(result.getContents()).isEqualTo("answer test");
     }
 
     @Test
-    public void deleteAnswer() {
-        User user = new User("sanjigi", "password", "name", "javajigi@slipp.net");
-        Answer answer = new Answer(user, "contents");
-        when(answerRepository.findById(answer.getId())).thenReturn(Optional.of(answer));
+    public void deleteAnswer() throws UnAuthenticationException {
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Answer answer = qnaService.findAnswerById(2);
         qnaService.deleteAnswer(user, answer.getId());
-        verify(answerRepository).delete(answer);
     }
 }
