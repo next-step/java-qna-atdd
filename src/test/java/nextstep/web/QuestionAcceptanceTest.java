@@ -124,22 +124,14 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_no_login() {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .delete()
-                .build();
-
-        ResponseEntity<String> response = template().postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+        ResponseEntity<String> response = delete(template(), defaultQuestion());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void delete_login_self() {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .delete()
-                .build();
-
-        ResponseEntity<String> response = basicAuthTemplate().postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+        ResponseEntity<String> response = delete(basicAuthTemplate(), defaultQuestion());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
         softly.assertThat(defaultQuestion().isDeleted()).isTrue();
@@ -149,13 +141,17 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_login_another() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), anotherQuestion());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        log.debug("body : {}", response.getBody());
+    }
+
+    private ResponseEntity<String> delete(TestRestTemplate template, Question question) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .delete()
                 .build();
 
-        ResponseEntity<String> response = basicAuthTemplate().postForEntity(String.format("/questions/%d", anotherQuestion().getId()), request, String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-        log.debug("body : {}", response.getBody());
+        return template().postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
     }
 
     private Question defaultQuestion() {
