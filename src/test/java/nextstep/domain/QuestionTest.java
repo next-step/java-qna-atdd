@@ -12,4 +12,14 @@ public class QuestionTest extends BaseTest {
 
         softly.assertThat(question.isOwner(user)).isTrue();
     }
+
+    @Test
+    public void 질문을_수정한다() {
+        Question question = new Question("This is title", "This is contents");
+        Question updatedQuestion = new Question("This is updated title", "This is updated contents");
+
+        question.update(updatedQuestion);
+        softly.assertThat(question.getTitle()).isEqualTo(updatedQuestion.getTitle());
+        softly.assertThat(question.getContents()).isEqualTo(updatedQuestion.getContents());
+    }
 }

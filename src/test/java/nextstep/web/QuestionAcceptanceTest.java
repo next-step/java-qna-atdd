@@ -34,16 +34,38 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    public void 로그인하지_않은_사용자는_질문_등록폼에_들어갈수_없다() {
+        ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
     public void 로그인한_사용자만_질문을_등록할수_있다() {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
             .addParameter("title", "This is title")
-            .addParameter("content", "This is content")
+            .addParameter("contents", "This is contents")
             .build();
 
         ResponseEntity<String> response = basicAuthTemplate().postForEntity(
             "/questions", request, String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void 로그인하지_않은_사용자는_질문을_등록할수_없다() {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+            .addParameter("title", "This is title")
+            .addParameter("contents", "This is contents")
+            .build();
+
+        ResponseEntity<String> response = template().postForEntity(
+            "/questions", request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
     }
 
@@ -54,19 +76,45 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).contains("제목");
+        log.debug("body : {}", response.getBody());
     }
+
+    @Test
+    public void 작성자가_아니면_질문_수정폼에_들어갈수없다() {
+        ResponseEntity<String> response = basicAuthTemplate(findByUserId("sanjigi")).getForEntity(
+            String.format("/questions/%d/form", 1), String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        log.debug("body : {}", response.getBody());
+    }
+
 
     @Test
     public void 질문_수정은_작성자만_할수있다() {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
             .addParameter("title", "This is updated title")
-            .addParameter("content", "This is updated content")
+            .addParameter("contents", "This is updated contents")
             .build();
 
         ResponseEntity<String> response = basicAuthTemplate(defaultUser()).exchange(
             String.format("/questions/%d", 1), HttpMethod.PATCH, request, String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void 작성자가_아니면_질문_수정을_할수없다() {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+            .addParameter("title", "This is updated title")
+            .addParameter("contents", "This is updated contents")
+            .build();
+
+        ResponseEntity<String> response = basicAuthTemplate(findByUserId("sanjigi")).exchange(
+            String.format("/questions/%d", 1), HttpMethod.PATCH, request, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        log.debug("body : {}", response.getBody());
     }
 
     @Test
@@ -74,6 +122,16 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(defaultUser()).exchange(
             String.format("/questions/%d", 1), HttpMethod.DELETE, null, String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void 작성자가_아니면_질문_삭제를_할수없다() {
+        ResponseEntity<String> response = basicAuthTemplate(findByUserId("sanjigi")).exchange(
+            String.format("/questions/%d", 1), HttpMethod.DELETE, null, String.class);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        log.debug("body : {}", response.getBody());
     }
 }
