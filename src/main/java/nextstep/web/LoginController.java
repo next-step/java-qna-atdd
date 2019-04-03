@@ -1,11 +1,13 @@
 package nextstep.web;
 
+import lombok.AllArgsConstructor;
 import nextstep.UnAuthenticationException;
+import nextstep.domain.User;
 import nextstep.security.HttpSessionUtils;
 import nextstep.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -13,10 +15,10 @@ import javax.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/login")
+@AllArgsConstructor
 public class LoginController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
     @GetMapping
     public String login() {
@@ -24,8 +26,8 @@ public class LoginController {
     }
 
     @PostMapping
-    public String login(String userId, String password, HttpSession session) throws UnAuthenticationException {
-        session.setAttribute(HttpSessionUtils.USER_SESSION_KEY, userService.login(userId, password));
+    public String login(@ModelAttribute User user, HttpSession session) throws UnAuthenticationException {
+        session.setAttribute(HttpSessionUtils.USER_SESSION_KEY, userService.login(user));
         return "redirect:/questions";
     }
 }
