@@ -51,7 +51,7 @@ public class QnaService {
             Question target = findById(id);
             return target.delete(loginUser);
         } catch(Exception e) {
-            throw new CannotDeleteException("Áú¹®À» »èÁ¦ÇÒ ¼ö ¾ø½À´Ï´Ù.");
+            throw new CannotDeleteException("ì§ˆë¬¸ì„ ì‚­ì œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
         }
     }
 

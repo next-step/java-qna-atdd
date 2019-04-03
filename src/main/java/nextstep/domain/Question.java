@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -26,10 +27,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -97,24 +96,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public List<DeleteHistory> delete(User loginUser) {
-        if (!isDeletable(loginUser)) {
+        if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
+        List<DeleteHistory> deleteHistories = answers.delete(loginUser);
         deleted = true;
-        return getDeleteHistories(loginUser);
-    }
-
-    private boolean isDeletable(User loginUser) {
-        return  isOwner(loginUser) &&
-                (answers.isEmpty() || answers.stream().allMatch(answer -> answer.isOwner(loginUser)));
-    }
-
-    private List<DeleteHistory> getDeleteHistories(User loginUser) {
-        List<DeleteHistory> deleteHistories = answers.stream()
-                                                    .map(answer -> answer.doDelete(loginUser))
-                                                    .collect(Collectors.toList());
-
         deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
         return deleteHistories;
     }
@@ -130,7 +117,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean containsAnswer(long id) {
-        return answers.stream()
-                    .anyMatch(answer -> answer.getId() == id);
+        return answers.containsAnswer(id);
     }
 }

@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
@@ -153,39 +154,4 @@ public class QuestionTest extends BaseTest {
         question.delete(questionWriter);
     }
 
-    @Test
-    public void containsAnswer() {
-        User writer = new User(1L, "javajigi", "test", "자바지기", "javajigi@slipp.net");
-        Question question = new Question(1L, "title", "contents", writer);
-
-        List<Answer> answers = Arrays.asList(
-                new Answer(1L, writer, question, "answer contents1"),
-                new Answer(2L, writer, question, "answer contents2")
-        );
-
-        for(Answer answer : answers) {
-            question.addAnswer(answer);
-            answer.toQuestion(question);
-            softly.assertThat(question.containsAnswer(answer.getId())).isTrue();
-        }
-    }
-
-    @Test
-    public void containsAnswer_for_not_containing_answers() {
-        User writer = new User(1L, "javajigi", "test", "자바지기", "javajigi@slipp.net");
-        Question question = new Question(1L, "title", "contents", writer);
-
-        List<Answer> answers = Arrays.asList(
-                new Answer(1L, writer, question, "answer contents1"),
-                new Answer(2L, writer, question, "answer contents2")
-        );
-
-        for(Answer answer : answers) {
-            question.addAnswer(answer);
-            answer.toQuestion(question);
-        }
-
-        softly.assertThat(question.containsAnswer(3L)).isFalse();
-        softly.assertThat(question.containsAnswer(4L)).isFalse();
-    }
 }
