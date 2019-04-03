@@ -16,7 +16,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void create() throws Exception {
         // given
         User newUser = newUser("testuser1");
-        String resourceLocation = createUserResource(newUser);
+        String resourceLocation = createAndGetUserResource(newUser);
 
         // when
         ResponseEntity<User> response = getUserResource(newUser, resourceLocation);
@@ -30,7 +30,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void show_다른_사람() throws Exception {
         // given
         User newUser = newUser("testuser2");
-        String resourceLocation = createUserResource(newUser);
+        String resourceLocation = createAndGetUserResource(newUser);
         User otherUser = defaultUser();
 
         // when
@@ -44,7 +44,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void update() throws Exception {
         // given
         User newUser = newUser("testuser3");
-        String resourceLocation = createUserResource(newUser);
+        String resourceLocation = createAndGetUserResource(newUser);
 
         User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
@@ -63,7 +63,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void update_no_login() throws Exception {
         // given
         User newUser = newUser("testuser4");
-        String resourceLocation = createUserResource(newUser);
+        String resourceLocation = createAndGetUserResource(newUser);
 
         User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
@@ -83,7 +83,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void update_다른_사람() throws Exception {
         // given
         User newUser = newUser("testuser5");
-        String resourceLocation = createUserResource(newUser);
+        String resourceLocation = createAndGetUserResource(newUser);
         User otherUser = defaultUser();
 
         User original = getUserResource(newUser, resourceLocation).getBody();
@@ -98,8 +98,15 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    private String createUserResource(User resource) {
-        return createResource("/api/users", resource);
+    private String createAndGetUserResource(User resource) {
+        return createUserResource(resource).getHeaders().getLocation().getPath();
+    }
+
+    private ResponseEntity<String> createUserResource(User resource) {
+        ResponseEntity<String> response = createResourceWithoutLogin("/api/users", resource, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.CREATED);
+
+        return response;
     }
 
     private ResponseEntity<User> getUserResource(User loginUser, String location) {

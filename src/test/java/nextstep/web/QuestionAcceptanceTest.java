@@ -293,10 +293,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         log.debug("response body : {}", response.getBody());
     }
 
-    private Question defaultQuestion() {
-        return questionRepository.findById(1L).get();
-    }
-
     private Question otherQuestion() {
         return questionRepository.findById(2L).get();
     }
