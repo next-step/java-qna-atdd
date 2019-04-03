@@ -7,8 +7,10 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -94,12 +96,27 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         contents = target.contents;
     }
 
-    public void delete(User loginUser) {
-        if (!isOwner(loginUser)) {
+    public List<DeleteHistory> delete(User loginUser) {
+        if (!isDeletable(loginUser)) {
             throw new UnAuthorizedException();
         }
 
         deleted = true;
+        return getDeleteHistories(loginUser);
+    }
+
+    private boolean isDeletable(User loginUser) {
+        return  isOwner(loginUser) &&
+                (answers.isEmpty() || answers.stream().allMatch(answer -> answer.isOwner(loginUser)));
+    }
+
+    private List<DeleteHistory> getDeleteHistories(User loginUser) {
+        List<DeleteHistory> deleteHistories = answers.stream()
+                                                    .map(answer -> answer.doDelete(loginUser))
+                                                    .collect(Collectors.toList());
+
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
+        return deleteHistories;
     }
 
     @Override
@@ -115,6 +132,5 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public boolean containsAnswer(long id) {
         return answers.stream()
                     .anyMatch(answer -> answer.getId() == id);
-
     }
 }

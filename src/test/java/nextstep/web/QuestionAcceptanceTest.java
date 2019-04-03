@@ -26,7 +26,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 public class QuestionAcceptanceTest extends AcceptanceTest {
-    private static final long DEFAULT_QUESTION = 1L;
+    private static final long QUESTION_WITH_TWO_ANSWERS_WRITTEN_BY_SAME_USER = 1L;
+    private static final long QUESTION_WITH_TWO_ANSWERS_WRITTEN_BY_DIFFERENT_USER = 3L;
+    private static final long QUESTION_WITH_NO_ANSWER = 2L;
+    private static final long DEFAULT_QUESTION = QUESTION_WITH_TWO_ANSWERS_WRITTEN_BY_SAME_USER;
 
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
@@ -155,33 +158,56 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_no_login() throws Exception {
         ResponseEntity<String> response = update(template());
+
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void update_by_unauthorized_user() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate(anotherUser()));
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void update_login() throws Exception {
         ResponseEntity<String> response = update(basicAuthTemplate());
+
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions/" + defaultQuestion().getId());
-        log.debug("body : {}", response.getBody());
-    }
-
-    @Test
-    public void delete_no_login() throws Exception {
-        ResponseEntity<String> response = delete(template());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-    public void delete_login() throws Exception {
-        ResponseEntity<String> response = delete(basicAuthTemplate());
+    public void delete_login_with_two_answers_written_by_same_user() throws Exception {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), DEFAULT_QUESTION);
+
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
-        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void delete_login_with_no_answer() throws Exception {
+        ResponseEntity<String> response = delete(basicAuthTemplate(anotherUser()), QUESTION_WITH_NO_ANSWER);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
+    @Test
+    public void delete_no_login() throws Exception {
+        ResponseEntity<String> response = delete(template(), defaultQuestion().getId());
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete_login_with_two_answers_written_by_different_user() throws Exception {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), QUESTION_WITH_TWO_ANSWERS_WRITTEN_BY_DIFFERENT_USER);
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
@@ -195,13 +221,13 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
     }
 
-    private ResponseEntity<String> delete(TestRestTemplate template) throws Exception {
+    private ResponseEntity<String> delete(TestRestTemplate template, long questionId) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request =
                 HtmlFormDataBuilder.urlEncodedForm()
                         .delete()
                         .build();
 
-        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+        return template.postForEntity(String.format("/questions/%d", questionId), request, String.class);
     }
 
     protected Question defaultQuestion() {
