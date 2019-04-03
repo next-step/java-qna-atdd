@@ -2,12 +2,12 @@ package nextstep.web;
 
 import nextstep.domain.Fixture;
 import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
@@ -26,14 +26,14 @@ public class QnaAcceptanceTest extends AcceptanceTest {
     public void 질문_리스트_페이지() {
         ResponseEntity<String> response = basicAuthTemplate(mockUser).getForEntity("/questions", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void 질문_상세_페이지() {
         ResponseEntity<String> response = template().getForEntity("/questions/{id}", String.class, 1);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
+        softly.assertThat(questionRepository.findById(1L).isPresent()).isTrue();
+        softly.assertThat(response.getBody()).contains("국내에서");
     }
     @Test
     public void 질문생성_페이지() {
@@ -43,7 +43,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
         ResponseEntity<String> response = basicAuthTemplate(mockUser).getForEntity("/questions/form", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
+        softly.assertThat(response.getBody()).contains("질문하기");
     }
 
     @Test
@@ -54,20 +54,23 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
         ResponseEntity<String> response = basicAuthTemplate(mockUser).postForEntity("/questions", request, String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        log.debug("body : {}", response.getBody());
+        softly.assertThat(questionRepository.findById(3L).isPresent()).isTrue();
     }
 
     @Test
     public void 질문수정_페이지_이동() {
         ResponseEntity<String> response = basicAuthTemplate(mockUser).getForEntity("/questions/{id}/form", String.class, 1);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
+        softly.assertThat(response.getBody()).contains("Ruby on Rails");
     }
 
     @Test
     public void 질문삭제() {
-        basicAuthTemplate(mockUser).delete("/questions/{id}",1);
-
+        ResponseEntity<String> response = basicAuthTemplate(mockUser)
+                .exchange(String.format("/questions/%d", 2), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
-    
+
+    // TODO : 답변 CRUD 테스트 추가할 것!
 }
