@@ -1,10 +1,10 @@
 package nextstep.service;
 
 import lombok.RequiredArgsConstructor;
-import nextstep.UnAuthenticationException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import nextstep.exception.UnAuthenticationException;
+import nextstep.exception.UnAuthorizedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

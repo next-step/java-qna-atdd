@@ -1,8 +1,8 @@
 package nextstep.service;
 
-import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import nextstep.exception.UnAuthenticationException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

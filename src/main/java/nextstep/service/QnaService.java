@@ -1,23 +1,20 @@
 package nextstep.service;
 
 import lombok.RequiredArgsConstructor;
-import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
 import nextstep.domain.Answer;
 import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
+import nextstep.exception.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 @Service("qnaService")
 @RequiredArgsConstructor
@@ -29,36 +26,36 @@ public class QnaService {
     private final AnswerRepository answerRepository;
     private final DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question createQuestion(User loginUser, Question question) {
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
-    }
-
-    public Question findById(User loginUser, long id) {
-        Optional<Question> question = findById(id);
-        if (!question.isPresent()) {
-            throw new EntityNotFoundException();
-        }
-
-        return question.filter(thisQuestion -> thisQuestion.isOwner(loginUser))
-            .orElseThrow(UnAuthorizedException::new);
-    }
-
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question original = findById(id).orElseThrow(EntityNotFoundException::new);
+    public Question updateQuestion(User loginUser, long id, Question updatedQuestion) {
+        Question original = findQuestionById(id);
         return original.update(loginUser, updatedQuestion);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question target = findById(questionId).orElseThrow(EntityNotFoundException::new);
+    public void deleteQuestion(User loginUser, long questionId) {
+        Question target = findQuestionById(questionId);
         target.delete(loginUser);
+    }
+
+    public Question findQuestionById(long id) {
+        return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+    }
+
+    public Question findQuestionById(User loginUser, long id) {
+        Question question = findQuestionById(id);
+
+        if (!question.isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        return question;
     }
 
     public Iterable<Question> findAll() {
@@ -69,13 +66,33 @@ public class QnaService {
         return questionRepository.findAllByDeleted(false, PageRequest.of(page - 1, size));
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer createAnswer(User loginUser, long questionId, String contents) {
+        Answer answer = new Answer(loginUser, contents);
+        findQuestionById(questionId).addAnswer(answer);
+        return answerRepository.save(answer);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer updateAnswer(User loginUser, long id, Answer updatedAnswer) {
+        Answer original = findAnswerById(id);
+        original.update(loginUser, updatedAnswer);
+        return original;
+    }
+
+    @Transactional
+    public void deleteAnswer(User loginUser, long questionId, long id) {
+        Answer target = findAnswerById(questionId, id);
+        target.delete(loginUser);
+    }
+
+    private Answer findAnswerById(long id) {
+        return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+    }
+
+    public Answer findAnswerById(long questionId, long id) {
+        if (!findQuestionById(questionId).isContainsAnswer(id)) {
+            throw new EntityNotFoundException();
+        }
+        return findAnswerById(id);
     }
 }

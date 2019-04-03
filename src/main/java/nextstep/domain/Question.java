@@ -1,7 +1,8 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
+import nextstep.exception.CannotDeleteException;
+import nextstep.exception.ObjectDeletedException;
+import nextstep.exception.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -81,7 +82,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public Question update(User loginUser, Question target) {
         if (isDeleted()) {
-            throw new CannotDeleteException();
+            throw new ObjectDeletedException();
         }
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
@@ -93,14 +94,27 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void delete(User loginUser) {
-        if (isDeleted()) {
+        if (!isContainsAnswer()) {
             throw new CannotDeleteException();
+        }
+        if (isDeleted()) {
+            throw new ObjectDeletedException();
         }
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
         this.deleted = true;
+    }
+
+    private boolean isContainsAnswer() {
+        return answers.isEmpty();
+    }
+
+    public boolean isContainsAnswer(long id) {
+        return answers.stream()
+            .anyMatch(answer -> answer.getId() == id);
+
     }
 
     public boolean isOwner(User loginUser) {

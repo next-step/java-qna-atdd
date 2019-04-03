@@ -1,8 +1,8 @@
 package nextstep.web;
 
 import lombok.RequiredArgsConstructor;
-import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.exception.UnAuthenticationException;
 import nextstep.security.HttpSessionUtils;
 import nextstep.service.UserService;
 import org.springframework.stereotype.Controller;
