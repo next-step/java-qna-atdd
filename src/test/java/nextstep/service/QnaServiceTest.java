@@ -16,11 +16,9 @@ import java.util.Optional;
 
 import static nextstep.domain.Fixture.mockQuestion;
 import static nextstep.domain.Fixture.mockUser;
+import static org.mockito.Mockito.*;
 
-import static org.mockito.Mockito.when;
-
-// TODO : 중복데이터 추출 필요
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class QnaServiceTest extends BaseTest {
 
     @Mock
@@ -64,7 +62,7 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = UnAuthenticationException.class)
     public void 업데이트_실패_테스트() throws Exception {
-        Question test = new Question(Fixture.title, Fixture.contents);
+        Question test = mockQuestion;
         test.writeBy(mockUser);
         returnCacheValue = Optional.of((Question) test);
         when(questionRepository.findById(new Long(1))).thenReturn(returnCacheValue);
@@ -98,17 +96,21 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(result.getContents()).isEqualTo("엄마상어는요!");
     }
 
+    // TODO : 이렇게 하는게 맞나요?
     @Test
     public void 답변_삭제_테스트() throws CannotDeleteException {
         when(answerRepository.findById(new Long(0))).thenReturn(returnCacheAnswer);
+        doNothing().when(answerRepository).delete(Fixture.answer);
 
-        qnaService.deleteAnswer(new User("sanjigi", "password", "name", "javajigi@slipp.net"), 0);
+        qnaService.deleteAnswer(mockUser, 0);
+        
+        verify(answerRepository, times(1)).delete(Fixture.answer);
     }
 
-    @Test
-    public void 답변_삭제_실패_테스트() throws CannotDeleteException {
+    @Test(expected = EntityNotFoundException.class)
+    public void 답변_삭제_실패_테스트() throws EntityNotFoundException {
         when(answerRepository.findById(new Long(0))).thenReturn(returnCacheAnswer);
 
-        qnaService.deleteAnswer(new User("sanjigi2", "password", "name", "javajigi@slipp.net"), 0);
+        qnaService.deleteAnswer(new User("sanjigi2", "password", "name", "javajigi@slipp.net"), 1);
     }
 }
