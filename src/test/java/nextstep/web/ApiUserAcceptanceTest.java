@@ -16,13 +16,13 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void create() throws Exception {
         // given
         User newUser = newUser("testuser1");
-        String resourceLocation = createResource(newUser);
+        String resourceLocation = createUserResource(newUser);
 
         // when
-        ResponseEntity<User> response = getUserResourceResponseEntity(resourceLocation, newUser);
-        User dbUser = response.getBody();
+        ResponseEntity<User> response = getUserResource(newUser, resourceLocation);
 
         // then
+        User dbUser = response.getBody();
         softly.assertThat(dbUser).isNotNull();
     }
 
@@ -30,11 +30,11 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void show_다른_사람() throws Exception {
         // given
         User newUser = newUser("testuser2");
-        String resourceLocation = createResource(newUser);
+        String resourceLocation = createUserResource(newUser);
         User otherUser = defaultUser();
 
         // when
-        ResponseEntity<User> response = getUserResourceResponseEntity(resourceLocation, otherUser);
+        ResponseEntity<User> response = getUserResource(otherUser, resourceLocation);
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -44,16 +44,15 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void update() throws Exception {
         // given
         User newUser = newUser("testuser3");
-        String resourceLocation = createResource(newUser);
+        String resourceLocation = createUserResource(newUser);
 
-        User original = getUserResourceResponseEntity(resourceLocation, newUser).getBody();
+        User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
 
         // when
-        ResponseEntity<User> response =
-                putUserResourceResponseEntity(resourceLocation, createHttpEntity(updateUser), newUser);
+        ResponseEntity<User> response = updateUserResource(newUser, resourceLocation, updateUser);
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -62,18 +61,21 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_no_login() throws Exception {
+        // given
         User newUser = newUser("testuser4");
-        String resourceLocation = createResource(newUser);
+        String resourceLocation = createUserResource(newUser);
 
-        User original = getUserResourceResponseEntity(resourceLocation, newUser).getBody();
+        User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<String> responseEntity =
-                template().exchange(resourceLocation, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
+        // when
+        ResponseEntity<String> responseEntity = updateResourceWithoutLogin(resourceLocation, updateUser, String.class);
 
+        // then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
         log.debug("error message : {}", responseEntity.getBody());
     }
 
@@ -81,24 +83,31 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void update_다른_사람() throws Exception {
         // given
         User newUser = newUser("testuser5");
-        String resourceLocation = createResource(newUser);
+        String resourceLocation = createUserResource(newUser);
         User otherUser = defaultUser();
 
-        User original = getUserResourceResponseEntity(resourceLocation, newUser).getBody();
+        User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
 
         // when
-        ResponseEntity<User> responseEntity = putUserResourceResponseEntity(resourceLocation, createHttpEntity(updateUser), otherUser);
+        ResponseEntity<User> responseEntity = updateUserResource(otherUser, resourceLocation, updateUser);
 
         // then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
+    private String createUserResource(User resource) {
+        return createResource("/api/users", resource);
+    }
+
+    private ResponseEntity<User> getUserResource(User loginUser, String location) {
+        return getResource(loginUser, location, User.class);
+    }
+
+    protected ResponseEntity<User> updateUserResource(User loginUser, String location, User updatedUser) {
+        return updateResource(loginUser, location, updatedUser
+                , User.class);
     }
 }

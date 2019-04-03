@@ -43,25 +43,31 @@ public abstract class AcceptanceTest extends BaseTest {
         return userRepository.findByUserId(userId).get();
     }
 
-    protected String createResource(User user) {
-        ResponseEntity<String> response = template().postForEntity("/api/users", user, String.class);
+    protected String createResource(String url, Object resource) {
+        ResponseEntity<String> response = template().postForEntity(url, resource, String.class);
         assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.CREATED);
         return response.getHeaders().getLocation().getPath();
     }
 
-    protected ResponseEntity<User> getUserResourceResponseEntity(String location, User loginUser) {
-        return getResourceResponseEntity(location, User.class, loginUser);
+    protected <T> ResponseEntity<T> getResource(User loginUser, String url, Class<T> type) {
+        return basicAuthTemplate(loginUser).getForEntity(url, type);
     }
 
-    protected <T> ResponseEntity<T> getResourceResponseEntity(String location, Class<T> type, User loginUser) {
-        return basicAuthTemplate(loginUser).getForEntity(location, type);
+    protected <T> ResponseEntity<T> getResourceWithoutLogin(String url, Class<T> type) {
+        return template().getForEntity(url, type);
     }
 
-    protected ResponseEntity<User> putUserResourceResponseEntity(String location, HttpEntity httpEntity, User loginUser) {
-        return putResourceResponseEntity(location, httpEntity, User.class, loginUser);
+    protected <T> ResponseEntity<T> updateResource(User loginUser, String location, T body, Class<T> type) {
+        return basicAuthTemplate(loginUser).exchange(location, HttpMethod.PUT, createHttpEntity(body), type);
     }
 
-    protected <T> ResponseEntity<T> putResourceResponseEntity(String location, HttpEntity httpEntity, Class<T> type, User loginUser) {
-        return basicAuthTemplate(loginUser).exchange(location, HttpMethod.PUT, httpEntity, type);
+    protected <T> ResponseEntity<T> updateResourceWithoutLogin(String location, Object body, Class<T> type) {
+        return template().exchange(location, HttpMethod.PUT, createHttpEntity(body), type);
+    }
+
+    private HttpEntity createHttpEntity(Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity(body, headers);
     }
 }
