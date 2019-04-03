@@ -1,14 +1,11 @@
 package nextstep.web;
 
-import nextstep.domain.User;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 import support.test.HtmlFormDataBuilder;
@@ -21,8 +18,8 @@ public class LoginAcceptanceTest extends AcceptanceTest {
         String userId = "javajigi";
 
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParamater("userId", userId)
-                .addParamater("password", "test")
+                .addParameter("userId", userId)
+                .addParameter("password", "test")
                 .build();
 
         ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
@@ -35,8 +32,8 @@ public class LoginAcceptanceTest extends AcceptanceTest {
     public void test_login_fail() {
         String userId = "javajigi";
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParamater("userId", userId)
-                .addParamater("password", "")
+                .addParameter("userId", userId)
+                .addParameter("password", "")
                 .build();
 
         ResponseEntity<String> response = template().postForEntity("/users/login", request, String.class);
