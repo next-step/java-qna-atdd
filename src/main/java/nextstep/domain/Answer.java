@@ -1,11 +1,13 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -76,13 +78,19 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         contents = target.contents;
     }
 
-    public void delete(User loginUser) {
+    public DeleteHistory tryDelete(User loginUser) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
-        deleted = true;
+        return doDelete(loginUser);
     }
+
+    public DeleteHistory doDelete(User loginUser) {
+        deleted = true;
+        return new DeleteHistory(ContentType.ANSWER, getId(), loginUser, LocalDateTime.now());
+    }
+
 
     @Override
     public String generateUrl() {

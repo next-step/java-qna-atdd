@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -45,9 +46,13 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
-        Question target = findById(id);
-        target.delete(loginUser);
+    public List<DeleteHistory> deleteQuestion(User loginUser, long id) throws CannotDeleteException {
+        try {
+            Question target = findById(id);
+            return target.delete(loginUser);
+        } catch(Exception e) {
+            throw new CannotDeleteException("질문을 삭제할 수 없습니다.");
+        }
     }
 
     public Page<Question> findAll(Pageable pageable) {
@@ -68,9 +73,9 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteAnswer(User loginUser, long questionId, long id) {
+    public DeleteHistory deleteAnswer(User loginUser, long questionId, long id) {
         Answer target = findAnswerById(questionId, id);
-        target.delete(loginUser);
+        return target.tryDelete(loginUser);
     }
 
     public Answer findAnswerById(long questionId, long id) {
