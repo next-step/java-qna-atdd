@@ -53,4 +53,12 @@ public class UserTest extends BaseTest {
         User target = new User("sanjigi", "password2", "name2", "javajigi@slipp.net2");
         origin.update(origin, target);
     }
+
+    @Test
+    public void equals() {
+        softly.assertThat(JAVAJIGI)
+                .isEqualTo(JAVAJIGI)
+                .hasSameHashCodeAs(JAVAJIGI)
+                .isNotEqualTo(newUser("another"));
+    }
 }

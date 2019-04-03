@@ -92,6 +92,20 @@ public class User extends AbstractEntity {
         this.email = target.email;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        User user = (User) o;
+        return Objects.equals(userId, user.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), userId);
+    }
+
     private boolean matchUserId(String userId) {
         return this.userId.equals(userId);
     }
