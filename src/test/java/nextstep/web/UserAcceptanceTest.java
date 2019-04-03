@@ -29,9 +29,9 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Test
     public void create() throws Exception {
         String userId = "testuser";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
 
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().addParameter("userId", userId)
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("userId", userId)
                 .addParameter("password", "password")
                 .addParameter("name", "자바지기")
                 .addParameter("email", "javajigi@slipp.net")
@@ -53,19 +53,19 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void updateForm_no_login() throws Exception {
-        ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", defaultUser().getId()),
-                String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
     public void updateForm_login() throws Exception {
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .getForEntity(String.format("/users/%d/form", loginUser.getId()), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).contains(defaultUser().getEmail());
+    }
+
+    @Test
+    public void updateForm_no_login() throws Exception {
+        ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", defaultUser().getId()),
+                String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
