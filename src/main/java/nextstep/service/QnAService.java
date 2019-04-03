@@ -54,9 +54,7 @@ public class QnAService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
         Question question = findByOwner(loginUser, id);
-
-        question.setTitle(updatedQuestion.getTitle());
-        question.setContents(updatedQuestion.getContents());
+        question.update(updatedQuestion);
 
         return question;
     }

@@ -1,11 +1,9 @@
 package nextstep.web;
 
-import java.util.List;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnAService;
-import nextstep.web.exception.ForbiddenException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,40 +36,31 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String create(@LoginUser User user, Question question, Model model) {
+    public String create(@LoginUser User user, Question question) {
         Question result = qnAService.create(user, question);
 
-        model.addAttribute("question", result);
-        return "qna/show";
+        return "redirect:/questions/" + result.getId();
     }
 
     @GetMapping("{id}/form")
     public String updateForm(@LoginUser User user, @PathVariable Long id, Model model) {
-        Question result = qnAService.findById(id);
-
-        if(!result.isOwner(user)) {
-            throw new ForbiddenException();
-        }
+        Question result = qnAService.findByOwner(user, id);
 
         model.addAttribute("question", result);
         return "qna/updateForm";
     }
 
     @PatchMapping("{id}")
-    public String update(@LoginUser User user, @PathVariable Long id, Question question, Model model) {
+    public String update(@LoginUser User user, @PathVariable Long id, Question question) {
         Question result = qnAService.update(user, id, question);
 
-        model.addAttribute("question", result);
-        return "qna/show";
+        return "redirect:/questions/" + result.getId();
     }
 
     @DeleteMapping("{id}")
-    public String delete(@LoginUser User user, @PathVariable Long id, Model model) {
+    public String delete(@LoginUser User user, @PathVariable Long id) {
         qnAService.deleteQuestion(user, id);
 
-        List<Question> list = qnAService.findAll();
-
-        model.addAttribute("questions", list);
-        return "home";
+        return "redirect:/home";
     }
 }

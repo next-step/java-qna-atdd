@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Where(clause = "deleted = false")
 public class Question extends AbstractEntity implements UrlGeneratable {
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
@@ -38,22 +39,25 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public void update(Question updatedQuestion) {
+        this.title = updatedQuestion.getTitle();
+        this.contents = updatedQuestion.getContents();
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContents(String contents) {
+        this.contents = contents;
+    }
+
     public String getTitle() {
         return title;
     }
 
-    public Question setTitle(String title) {
-        this.title = title;
-        return this;
-    }
-
     public String getContents() {
         return contents;
-    }
-
-    public Question setContents(String contents) {
-        this.contents = contents;
-        return this;
     }
 
     public User getWriter() {
