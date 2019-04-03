@@ -39,12 +39,6 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
         Question question = questionRepository.findById(id).orElseThrow(NullPointerException::new);
-//        System.out.println("이건여? " + loginUser);
-//        if(!question.isOwner(loginUser)) {
-//            System.out.println("여기 안오세요? " + question);
-//            throw new UnAuthenticationException("자기 것만 수정할 수 있어욧!");
-//        }
-//        System.out.println("그럼 여기 오세요? " + question);
         question.update(loginUser, updatedQuestion);
         return question;
     }
@@ -55,7 +49,7 @@ public class QnaService {
         if(!question.isOwner(loginUser)) {
             throw new CannotDeleteException("This Question is Not Yours!");
         }
-        question.setDeleted(true);
+        question.deleteQuestion();
     }
 
     public Iterable<Question> findAll() {
@@ -66,18 +60,27 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        Question question = findById(questionId).orElseThrow(NullPointerException::new);
+        Question question = findById(questionId).orElseThrow(IllegalArgumentException::new);
         Answer answer = new Answer(loginUser, contents);
         question.addAnswer(answer);
         questionRepository.save(question);
         return answer;
     }
 
-    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+    public void deleteAnswer(User loginUser, long id) throws EntityNotFoundException {
         Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         if(answer.isOwner(loginUser)) {
             answerRepository.delete(answer);
+        }
+    }
+
+    public void updateAnswer(User loginUser, Long id, String contents) throws EntityNotFoundException {
+        Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        answer.setContents(contents);
+        if(answer.isOwner(loginUser)) {
+            answerRepository.save(answer);
         }
     }
 }

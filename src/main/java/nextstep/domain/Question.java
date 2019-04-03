@@ -1,7 +1,6 @@
 package nextstep.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -14,7 +13,9 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@AllArgsConstructor(access = AccessLevel.PUBLIC)
+@Builder
 public class Question extends AbstractEntity implements UrlGeneratable {
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
@@ -35,14 +36,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Question() {
-    }
-
-    // validator에서 처리해 주는 것 같은데 굳이 또 여기서 할 필요 있을까요..?
     public Question(String title, String contents) {
         validate(title, contents);
-        setTitle(title);
-        setContents(contents);
+        this.title = title;
+        this.contents = contents;
     }
 
     public Question(String title, String contents, Long id) {
@@ -57,16 +54,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         if(contents.length() < 3) {
             throw new IllegalArgumentException("내용이 빈약하네요. 좀 더 써보세요");
         }
-    }
-
-    public Question setTitle(String title) {
-        this.title = title;
-        return this;
-    }
-
-    public Question setContents(String contents) {
-        this.contents = contents;
-        return this;
     }
 
     public void writeBy(User loginUser) {
@@ -84,22 +71,20 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public Question update(User loginUser, Question question) throws UnAuthenticationException {
         if(!isOwner(loginUser)) {
-            System.out.println("여기 안옴?");
             throw new UnAuthenticationException("그대의 것이 아닌데?");
         }
         validate(question.title, question.contents);
-        setTitle(question.title);
-        setContents(question.contents);
+        this.title = question.title;
+        this.contents = question.contents;
         return this;
+    }
+
+    public void deleteQuestion() {
+        this.deleted = true;
     }
 
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
-    }
-
-    @Override
-    public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 }
