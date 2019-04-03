@@ -52,9 +52,9 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void 업데이트_테스트() throws Exception {
-        when(questionRepository.findById(new Long(0))).thenReturn(returnCacheValue);
+        when(questionRepository.findById(new Long(2))).thenReturn(returnCacheValue);
 
-        Question result = qnaService.update(new User("sanjigi", "password", "name", "javajigi@slipp.net"), 0, new Question("아기상어", "아빠상어"));
+        Question result = qnaService.update(new User("sanjigi", "password", "산지기", "sanjigi@slipp.net"), 2, new Question("아기상어", "아빠상어"));
         softly.assertThat(result.getTitle()).isEqualTo("아기상어");
         softly.assertThat(result.getContents()).isEqualTo("아빠상어");
         softly.assertThat(result.getWriter()).isNotNull();
@@ -76,9 +76,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void 삭제_테스트() throws CannotDeleteException {
-        when(questionRepository.findById(new Long(0))).thenReturn(returnCacheValue);
-        
-        qnaService.deleteQuestion(new User("sanjigi", "password", "name", "javajigi@slipp.net"), 0);
+        when(questionRepository.findById(new Long(2))).thenReturn(returnCacheValue);
+        qnaService.deleteQuestion(new User("sanjigi", "test", "산지기", "sanjigi@slipp.net"), 2);
     }
 
     @Test(expected = EntityNotFoundException.class)
@@ -96,7 +95,22 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(result.getContents()).isEqualTo("엄마상어는요!");
     }
 
-    // TODO : 이렇게 하는게 맞나요?
+    @Test
+    public void 답변_수정_테스트() throws Exception {
+        when(answerRepository.findById(new Long(1))).thenReturn(returnCacheAnswer);
+
+        Answer result = qnaService.updateAnswer(mockUser, 1L, "여기까지가~~ 끝인가바여!");
+        softly.assertThat(result.getContents()).isEqualTo("여기까지가~~ 끝인가바여!");
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void 답변_수정_실패테스트_없는것삭제() throws Exception {
+        when(answerRepository.findById(new Long(1))).thenReturn(returnCacheAnswer);
+
+        Answer result = qnaService.updateAnswer(mockUser, 7L, "여기까지가~~ 끝인가바여!");
+        
+    }
+
     @Test
     public void 답변_삭제_테스트() throws CannotDeleteException {
         when(answerRepository.findById(new Long(0))).thenReturn(returnCacheAnswer);

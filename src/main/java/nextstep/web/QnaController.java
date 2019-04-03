@@ -77,7 +77,7 @@ public class QnaController {
     }
 
     @PutMapping("/{id}/answers/{answerId}")
-    public String updateAnswer(@LoginUser User loginUser, @PathVariable Long id, String contents) {
+    public String updateAnswer(@LoginUser User loginUser, @PathVariable Long id, String contents) throws Exception{
         qnaService.updateAnswer(loginUser, id, contents);
         return "redirect:/questions/"+id;
     }
