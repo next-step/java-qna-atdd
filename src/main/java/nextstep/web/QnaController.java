@@ -57,7 +57,7 @@ public class QnaController {
         try {
             qnaService.update(user, id, question);
 
-            return "redirect:/" + id;
+            return "redirect:/questions/" + id;
         } catch (Exception e) {
             return "redirect:/";
         }

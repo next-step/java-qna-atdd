@@ -41,14 +41,13 @@ public class QnaService {
     public Question update(User loginUser, long id, Question updatedQuestion) throws NotOwnerException {
         Question question = getQuestion(id);
         question.update(loginUser, updatedQuestion);
-        return questionRepository.save(question);
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws NotOwnerException {
         Question question = getQuestion(questionId);
         question.delete(loginUser);
-        questionRepository.save(question);
     }
 
     public Iterable<Question> findAll() {
