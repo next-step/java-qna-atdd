@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@SQLDelete(sql = "UPDATE Question SET deleted = true WHERE id = ?")
 @Where(clause = "deleted = false")
 public class Question extends AbstractEntity implements UrlGeneratable {
     @Size(min = 3, max = 100)
