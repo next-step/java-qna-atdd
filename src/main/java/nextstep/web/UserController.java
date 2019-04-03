@@ -25,13 +25,13 @@ public class UserController {
         return "/user/form";
     }
 
-    @PostMapping("")
+    @PostMapping
     public String create(User user) {
         userService.add(user);
         return "redirect:/users";
     }
 
-    @GetMapping("")
+    @GetMapping
     public String list(Model model) {
         List<User> users = userService.findAll();
         log.debug("user size : {}", users.size());

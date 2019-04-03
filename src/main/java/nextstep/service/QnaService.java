@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.security.acl.NotOwnerException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -36,14 +38,16 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question update(User loginUser, long id, Question updatedQuestion) throws NotOwnerException {
+        Question question = getQuestion(id);
+        question.update(loginUser, updatedQuestion);
+        return question;
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public void deleteQuestion(User loginUser, long questionId) throws NotOwnerException {
+        Question question = getQuestion(questionId);
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -62,5 +66,9 @@ public class QnaService {
     public Answer deleteAnswer(User loginUser, long id) {
         // TODO 답변 삭제 기능 구현 
         return null;
+    }
+
+    private Question getQuestion(Long id) {
+        return questionRepository.findById(id).orElseThrow(NoSuchElementException::new);
     }
 }

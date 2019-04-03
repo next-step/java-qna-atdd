@@ -1,11 +1,13 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.security.acl.NotOwnerException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +66,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
+    public void update(User loginUser, Question question) throws NotOwnerException{
+        if ( !isOwner(loginUser)) {
+            throw new NotOwnerException();
+        }
+
+        this.title = question.getTitle();
+        this.contents = question.getContents();
+        this.writeBy(loginUser);
+    }
+
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
@@ -75,6 +87,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void delete(User loginUser) throws NotOwnerException {
+        if ( !isOwner(loginUser)) {
+            throw new NotOwnerException();
+        }
+
+        this.deleted = true;
     }
 
     @Override

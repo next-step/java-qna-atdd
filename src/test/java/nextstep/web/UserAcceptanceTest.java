@@ -30,10 +30,13 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Test
     public void create() throws Exception {
         String userId = "testuser";
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().addParameter("userId", userId)
-                                                                                .addParameter("password", "password")
-                                                                                .addParameter("name", "자바지기")
-                                                                                .addParameter("mail", "javajigi@slipp.net").build();
+      
+        HttpEntity<MultiValueMap<String, Object>> request =
+                HtmlFormDataBuilder.urlEncodedForm().addParameter("userId", userId)
+                                .addParameter("password", "password")
+                                .addParameter("name", "자바지기")
+                                .addParameter("mail", "javajigi@slipp.net").build();
+
         ResponseEntity<String> response = template().postForEntity("/users", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
@@ -73,12 +76,13 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                                                                            .addParameter("_method", "put")
-                                                                            .addParameter("password", "test")
-                                                                            .addParameter("name", "자바지기2")
-                                                                            .addParameter("email", "javajigi@slipp.net")
-                                                                            .build();
+        HttpEntity<MultiValueMap<String, Object>> request
+                = HtmlFormDataBuilder.urlEncodedForm()
+                                    .put()
+                                    .addParameter("password", "test")
+                                    .addParameter("name", "자바지기2")
+                                    .addParameter("email", "javajigi@slipp.net")
+                                    .build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
     }
