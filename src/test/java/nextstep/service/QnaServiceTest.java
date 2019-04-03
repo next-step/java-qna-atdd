@@ -4,6 +4,7 @@ import nextstep.UnAuthenticationException;
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.dto.QuestionDTO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,12 @@ public class QnaServiceTest extends BaseTest {
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<Question> result = qnaService.findAll(pageRequest);
         softly.assertThat(result).size().isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    public void findQuestionWithAnswer() {
+        QuestionDTO questionDTO = qnaService.findQuestionAndAnswerById(1);
+        softly.assertThat(questionDTO.getAnswerSize()).isEqualTo(2);
     }
 
     @Test

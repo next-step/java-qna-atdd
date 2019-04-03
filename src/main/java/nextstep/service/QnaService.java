@@ -42,6 +42,11 @@ public class QnaService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 답변을 찾을 수 없습니다."));
     }
 
+    public Question findQuestionWithAnswer(long id) {
+        return questionRepository.findQuestionWithAnswerById(id)
+                .orElseThrow(() -> new EntityNotFoundException("해당 질문글을 찾을 수 없습니다."));
+    }
+
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
         checkQuestionOwner(id, loginUser);
@@ -81,9 +86,8 @@ public class QnaService {
         return answer;
     }
 
-    @Transactional
     public QuestionDTO findQuestionAndAnswerById(long questionId) {
-        Question question = findById(questionId);
+        Question question = findQuestionWithAnswer(questionId);
         int answerSize = question.getAnswers().size();
         return new QuestionDTO(question, answerSize);
     }
