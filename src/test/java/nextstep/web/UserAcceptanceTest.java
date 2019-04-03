@@ -91,4 +91,12 @@ public class UserAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
+
+    @Test
+    public void loginForm() {
+        ResponseEntity<String> response = template().getForEntity("/users/login/form", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(response.getBody()).contains("/users/login");
+        log.debug("body : {}", response.getBody());
+    }
 }

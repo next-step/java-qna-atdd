@@ -54,6 +54,11 @@ public class UserController {
         return "redirect:/users";
     }
 
+    @GetMapping("/login/form")
+    public String loginForm() {
+        return "/user/login";
+    }
+
     @PostMapping("/login")
     public String login(String userId, String password, HttpSession session) {
         try {
