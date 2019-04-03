@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import lombok.*;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -7,6 +8,8 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 @Entity
+@Getter
+@NoArgsConstructor
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
@@ -22,9 +25,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Answer() {
-    }
-
     public Answer(User writer, String contents) {
         this.writer = writer;
         this.contents = contents;
@@ -36,18 +36,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.question = question;
         this.contents = contents;
         this.deleted = false;
-    }
-
-    public User getWriter() {
-        return writer;
-    }
-
-    public Question getQuestion() {
-        return question;
-    }
-
-    public String getContents() {
-        return contents;
     }
 
     public Answer setContents(String contents) {
@@ -63,17 +51,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return writer.equals(loginUser);
     }
 
-    public boolean isDeleted() {
-        return deleted;
-    }
-
     @Override
     public String generateUrl() {
         return String.format("%s/answers/%d", question.generateUrl(), getId());
-    }
-
-    @Override
-    public String toString() {
-        return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
 }
