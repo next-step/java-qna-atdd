@@ -11,12 +11,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.domain.PageRequest;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -124,6 +124,8 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         qnaService.update(loginUser, 1L, new Question("제목 수정", "내용 수정"));
+        assertThat(question.getTitle()).isEqualTo("제목 수정");
+        assertThat(question.getContents()).isEqualTo("내용 수정");
     }
 
     @Test(expected = EntityNotFoundException.class)
@@ -176,5 +178,6 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(loginUser, 1L);
+        assertTrue(question.isDeleted());
     }
 }
