@@ -1,4 +1,4 @@
-package nextstep.web;
+package support.test;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
