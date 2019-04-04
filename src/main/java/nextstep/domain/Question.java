@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import java.util.Objects;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
@@ -95,7 +96,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public void delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
-            throw new CannotDeleteException("not owner");
+            throw new UnAuthorizedException();
         }
 
         if (isDeleted()) {
@@ -103,6 +104,20 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
+    }
+
+    public boolean equalsTitleAndContents(Question target) {
+        if (Objects.isNull(target)) {
+            return false;
+        }
+
+        return title.equals(target.title) &&
+               contents.equals(target.contents);
+    }
+
+    public boolean containsAnswer(long answerId) {
+        return answers.stream()
+                .anyMatch(answer -> answer.hasId(answerId));
     }
 
     @Override

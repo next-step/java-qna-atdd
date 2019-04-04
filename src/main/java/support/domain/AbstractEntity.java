@@ -39,6 +39,10 @@ public class AbstractEntity {
         return this;
     }
 
+    public boolean hasId(long id) {
+        return this.id == id;
+    }
+
     @JsonIgnore
     public String getFormattedCreateDate() {
         return getFormattedDate(createdAt, "yyyy.MM.dd HH:mm:ss");

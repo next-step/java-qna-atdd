@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
-public class HomeControllerTest extends AcceptanceTest {
+public class HomeAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void logout() {

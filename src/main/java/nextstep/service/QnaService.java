@@ -1,9 +1,9 @@
 package nextstep.service;
 
 import java.util.List;
-import javax.annotation.Resource;
+import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
-import nextstep.NotFoundException;
 import nextstep.domain.Answer;
 import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
@@ -17,17 +17,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service("qnaService")
 public class QnaService {
-
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
+    private final DeleteHistoryService deleteHistoryService;
 
-    @Resource(name = "questionRepository")
-    private QuestionRepository questionRepository;
-
-    @Resource(name = "answerRepository")
-    private AnswerRepository answerRepository;
-
-    @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+    public QnaService(DeleteHistoryService deleteHistoryService, AnswerRepository answerRepository,
+                      QuestionRepository questionRepository) {
+        this.deleteHistoryService = deleteHistoryService;
+        this.answerRepository = answerRepository;
+        this.questionRepository = questionRepository;
+    }
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
@@ -36,15 +36,17 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Question findById(long id) throws NotFoundException {
+    public Question findById(long id) {
         return questionRepository.findById(id)
-            .orElseThrow(NotFoundException::new);
+            .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
-    public void update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, Question updatedQuestion) {
         Question original = findById(id);
         original.update(loginUser, updatedQuestion);
+
+        return original;
     }
 
     @Transactional
@@ -61,13 +63,35 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    @Transactional
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) {
+        Question question = questionRepository.findById(questionId)
+            .orElseThrow(EntityNotFoundException::new);
+        answer = new Answer(loginUser, answer.getContents());
+        question.addAnswer(answer);
+        answer.toQuestion(question);
+
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    public Answer findAnswer(long questionId, long answerId) {
+        Optional.of(findById(questionId))
+                .filter(question -> question.containsAnswer(answerId))
+                .orElseThrow(EntityNotFoundException::new);
+
+        return answerRepository.findById(answerId)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    @Transactional
+    public Answer updateAnswer(User loginUser, long questionId, long answerId, Answer targetAnswer) {
+        Answer original = findAnswer(questionId, answerId);
+        return original.update(loginUser, targetAnswer.getContents());
+    }
+
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long questionId, long answerId) {
+        Answer deletedAnswer = findAnswer(questionId, answerId);
+        return deletedAnswer.delete(loginUser);
     }
 }

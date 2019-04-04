@@ -7,13 +7,15 @@ import nextstep.domain.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Service("userService")
 public class UserService {
-    @Resource(name = "userRepository")
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public User add(User user) {
         return userRepository.save(user);
