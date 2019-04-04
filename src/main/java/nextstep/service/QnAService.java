@@ -5,6 +5,8 @@ import nextstep.web.exception.ForbiddenException;
 import nextstep.web.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,11 @@ public class QnAService {
     @Transactional(readOnly = true)
     public List<Question> findAll() {
         return questionRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Question> findAll(Pageable pageable) {
+        return questionRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
