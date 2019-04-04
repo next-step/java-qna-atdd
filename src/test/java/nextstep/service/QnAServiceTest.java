@@ -91,19 +91,6 @@ public class QnAServiceTest extends BaseTest {
         softly.assertThat(question.getContents()).isEqualTo("This is updated contents");
     }
 
-    @Test(expected = ForbiddenException.class)
-    public void 작성자가_아닌사람이_질문을_수정하면_예외가_발생한다() {
-        User user = new User(1L, "myId", "myPassword", "myName", "myEmail");
-        Question question = new Question("This is title", "This is contents");
-        question.writeBy(user);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        User anotherUser = new User(2L, "yourId", "yourPassword", "yourName", "yourEmail");
-        Question beUpdatedQuestion = new Question("This is updated title", "This is updated contents");
-        qnAService.update(anotherUser, 1L, beUpdatedQuestion);
-    }
-
     @Test
     public void 질문을_삭제한다() {
         User user = new User("myId", "myPassword", "myName", "myEmail");
@@ -113,17 +100,5 @@ public class QnAServiceTest extends BaseTest {
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         qnAService.deleteQuestion(user, 1L);
-    }
-
-    @Test(expected = ForbiddenException.class)
-    public void 작성자가_아닌사람이_질문을_삭제하면_예외가_발생한다() {
-        User user = new User(1L, "myId", "myPassword", "myName", "myEmail");
-        Question question = new Question("This is title", "This is contents");
-        question.writeBy(user);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        User anotherUser = new User(2L, "yourId", "yourPassword", "yourName", "yourEmail");
-        qnAService.deleteQuestion(anotherUser, 1L);
     }
 }

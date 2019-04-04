@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.web.exception.ForbiddenException;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -41,9 +42,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public void update(Question updatedQuestion) {
-        this.title = updatedQuestion.getTitle();
-        this.contents = updatedQuestion.getContents();
+    public void update(User user, Question updatedQuestion) {
+        if(!isOwner(user)) {
+            throw new ForbiddenException();
+        }
+
+        title = updatedQuestion.getTitle();
+        contents = updatedQuestion.getContents();
+    }
+
+    public void delete(User user) {
+        if(!isOwner(user)) {
+            throw new ForbiddenException();
+        }
+
+        deleted = true;
     }
 
     public void setTitle(String title) {

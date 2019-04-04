@@ -53,17 +53,16 @@ public class QnAService {
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question question = findByOwner(loginUser, id);
-        question.update(updatedQuestion);
+        Question question = findById(id);
+        question.update(loginUser, updatedQuestion);
 
         return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long id) {
-        Question question = findByOwner(loginUser, id);
-
-        questionRepository.delete(question);
+        Question question = findById(id);
+        question.delete(loginUser);
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
