@@ -23,6 +23,7 @@ public class LoginUserHandlerMethodArgumentResolver implements HandlerMethodArgu
         }
 
         LoginUser loginUser = parameter.getParameterAnnotation(LoginUser.class);
+        // 게스트유저일 때, required()가 true 인 경우
         if (loginUser.required()) {
             throw new UnAuthenticationException("You're required Login!");
         }
