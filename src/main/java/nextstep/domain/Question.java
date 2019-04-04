@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.web.exception.ForbiddenException;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -10,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@SQLDelete(sql = "UPDATE Question SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 public class Question extends AbstractEntity implements UrlGeneratable {
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
@@ -38,22 +42,37 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public void update(User user, Question updatedQuestion) {
+        if(!isOwner(user)) {
+            throw new ForbiddenException();
+        }
+
+        title = updatedQuestion.getTitle();
+        contents = updatedQuestion.getContents();
+    }
+
+    public void delete(User user) {
+        if(!isOwner(user)) {
+            throw new ForbiddenException();
+        }
+
+        deleted = true;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContents(String contents) {
+        this.contents = contents;
+    }
+
     public String getTitle() {
         return title;
     }
 
-    public Question setTitle(String title) {
-        this.title = title;
-        return this;
-    }
-
     public String getContents() {
         return contents;
-    }
-
-    public Question setContents(String contents) {
-        this.contents = contents;
-        return this;
     }
 
     public User getWriter() {

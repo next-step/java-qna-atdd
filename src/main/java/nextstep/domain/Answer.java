@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import org.hibernate.annotations.SQLDelete;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -7,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 @Entity
+@SQLDelete(sql = "UPDATE Answer SET deleted = true WHERE id = ?")
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
