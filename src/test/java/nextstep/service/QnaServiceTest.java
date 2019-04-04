@@ -41,6 +41,7 @@ public class QnaServiceTest extends BaseTest {
         writer = new User(1, "tester", "passwd", "name", "tester@test.com");
         question = new Question("Question 제목", "본문 내용~~~");
         question.writeBy(writer);
+        question.setId(1);
     }
 
     @Test
@@ -128,7 +129,7 @@ public class QnaServiceTest extends BaseTest {
         String answerContents = "comment~~~~";
 
         // When
-        Answer answer = qnaService.addAnswer(answerWriter, 1L, answerContents);
+        Answer answer = qnaService.addAnswer(answerWriter,1L, new Answer(answerContents));
 
         // Then
         assertThat(answer.getQuestion()).isEqualTo(question);
@@ -142,7 +143,7 @@ public class QnaServiceTest extends BaseTest {
         String answerContents = "comment~~~~";
 
         // When
-        Answer answer = qnaService.addAnswer(answerWriter, 2L, answerContents);
+        Answer answer = qnaService.addAnswer(answerWriter, 2L, new Answer(answerContents));
     }
 
     @Test
@@ -151,11 +152,14 @@ public class QnaServiceTest extends BaseTest {
         User answerWriter = newUser("answriter");
         String comment = "comment~~~~";
         Answer answer = new Answer(answerWriter, comment);
-        answer.toQuestion(question);
+        answer.setId(1);
+        question.addAnswer(answer);
+
         when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         // When
-        qnaService.deleteAnswer(answerWriter, 1L);
+        qnaService.deleteAnswer(answerWriter, 1L, 1L);
 
         // Then
         assertThat(answer.isDeleted()).isEqualTo(true);
@@ -167,10 +171,13 @@ public class QnaServiceTest extends BaseTest {
         User answerWriter = newUser(1L, "answriter", "test");
         String comment = "comment~~~~";
         Answer answer = new Answer(answerWriter, comment);
-        answer.toQuestion(question);
+        answer.setId(1L);
+        question.addAnswer(answer);
+
+        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
         when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
 
         // When
-        qnaService.deleteAnswer(newUser(2L, "other", "tt"), 1L);
+        qnaService.deleteAnswer(newUser(2L, "other", "tt"), 1L, 1L);
     }
 }

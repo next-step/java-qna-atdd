@@ -115,6 +115,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
                contents.equals(target.contents);
     }
 
+    public boolean containsAnswer(long answerId) {
+        return answers.stream()
+                .anyMatch(answer -> answer.hasId(answerId));
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());

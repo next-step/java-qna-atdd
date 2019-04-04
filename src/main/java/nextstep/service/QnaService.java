@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
@@ -64,20 +65,34 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) {
         Question question = questionRepository.findById(questionId)
             .orElseThrow(EntityNotFoundException::new);
-
-        Answer answer = new Answer(loginUser, contents);
+        answer = new Answer(loginUser, answer.getContents());
+        question.addAnswer(answer);
         answer.toQuestion(question);
 
         return answer;
     }
 
+    public Answer findAnswer(long questionId, long answerId) {
+        Optional.of(findById(questionId))
+                .filter(question -> question.containsAnswer(answerId))
+                .orElseThrow(EntityNotFoundException::new);
+
+        return answerRepository.findById(answerId)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
     @Transactional
-    public Answer deleteAnswer(User loginUser, long id) {
-        Answer answer = answerRepository.findById(id)
-            .orElseThrow(EntityNotFoundException::new);
-        return answer.delete(loginUser);
+    public Answer updateAnswer(User loginUser, long questionId, long answerId, Answer targetAnswer) {
+        Answer original = findAnswer(questionId, answerId);
+        return original.update(loginUser, targetAnswer.getContents());
+    }
+
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long questionId, long answerId) {
+        Answer deletedAnswer = findAnswer(questionId, answerId);
+        return deletedAnswer.delete(loginUser);
     }
 }
