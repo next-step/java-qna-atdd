@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnAService;
@@ -36,8 +37,8 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String create(@LoginUser User user, Question question) {
-        Question result = qnAService.create(user, question);
+    public String create(@LoginUser User user, QuestionBody payload) {
+        Question result = qnAService.createQuestion(user, payload);
 
         return "redirect:/questions/" + result.getId();
     }
@@ -51,15 +52,15 @@ public class QuestionController {
     }
 
     @PatchMapping("{id}")
-    public String update(@LoginUser User user, @PathVariable Long id, Question question) {
-        Question result = qnAService.update(user, id, question);
+    public String update(@LoginUser User user, @PathVariable Long id, QuestionBody question) {
+        Question result = qnAService.updateQuestion(id, user, question);
 
         return "redirect:/questions/" + result.getId();
     }
 
     @DeleteMapping("{id}")
     public String delete(@LoginUser User user, @PathVariable Long id) {
-        qnAService.deleteQuestion(user, id);
+        qnAService.deleteQuestion(id, user);
 
         return "redirect:/home";
     }

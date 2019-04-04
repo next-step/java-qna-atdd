@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.dto.ListResponse;
 import org.junit.Test;
@@ -13,33 +14,60 @@ import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
-    private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
-
     @Test
     public void 질문_목록을_조회한다() {
         ListResponse<Question> result = getListResource(
             "/api/questions", Question.class, defaultUser()).getBody();
 
-        softly.assertThat(result.getTotalElements()).isGreaterThanOrEqualTo(2L);
-    }
-
-    @Test
-    public void 목록_페이징이_가능하다() {
-        ListResponse<Question> result = getListResource(
-            String.format("/api/questions?page=%d&size=%d", 1, 1), Question.class, defaultUser()).getBody();
-
-        softly.assertThat(result.getPage()).isEqualTo(1);
-        softly.assertThat(result.getSize()).isEqualTo(1);
+        softly.assertThat(result.getCount()).isGreaterThanOrEqualTo(2);
     }
 
     @Test
     public void 질문_상세를_조회한다() {
         Question question = getResource(String.format("/api/questions/%d", 1), Question.class, defaultUser()).getBody();
 
-        softly.assertThat(question.getTitle()).isNotNull();
-        softly.assertThat(question.getContents()).isNotNull();
+        softly.assertThat(question.getQuestionBody()).isNotNull();
     }
 
+    @Test
+    public void 질문을_등록한다() {
+        QuestionBody payload = new QuestionBody("This is title", "This is contents");
+        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, defaultUser());
+
+        String location = createResponse.getHeaders().getLocation().getPath();
+
+        Question createdQuestion = getResource(location, Question.class, defaultUser()).getBody();
+
+        softly.assertThat(createdQuestion.getQuestionBody()).isEqualTo(payload);
+    }
+
+    @Test
+    public void 질문을_수정한다() {
+        QuestionBody payload = new QuestionBody("This is title", "This is contents");
+        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, defaultUser());
+
+        String location = createResponse.getHeaders().getLocation().getPath();
+
+        QuestionBody newPayload = new QuestionBody("This is updated title", "This is updated contents");
+        Question updatedQuestion = updateResource(location, newPayload, Question.class, defaultUser()).getBody();
+
+        softly.assertThat(updatedQuestion.getQuestionBody()).isEqualTo(newPayload);
+    }
+
+    @Test
+    public void 질문을_삭제한다() {
+        QuestionBody payload = new QuestionBody("This is title", "This is contents");
+        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, defaultUser());
+
+        String location = createResponse.getHeaders().getLocation().getPath();
+        deleteResource(location, defaultUser());
+
+        ResponseEntity<Void> getResponse = basicAuthTemplate(defaultUser()).getForEntity(location, Void.class);
+
+        softly.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    /*
     @Test
     public void 로그인_하지않아도_조회는_가능하다() {
         ResponseEntity<ListResponse<Question>> listResponse = template().exchange("/api/questions",
@@ -50,19 +78,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(detailResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    @Test
-    public void 질문을_등록한다() {
-        Question payload = new Question("This is title", "This is contents");
-        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, defaultUser());
-
-        String location = createResponse.getHeaders().getLocation().getPath();
-
-        Question createdQuestion = getResource(location, Question.class, defaultUser()).getBody();
-
-        softly.assertThat(createdQuestion.getTitle()).isEqualTo("This is title");
-        softly.assertThat(createdQuestion.getContents()).isEqualTo("This is contents");
-    }
-
+    // check 제거할 수 있는 부분?
     @Test
     public void 로그인한_사용자가_아니면_질문을_등록할수_없다() {
         Question payload = new Question("This is title", "This is contents");
@@ -71,20 +87,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
-    @Test
-    public void 질문을_수정한다() {
-        Question payload = new Question("This is title", "This is contents");
-        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, defaultUser());
-
-        String location = createResponse.getHeaders().getLocation().getPath();
-
-        Question beUpdatedQuestion = new Question("This is updated title", "This is updated contents");
-        Question updatedQuestion = updateResource(location, beUpdatedQuestion, Question.class, defaultUser()).getBody();
-
-        softly.assertThat(updatedQuestion.getTitle()).isEqualTo("This is updated title");
-        softly.assertThat(updatedQuestion.getContents()).isEqualTo("This is updated contents");
-    }
-
+    // check 제거할 수 있는 부분?
     @Test
     public void 작성자가_어니면_질문을_수정할수_없다() {
         Question payload = new Question("This is title", "This is contents");
@@ -101,19 +104,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    @Test
-    public void 질문을_삭제한다() {
-        Question payload = new Question("This is title", "This is contents");
-        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, defaultUser());
-
-        String location = createResponse.getHeaders().getLocation().getPath();
-        deleteResource(location, defaultUser());
-
-        ResponseEntity<Void> getResponse = basicAuthTemplate(defaultUser()).getForEntity(location, Void.class);
-
-        softly.assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    }
-
+    // check 제거할 수 있는 부분?
     @Test
     public void 작성자가_어니면_질문을_삭제할수_없다() {
         Question payload = new Question("This is title", "This is contents");
@@ -127,4 +118,5 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+    */
 }

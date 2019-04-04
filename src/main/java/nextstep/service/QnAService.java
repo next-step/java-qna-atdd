@@ -32,13 +32,36 @@ public class QnAService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable);
+    public Question findById(long id) {
+        return questionRepository.findById(id)
+            .filter(q -> !q.isDeleted())
+            .orElseThrow(NotFoundException::new);
+    }
+
+    @Transactional
+    public Question createQuestion(User writer, QuestionBody questionBody) {
+        Question question = new Question(writer, questionBody);
+
+        return questionRepository.save(question);
+    }
+
+    @Transactional
+    public Question updateQuestion(Long id, User loginUser, QuestionBody newQuestionBody) {
+        Question question = findById(id);
+        question.update(loginUser, newQuestionBody);
+
+        return question;
+    }
+
+    @Transactional
+    public void deleteQuestion(Long id, User writer) {
+        Question question = findById(id);
+        question.delete(writer);
     }
 
     @Transactional(readOnly = true)
-    public Question findById(long id) {
-        return questionRepository.findById(id).orElseThrow(NotFoundException::new);
+    public Page<Question> findAll(Pageable pageable) {
+        return questionRepository.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
@@ -52,29 +75,11 @@ public class QnAService {
         return question;
     }
 
-    @Transactional
-    public Question create(User loginUser, Question question) {
-        question.writeBy(loginUser);
-        return questionRepository.save(question);
-    }
-
-    @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question question = findById(id);
-        question.update(loginUser, updatedQuestion);
-
-        return question;
-    }
-
-    @Transactional
-    public void deleteQuestion(User loginUser, long id) {
-        Question question = findById(id);
-        question.delete(loginUser);
-    }
-
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Question question = findById(questionId);
+        Answer answer = new Answer(loginUser, question, contents);
+
+        return answerRepository.save(answer);
     }
 
     public Answer deleteAnswer(User loginUser, long id) {

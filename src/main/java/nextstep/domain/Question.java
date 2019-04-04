@@ -12,20 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@SQLDelete(sql = "UPDATE Question SET deleted = true WHERE id = ?")
-@Where(clause = "deleted = false")
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @Size(min = 3, max = 100)
-    @Column(length = 100, nullable = false)
-    private String title;
-
-    @Size(min = 3)
-    @Lob
-    private String contents;
-
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
+
+    @Embedded
+    private QuestionBody questionBody;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
@@ -37,46 +30,38 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
-    public Question(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
+    public Question(User writer, QuestionBody questionBody) {
+        if(writer == null) {
+            // todo 좀 더 추상화된 예외로 처리하고, exceptionHandler 에서 받아서 httpStatus로 내려줘야함
+            throw new IllegalArgumentException();
+        }
+        this.writer = writer;
+        this.questionBody = questionBody;
     }
 
-    public void update(User user, Question updatedQuestion) {
-        if(!isOwner(user)) {
+    public void update(User writer, QuestionBody newQuestionBody) {
+        if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
-        title = updatedQuestion.getTitle();
-        contents = updatedQuestion.getContents();
+        questionBody = newQuestionBody;
     }
 
-    public void delete(User user) {
-        if(!isOwner(user)) {
+    public void delete(User writer) {
+        if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
         deleted = true;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setContents(String contents) {
-        this.contents = contents;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContents() {
-        return contents;
-    }
 
     public User getWriter() {
         return writer;
+    }
+
+    public QuestionBody getQuestionBody() {
+        return questionBody;
     }
 
     public void writeBy(User loginUser) {
@@ -99,10 +84,5 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
-    }
-
-    @Override
-    public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 }
