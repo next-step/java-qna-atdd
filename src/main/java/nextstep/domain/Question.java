@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NamedEntityGraph(name = "QuestionWithAnswer", attributeNodes = @NamedAttributeNode("answers"))
 public class Question extends AbstractEntity implements UrlGeneratable {
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)

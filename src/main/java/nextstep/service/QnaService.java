@@ -6,10 +6,10 @@ import nextstep.dto.QuestionDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
@@ -17,14 +17,17 @@ import java.util.List;
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
-    @Resource(name = "questionRepository")
     private QuestionRepository questionRepository;
 
-    @Resource(name = "answerRepository")
     private AnswerRepository answerRepository;
 
-    @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
+
+    public QnaService(QuestionRepository questionRepository, AnswerRepository answerRepository, DeleteHistoryService deleteHistoryService) {
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
+        this.deleteHistoryService = deleteHistoryService;
+    }
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
@@ -42,8 +45,9 @@ public class QnaService {
                 .orElseThrow(() -> new EntityNotFoundException("해당 답변을 찾을 수 없습니다."));
     }
 
+    @Query("select a from question join fetch a.anwers")
     public Question findQuestionWithAnswer(long id) {
-        return questionRepository.findQuestionWithAnswerById(id)
+        return questionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("해당 질문글을 찾을 수 없습니다."));
     }
 
@@ -86,6 +90,7 @@ public class QnaService {
         return answer;
     }
 
+    @Transactional
     public QuestionDTO findQuestionAndAnswerById(long questionId) {
         Question question = findQuestionWithAnswer(questionId);
         int answerSize = question.getAnswers().size();

@@ -5,6 +5,8 @@ import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.dto.QuestionDTO;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +27,30 @@ public class QnaServiceTest extends BaseTest {
     @Autowired
     private UserService userService;
 
-    @Test
+    private long testQuestionId;
+    private long testAnswerId;
+
+    @Before
+    public void setUp() throws Exception {
+        Question question = new Question("질문하기", "테스트");
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Question result = qnaService.create(user, question);
+        testQuestionId = result.getId();
+
+        user = userService.login(user.getUserId(), user.getPassword());
+        Answer answer = qnaService.addAnswer(user, question.getId(), "answer test");
+        testAnswerId = answer.getId();
+    }
+
+    /*@Test
     public void create() throws UnAuthenticationException {
         Question question = new Question("질문하기", "테스트");
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         Question result = qnaService.create(user, question);
         softly.assertThat(result.getTitle()).isEqualTo(question.getTitle());
-    }
+    }*/
 
     @Test
     public void update() throws UnAuthenticationException {
@@ -40,20 +58,18 @@ public class QnaServiceTest extends BaseTest {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         question.writeBy(user);
-        Question result = qnaService.update(user, 2, question);
+        Question result = qnaService.update(user, testQuestionId, question);
         softly.assertThat(result.getContents()).isEqualTo(question.getContents());
     }
 
     @Test
-    public void findAll() throws UnAuthenticationException {
-        create();
+    public void findAll() {
         Iterable<Question> result = qnaService.findAll();
         softly.assertThat(result).size().isGreaterThanOrEqualTo(1);
     }
 
     @Test
-    public void findAllWithPageable() throws UnAuthenticationException {
-        create();
+    public void findAllWithPageable() {
         PageRequest pageRequest = PageRequest.of(0, 10);
         List<Question> result = qnaService.findAll(pageRequest);
         softly.assertThat(result).size().isGreaterThanOrEqualTo(1);
@@ -67,21 +83,21 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void findById() {
-        Question result = qnaService.findById(2);
+        Question result = qnaService.findById(testQuestionId);
         softly.assertThat(result.getWriter().getUserId()).isEqualTo("sanjigi");
     }
 
-    @Test
+    /*@Test
     public void deleteQuestion() throws UnAuthenticationException {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
-        Question question = qnaService.findById(2);
+        Question question = qnaService.findById(testQuestionId);
         qnaService.deleteQuestion(user, question.getId());
-    }
+    }*/
 
     @Test
     public void addAnswer() throws UnAuthenticationException {
-        Question question = qnaService.findById(2);
+        Question question = qnaService.findById(testQuestionId);
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         Answer result = qnaService.addAnswer(user, question.getId(), "answer test");
@@ -92,7 +108,15 @@ public class QnaServiceTest extends BaseTest {
     public void deleteAnswer() throws UnAuthenticationException {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
-        Answer answer = qnaService.findAnswerById(2);
+        Answer answer = qnaService.findAnswerById(testAnswerId);
         qnaService.deleteAnswer(user, answer.getId());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+//        Question question = qnaService.findById(testQuestionId);
+        qnaService.deleteQuestion(user, testQuestionId);
     }
 }
