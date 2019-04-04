@@ -8,7 +8,6 @@ import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
@@ -27,8 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/questions")
 public class ApiQuestionController {
-    @Autowired
-    private QnaService qnaService;
+    private final QnaService qnaService;
+
+    public ApiQuestionController(QnaService qnaService) {
+        this.qnaService = qnaService;
+    }
 
     @GetMapping("")
     public Iterable<Question> list(

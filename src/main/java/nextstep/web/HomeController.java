@@ -4,16 +4,17 @@ import javax.servlet.http.HttpSession;
 import nextstep.domain.User;
 import nextstep.security.HttpSessionUtils;
 import nextstep.service.QnaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class HomeController {
+    private final QnaService qnaService;
 
-    @Autowired
-    QnaService qnaService;
+    public HomeController(QnaService qnaService) {
+        this.qnaService = qnaService;
+    }
 
     @GetMapping("/")
     public String home(Model model) {
