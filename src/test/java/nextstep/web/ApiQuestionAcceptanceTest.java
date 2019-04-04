@@ -75,11 +75,11 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 본인글_삭제_가능() {
-        Question createQuestion = new Question("제목원본", "내용원본");
-        String location = createLoginUserResource("/api/questions", createQuestion, defaultUser());
+//        Question createQuestion = new Question("제목원본", "내용원본");
+//        String location = createLoginUserResource("/api/questions/", createQuestion, defaultUser());
 
         ResponseEntity<Question> exchange =
-            basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.DELETE, null, Question.class);
+            basicAuthTemplate(defaultUser()).exchange("/api/questions/4", HttpMethod.DELETE, null, Question.class);
 //            basicAuthTemplate(defaultUser()).delete(template(),location);
         softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
