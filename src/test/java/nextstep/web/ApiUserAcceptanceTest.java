@@ -21,7 +21,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void show_다른_사람() throws Exception {
+    public void show_다른_사람() {
         User newUser = newUser("testuser2");
         String location =  createResource("/api/users", newUser);
         ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).getForEntity(location, Void.class);
@@ -29,7 +29,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update() throws Exception {
+    public void update() {
         User newUser = newUser("testuser3");
         String location = createResource("/api/users", newUser);
         User original = getResource(location, User.class, newUser);
@@ -46,7 +46,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update_no_login() throws Exception {
+    public void update_no_login() {
         User newUser = newUser("testuser4");
         String location = createResource("/api/users", newUser);
         User original = getResource(location, User.class, newUser);
@@ -62,7 +62,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update_다른_사람() throws Exception {
+    public void update_다른_사람() {
         User newUser = newUser("testuser5");
         String location = createResource("/api/users", newUser);
 
