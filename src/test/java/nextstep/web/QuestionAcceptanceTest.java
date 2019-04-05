@@ -57,6 +57,13 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         log.debug("body : {}", response.getBody());
     }
 
+    @Test
+    public void update() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .put()
@@ -68,18 +75,17 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update() throws Exception {
-        ResponseEntity<String> response = update(basicAuthTemplate());
+    public void delete() throws Exception {
+        ResponseEntity<String> response = delete(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
-    @Test
-    public void delete() throws Exception {
-        User loginUser = defaultUser();
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .getForEntity(String.format("/questions/delete/%d", defaultQuestion().getId()), String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        log.debug("body : {}", response.getBody());
+    private ResponseEntity<String> delete(TestRestTemplate template) throws Exception {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .delete()
+                .build();
+
+        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
     }
 }
