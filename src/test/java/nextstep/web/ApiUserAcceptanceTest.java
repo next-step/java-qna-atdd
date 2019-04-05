@@ -16,12 +16,12 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     public void create() throws Exception {
         // given
         User newUser = newUser("testuser1");
-        String resourceLocation = createAndGetUserResource(newUser);
 
         // when
-        ResponseEntity<User> response = getUserResource(newUser, resourceLocation);
+        String resourceLocation = createAndGetUserResource(newUser);
 
         // then
+        ResponseEntity<User> response = getUserResource(newUser, resourceLocation);
         User dbUser = response.getBody();
         softly.assertThat(dbUser).isNotNull();
     }
@@ -114,7 +114,6 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     }
 
     protected ResponseEntity<User> updateUserResource(User loginUser, String location, User updatedUser) {
-        return updateResource(loginUser, location, updatedUser
-                , User.class);
+        return updateResource(loginUser, location, updatedUser, User.class);
     }
 }
