@@ -77,12 +77,13 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void update(User loginUser, Answer modifiedAnswer) {
+    public Answer update(User loginUser, Answer modifiedAnswer) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
         this.contents = modifiedAnswer.contents;
+        return this;
     }
 
     @Override
