@@ -36,7 +36,7 @@ public class QuestionServiceTest extends BaseTest {
 
     @Test
     public void create_question_success() {
-        when(questionRepository.findById(user)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(question));
 
         qnaService.create(user, question);
     }
@@ -46,14 +46,14 @@ public class QuestionServiceTest extends BaseTest {
         when(userRepository.findByUserId(DEFAULT_LOGIN_USER)).thenReturn(Optional.empty());
         User user = userRepository.findByUserId(DEFAULT_LOGIN_USER).get();
 
-        when(questionRepository.findById(user)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(question));
 
         qnaService.create(user, question);
     }
 
     @Test
     public void update_question_success() {
-        when(questionRepository.findById(user)).thenReturn(Optional.of(original));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(original));
         when(questionRepository.findById(original.getId())).thenReturn(Optional.of(original));
 
         original.writeBy(user);
@@ -62,9 +62,9 @@ public class QuestionServiceTest extends BaseTest {
         qnaService.update(user, target.getId(), target);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void update_question_not_original_id() {
-        when(questionRepository.findById(user)).thenReturn(Optional.of(original));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(original));
 
         qnaService.update(user, target.getId(), target);
     }
@@ -72,7 +72,7 @@ public class QuestionServiceTest extends BaseTest {
 
     @Test(expected = NullPointerException.class)
     public void update_question_is_not_owner_original() {
-        when(questionRepository.findById(user)).thenReturn(Optional.of(original));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(original));
         when(questionRepository.findById(original.getId())).thenReturn(Optional.of(original));
 
         target.writeBy(user);
@@ -81,8 +81,20 @@ public class QuestionServiceTest extends BaseTest {
     }
 
     @Test
+    public void update_question_what_deleted_original() {
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(original));
+        when(questionRepository.findById(original.getId())).thenReturn(Optional.of(original));
+
+        target.writeBy(user);
+        original.writeBy(user);
+
+        qnaService.update(user, target.getId(), target);
+        softly.assertThat(original.isDeleted()).isEqualTo(true);
+    }
+
+    @Test
     public void delete_question_success() throws CannotDeleteException {
-        when(questionRepository.findById(user)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(question));
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
         question.writeBy(user);
@@ -93,7 +105,7 @@ public class QuestionServiceTest extends BaseTest {
 
     @Test(expected = NullPointerException.class)
     public void delete_question_is_not_exist_owner() throws CannotDeleteException {
-        when(questionRepository.findById(user)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(question));
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(user, question.getId());

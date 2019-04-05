@@ -75,6 +75,13 @@ public class UserAcceptanceTest extends AcceptanceTest {
         log.debug("body : {}", response.getBody());
     }
 
+    @Test
+    public void update() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
+    }
+
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .put()
@@ -84,12 +91,5 @@ public class UserAcceptanceTest extends AcceptanceTest {
                 .build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
-    }
-
-    @Test
-    public void update() throws Exception {
-        ResponseEntity<String> response = update(basicAuthTemplate());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
 }
