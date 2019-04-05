@@ -135,6 +135,76 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    public void answer_update_no_login() {
+        // given
+        Answer answer = defaultAnswer();
+
+        // when
+        String modifiedContents = "Hello World";
+        answer.setContents(modifiedContents);
+
+        ResponseEntity<Answer> response = updateResourceWithoutLogin(answer.generateUrl(), modifiedContents, Answer.class);
+
+        // then
+        Answer dbAnswer = answerRepository.findById(answer.getId()).get();
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+        softly.assertThat(dbAnswer.getContents()).isNotEqualTo(modifiedContents);
+    }
+
+    @Test
+    public void answer_update_login_작성자() {
+        // given
+        User loginUser = defaultUser();
+        Answer answer = defaultAnswer();
+
+        // when
+        String modifiedContents = "Hello World";
+        answer.setContents(modifiedContents);
+
+        ResponseEntity<Answer> response = updateAnswerResource(loginUser, answer.generateUrl(), answer);
+
+        // then
+        Answer dbAnswer = answerRepository.findById(answer.getId()).get();
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+        softly.assertThat(dbAnswer.getContents()).isEqualTo(modifiedContents);
+    }
+
+    @Test
+    public void answer_update_login_작성자가_아닌_경우() {
+        // given
+        User loginUser = defaultUser();
+        Answer answer = otherAnswer();
+
+        // when
+        String modifiedContents = "Hello World";
+        answer.setContents(modifiedContents);
+
+        ResponseEntity<Answer> response = updateAnswerResource(loginUser, answer.generateUrl(), answer);
+
+        // then
+        Answer dbAnswer = answerRepository.findById(answer.getId()).get();
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(dbAnswer.getContents()).isNotEqualTo(modifiedContents);
+    }
+
+    @Test
+    public void answer_update_login_존재하지_않는_답변() {
+        // given
+        User loginUser = defaultUser();
+        Answer answer = defaultAnswer();
+
+        // when
+        String modifiedContents = "Hello World";
+        answer.setContents(modifiedContents);
+
+        String location = "/api/answers/656544";
+        ResponseEntity<Answer> response = updateAnswerResource(loginUser, location, answer);
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.BAD_REQUEST);
+    }
+
     private Answer otherAnswer() {
         return answerRepository.findById(2L).get();
     }
@@ -165,5 +235,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> deleteAnswerResource(User loginUser, Answer answer) {
         return deleteResource(loginUser, answer.generateUrl(), String.class);
+    }
+
+    private ResponseEntity<Answer> updateAnswerResource(User loginUser, String location, Answer updatedAnswer) {
+        return updateResource(loginUser, location, updatedAnswer, Answer.class);
     }
 }

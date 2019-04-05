@@ -41,4 +41,9 @@ public class ApiAnswerController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{answerId}")
+    public Answer updateAnswer(@LoginUser User loginUser, @PathVariable long answerId, @RequestBody @Valid Answer answer) {
+        return qnaService.updateAnswer(loginUser, answerId, answer);
+    }
 }
