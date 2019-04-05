@@ -29,9 +29,9 @@ public class UserAcceptanceTest extends AcceptanceTest {
     @Test
     public void create() throws Exception {
         String userId = "testuser";
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
 
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().addParameter("userId", userId)
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .addParameter("userId", userId)
                 .addParameter("password", "password")
                 .addParameter("name", "자바지기")
                 .addParameter("email", "javajigi@slipp.net")
@@ -53,13 +53,6 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void updateForm_no_login() throws Exception {
-        ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", defaultUser().getId()),
-                String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
     public void updateForm_login() throws Exception {
         User loginUser = defaultUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
@@ -69,10 +62,24 @@ public class UserAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    public void updateForm_no_login() throws Exception {
+        ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", defaultUser().getId()),
+                String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
     public void update_no_login() throws Exception {
         ResponseEntity<String> response = update(template());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void update() throws Exception {
+        ResponseEntity<String> response = update(basicAuthTemplate());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
 
     private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
@@ -84,12 +91,5 @@ public class UserAcceptanceTest extends AcceptanceTest {
                 .build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
-    }
-
-    @Test
-    public void update() throws Exception {
-        ResponseEntity<String> response = update(basicAuthTemplate());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
 }
