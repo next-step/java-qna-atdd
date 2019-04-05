@@ -67,9 +67,8 @@ public class QnaService {
     public Answer addAnswer(User loginUser, long questionId, Answer answer) {
         Question question = questionRepository.findById(questionId)
             .orElseThrow(EntityNotFoundException::new);
-        answer = new Answer(loginUser, answer.getContents());
+        answer.writeBy(loginUser);
         question.addAnswer(answer);
-        answer.toQuestion(question);
 
         return answer;
     }
