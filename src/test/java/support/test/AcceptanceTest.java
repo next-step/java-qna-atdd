@@ -51,7 +51,7 @@ public abstract class AcceptanceTest extends BaseTest {
         return findByUserId(DEFAULT_LOGIN_USER);
     }
 
-    protected Optional<Question> findById(String userId) {
-        return questionRepository.findById(defaultUser());
+    protected Optional<Question> findById(long userId) {
+        return questionRepository.findById(userId);
     }
 }
