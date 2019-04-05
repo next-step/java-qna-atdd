@@ -90,6 +90,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
         this.title = targetQna.title;
         this.contents = targetQna.contents;
+        this.deleted = true;
 
         return this;
     }
