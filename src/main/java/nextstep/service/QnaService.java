@@ -76,12 +76,10 @@ public class QnaService {
         }
     }
 
+    @Transactional
     public Answer updateAnswer(User loginUser, Long id, String contents) throws Exception {
         Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         answer.update(loginUser, contents);
-        if(answer.isOwner(loginUser)) {
-            answerRepository.save(answer);
-        }
         return answer;
     }
 }
