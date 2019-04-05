@@ -36,7 +36,7 @@ public class QnaServiceTest extends BaseTest {
     @Before
     public void setUp() {
         mockQuestion.writeBy(mockUser);
-        Fixture.answer.setId(0);
+        Fixture.answer.setId(1);
         returnCacheValue = Optional.of((Question) mockQuestion);
         returnCacheAnswer = Optional.of((Answer) Fixture.answer);
     }
@@ -108,7 +108,12 @@ public class QnaServiceTest extends BaseTest {
         when(answerRepository.findById(new Long(1))).thenReturn(returnCacheAnswer);
 
         Answer result = qnaService.updateAnswer(mockUser, 7L, "여기까지가~~ 끝인가바여!");
-        
+    }
+
+    @Test(expected = UnAuthenticationException.class)
+    public void 답변_수정_실패테스트_유저다름() throws Exception {
+        when(answerRepository.findById(1L)).thenReturn(returnCacheAnswer);
+        Answer result = qnaService.updateAnswer(new User("hyerin", "password", "hyerin", "hyerin@hyerin.net"), 1L, "여기까지가~~ 끝인가바여!");
     }
 
     @Test

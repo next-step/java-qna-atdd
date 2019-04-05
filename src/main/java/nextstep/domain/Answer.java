@@ -1,6 +1,7 @@
 package nextstep.domain;
 
 import lombok.*;
+import nextstep.UnAuthenticationException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -10,6 +11,7 @@ import javax.validation.constraints.Size;
 @Entity
 @Getter
 @NoArgsConstructor
+@ToString
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
@@ -43,12 +45,20 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public Answer update(User loginUser, String contents) throws UnAuthenticationException {
+        if(!isOwner(loginUser)) {
+            throw new UnAuthenticationException("그대의 것이 아닌데?");
+        }
+        this.contents = contents;
+        return this;
+    }
+
     public void toQuestion(Question question) {
         this.question = question;
     }
 
     public boolean isOwner(User loginUser) {
-        return writer.equals(loginUser);
+        return writer.equalsNameAndEmail(loginUser);
     }
 
     @Override
