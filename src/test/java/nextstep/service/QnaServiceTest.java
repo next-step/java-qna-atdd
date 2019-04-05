@@ -155,7 +155,6 @@ public class QnaServiceTest extends BaseTest {
         answer.setId(1);
         question.addAnswer(answer);
 
-        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
 
         // When
@@ -175,7 +174,6 @@ public class QnaServiceTest extends BaseTest {
         question.addAnswer(answer);
 
         when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(1L)).thenReturn(Optional.of(answer));
 
         // When
         qnaService.deleteAnswer(newUser(2L, "other", "tt"), 1L, 1L);

@@ -115,9 +115,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
                contents.equals(target.contents);
     }
 
-    public boolean containsAnswer(long answerId) {
+    public Answer getAnswer(long answerId) {
         return answers.stream()
-                .anyMatch(answer -> answer.hasId(answerId));
+                .filter(answer -> answer.hasId(answerId))
+                .findAny()
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Override

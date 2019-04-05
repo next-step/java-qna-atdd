@@ -74,12 +74,7 @@ public class QnaService {
     }
 
     public Answer findAnswer(long questionId, long answerId) {
-        Optional.of(findById(questionId))
-                .filter(question -> question.containsAnswer(answerId))
-                .orElseThrow(EntityNotFoundException::new);
-
-        return answerRepository.findById(answerId)
-                .orElseThrow(EntityNotFoundException::new);
+        return findById(questionId).getAnswer(answerId);
     }
 
     @Transactional
