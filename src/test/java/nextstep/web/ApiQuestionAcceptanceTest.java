@@ -96,6 +96,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 다른유저의_댓글이_있는_나의_글_삭제_불가능() {
+        //db 의존..import.sql
         long questionsId = 1L;
         Answer answer = new Answer(findByUserId("testid"), "내용수정");
         basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/api/questions/%d/answers", questionsId), createHttpEntity(answer), Void.class);

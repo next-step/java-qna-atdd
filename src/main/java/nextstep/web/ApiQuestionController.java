@@ -44,6 +44,5 @@ public class ApiQuestionController {
         return qnaService.deleteQuestion(loginUser, id);
     }
 
-
 }
 
