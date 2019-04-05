@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 @Service("qnaService")
 @RequiredArgsConstructor
@@ -75,8 +76,7 @@ public class QnaService {
     @Transactional
     public Answer updateAnswer(User loginUser, long id, Answer updatedAnswer) {
         Answer original = findAnswerById(id);
-        original.update(loginUser, updatedAnswer);
-        return original;
+        return original.update(loginUser, updatedAnswer);
     }
 
     @Transactional
@@ -90,9 +90,6 @@ public class QnaService {
     }
 
     public Answer findAnswerById(long questionId, long id) {
-        if (!findQuestionById(questionId).isContainsAnswer(id)) {
-            throw new EntityNotFoundException();
-        }
-        return findAnswerById(id);
+        return findQuestionById(questionId).getContainsAnswer(id).orElseThrow(EntityNotFoundException::new);
     }
 }

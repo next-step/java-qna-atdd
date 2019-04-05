@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class QnaServiceTest extends BaseTest {
+    private static final long ID_ONE = 1L;
+    private static final long ID_TWO = 2L;
 
     private User loginUser;
     private Question question;
@@ -49,7 +51,6 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void 질문_조회() throws Exception {
-        question.setId(1L);
         question.writeBy(loginUser);
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
@@ -60,7 +61,6 @@ public class QnaServiceTest extends BaseTest {
     @Test(expected = EntityNotFoundException.class)
     public void 질문_조회_EntityNotFoundException() {
         question.writeBy(loginUser);
-        question.setId(1L);
 
         when(questionRepository.findById(question.getId())).thenReturn(Optional.empty());
 
@@ -69,13 +69,11 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void 질문_조회_UnAuthorizedException() {
-        loginUser.setId(2L);
-
-        writer.setId(1L);
+        loginUser.setId(ID_TWO);
+        writer.setId(ID_ONE);
 
         Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(writer);
-        question.setId(1L);
 
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
@@ -84,170 +82,136 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = EntityNotFoundException.class)
     public void 질문_업데이트_EntityNotFoundException() {
-        loginUser.setId(2L);
-        writer.setId(1L);
+        loginUser.setId(ID_TWO);
+        writer.setId(ID_ONE);
 
         question.writeBy(writer);
-        question.setId(1L);
 
         //then
-        qnaService.updateQuestion(loginUser, 2L, question);
+        qnaService.updateQuestion(loginUser, ID_TWO, question);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 질문_업데이트_UnAuthorizedException() {
-        loginUser.setId(2L);
-
-        writer.setId(1L);
+        loginUser.setId(ID_TWO);
+        writer.setId(ID_ONE);
 
         question.writeBy(writer);
-        question.setId(1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
 
-        qnaService.updateQuestion(loginUser, 1L, question);
+        qnaService.updateQuestion(loginUser, ID_ONE, question);
     }
 
     @Test(expected = ObjectDeletedException.class)
     public void 질문_업데이트_ObjectDeletedException() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        qnaService.deleteQuestion(loginUser, 1L);
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        qnaService.deleteQuestion(loginUser, ID_ONE);
 
-        qnaService.updateQuestion(loginUser, 1L, new Question("제목 수정", "내용 수정"));
+        qnaService.updateQuestion(loginUser, ID_ONE, new Question("제목 수정", "내용 수정"));
     }
 
     @Test
     public void 질문_업데이트_성공() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
 
-        qnaService.updateQuestion(loginUser, 1L, new Question("제목 수정", "내용 수정"));
+        qnaService.updateQuestion(loginUser, ID_ONE, new Question("제목 수정", "내용 수정"));
         softly.assertThat(question.getTitle()).isEqualTo("제목 수정");
         softly.assertThat(question.getContents()).isEqualTo("내용 수정");
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void 질문_삭제_EntityNotFoundException() {
-        loginUser.setId(2L);
-
-        writer.setId(1L);
-
         question.writeBy(writer);
-        question.setId(1L);
 
         //then
-        qnaService.deleteQuestion(loginUser, 2L);
+        qnaService.deleteQuestion(loginUser, ID_TWO);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 질문_삭제_UnAuthorizedException() {
-        loginUser.setId(2L);
-
-        writer.setId(1L);
+        loginUser.setId(ID_TWO);
+        writer.setId(ID_ONE);
 
         question.writeBy(writer);
-        question.setId(1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
 
-        qnaService.deleteQuestion(loginUser, 1L);
+        qnaService.deleteQuestion(loginUser, ID_ONE);
     }
 
     @Test(expected = ObjectDeletedException.class)
     public void 질문_삭제_ObjectDeletedException() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        qnaService.deleteQuestion(loginUser, 1L);
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        qnaService.deleteQuestion(loginUser, ID_ONE);
 
-        qnaService.deleteQuestion(loginUser, 1L);
+        qnaService.deleteQuestion(loginUser, ID_ONE);
     }
 
     @Test(expected = CannotDeleteException.class)
     public void 질문_삭제_CannotDeleteException() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(1L);
 
         //질문 존재 삭제 불가
         question.addAnswer(answer);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
 
-        qnaService.deleteQuestion(loginUser, 1L);
+        qnaService.deleteQuestion(loginUser, ID_ONE);
     }
 
     @Test
     public void 질문_삭제_성공() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(1L);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
 
-        qnaService.deleteQuestion(loginUser, 1L);
+        qnaService.deleteQuestion(loginUser, ID_ONE);
         assertTrue(question.isDeleted());
     }
 
     @Test
     public void 답변_조회() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
-        Answer savedAnswer = qnaService.findAnswerById(10L, 10L);
+        Answer savedAnswer = qnaService.findAnswerById(ID_ONE, ID_ONE);
         softly.assertThat(savedAnswer).isEqualTo(answer);
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void 답변_조회_EntityNotFoundException() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
-        Answer savedAnswer = qnaService.findAnswerById(10L, 20L);
+        Answer savedAnswer = qnaService.findAnswerById(ID_ONE, ID_TWO);
     }
 
     @Test
     public void 답변_수정() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
         Answer newAnswer = new Answer(answer.getId(), answer.getWriter(), answer.getQuestion(), "답변 수정");
         Answer updatedAnswer = answer.update(writer, newAnswer);
@@ -257,16 +221,15 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void 답변_수정_UnAuthorizedException() {
-        loginUser.setId(2L);
+        loginUser.setId(ID_ONE);
 
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
         Answer newAnswer = new Answer(answer.getId(), answer.getWriter(), answer.getQuestion(), "답변 수정");
         Answer updatedAnswer = answer.update(loginUser, newAnswer);
@@ -274,16 +237,15 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = ObjectDeletedException.class)
     public void 답변_수정_ObjectDeletedException() {
-        loginUser.setId(2L);
+        loginUser.setId(ID_ONE);
 
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
         answer.delete(writer);
 
@@ -293,16 +255,13 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void 답변_삭제() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
         answer.delete(writer);
 
@@ -311,38 +270,30 @@ public class QnaServiceTest extends BaseTest {
 
     @Test(expected = UnAuthorizedException.class)
     public void 답변_삭제_UnAuthorizedException() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(10L);
+        answer.setId(ID_ONE);
 
-        answer.setId(10L);
-
-        writer.setId(30L);
+        writer.setId(ID_TWO);
         Answer answer = new Answer(writer, "답변 내용");
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
         answer.delete(loginUser);
     }
 
     @Test(expected = ObjectDeletedException.class)
     public void 답변_삭제_ObjectDeletedException() {
-        loginUser.setId(2L);
-
         question.writeBy(loginUser);
-        question.setId(10L);
 
-        answer.setId(10L);
+        answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(10L)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(10L)).thenReturn(Optional.of(answer));
+        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
         answer.delete(writer);
         answer.delete(writer);
     }
-
 }

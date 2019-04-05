@@ -10,6 +10,7 @@ import support.domain.UrlGeneratable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
@@ -19,6 +20,7 @@ import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -111,9 +113,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return answers.isEmpty();
     }
 
-    public boolean isContainsAnswer(long id) {
+    public Optional<Answer> getContainsAnswer(long id) {
         return answers.stream()
-            .anyMatch(answer -> answer.getId() == id);
+            .filter(answer -> answer.getId() == id)
+            .findFirst();
 
     }
 
