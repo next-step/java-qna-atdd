@@ -75,6 +75,14 @@ public abstract class AcceptanceTest extends BaseTest {
         return template().exchange(location, HttpMethod.PUT, createHttpEntity(body), type);
     }
 
+    protected <T> ResponseEntity<T> deleteResource(User loginUser, String location, Class<T> type) {
+        return basicAuthTemplate(loginUser).exchange(location, HttpMethod.DELETE, null, type);
+    }
+
+    protected <T> ResponseEntity<T> deleteResourceWithoutLogin(String location, Class<T> type) {
+        return template().exchange(location, HttpMethod.DELETE, null, type);
+    }
+
     private HttpEntity createHttpEntity(Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
