@@ -39,4 +39,9 @@ public class HtmlFormDataBuilder {
         this.params.add("_method", "put");
         return this;
     }
+
+    public HtmlFormDataBuilder delete() {
+        this.params.add("_method", "delete");
+        return this;
+    }
 }
