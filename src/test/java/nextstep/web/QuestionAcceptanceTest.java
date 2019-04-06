@@ -1,12 +1,10 @@
 package nextstep.web;
 
 import helper.HtmlFormDataBuilder;
-import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -16,9 +14,6 @@ import support.test.AcceptanceTest;
 
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
-
-    @Autowired
-    private QuestionRepository questionRepository;
 
     @Test
     public void createForm_no_login() throws Exception {
@@ -109,7 +104,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update_login_not_owner() throws Exception {
-        User otherUser = findByUserId("sanjigi");
+        User otherUser = getByUserId("sanjigi");
 
         ResponseEntity<String> response = makeUpdateResponseEntity(basicAuthTemplate(otherUser));
 
@@ -144,7 +139,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_login_not_owner() throws Exception {
-        User otherUser = findByUserId("sanjigi");
+        User otherUser = getByUserId("sanjigi");
 
         ResponseEntity<String> response = makeDeleteResponseEntity(basicAuthTemplate(otherUser), 3);
 
