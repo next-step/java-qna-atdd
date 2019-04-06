@@ -23,6 +23,14 @@ public class QuestionBody {
         this.contents = contents;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getContents() {
+        return contents;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(obj == null) {

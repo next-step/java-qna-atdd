@@ -1,13 +1,12 @@
 package nextstep.domain;
 
-import nextstep.web.exception.ForbiddenException;
-import org.hibernate.annotations.SQLDelete;
+import nextstep.UnAuthorizedException;
+import nextstep.ForbiddenException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +26,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Question() {
+    protected Question() {
     }
 
     public Question(User writer, QuestionBody questionBody) {
         if(writer == null) {
-            // todo 좀 더 추상화된 예외로 처리하고, exceptionHandler 에서 받아서 httpStatus로 내려줘야함
-            throw new IllegalArgumentException();
+            throw new UnAuthorizedException();
         }
         this.writer = writer;
         this.questionBody = questionBody;

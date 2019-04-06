@@ -21,9 +21,8 @@ public class QuestionValidationTest extends BaseTest {
 
     @Test
     public void titleWhenIsEmpty() throws Exception {
-        // fixme Question을 바꾸면서 테스트가 깨짐
-//        Question question = new Question("", "당근 엄청 의미있는 활동이고 말고..");
-//        Set<ConstraintViolation<Question>> constraintViolcations = validator.validate(question);
-//        softly.assertThat(constraintViolcations).hasSize(1);
+        QuestionBody questionBody = new QuestionBody("", "당근 엄청 의미있는 활동이고 말고..");
+        Set<ConstraintViolation<QuestionBody>> constraintViolcations = validator.validate(questionBody);
+        softly.assertThat(constraintViolcations).hasSize(1);
     }
 }

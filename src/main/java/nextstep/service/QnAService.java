@@ -1,8 +1,8 @@
 package nextstep.service;
 
 import nextstep.domain.*;
-import nextstep.web.exception.ForbiddenException;
-import nextstep.web.exception.NotFoundException;
+import nextstep.ForbiddenException;
+import nextstep.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -26,23 +26,22 @@ public class QnAService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    @Transactional(readOnly = true)
-    public List<Question> findAll() {
-        return questionRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public Question findById(long id) {
-        return questionRepository.findById(id)
-            .filter(q -> !q.isDeleted())
-            .orElseThrow(NotFoundException::new);
-    }
-
     @Transactional
     public Question createQuestion(User writer, QuestionBody questionBody) {
         Question question = new Question(writer, questionBody);
 
         return questionRepository.save(question);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Question> findAll() {
+        return questionRepository.findByDeletedFalse();
+    }
+
+    @Transactional(readOnly = true)
+    public Question findById(long id) {
+        return questionRepository.findByIdAndDeletedFalse(id)
+            .orElseThrow(NotFoundException::new);
     }
 
     @Transactional

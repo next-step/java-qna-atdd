@@ -17,10 +17,10 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/questions")
-public class ApiQuestionController {
+public class ApiQnAController {
     private final QnAService qnaService;
 
-    public ApiQuestionController(QnAService qnaService) {
+    public ApiQnAController(QnAService qnaService) {
         this.qnaService = qnaService;
     }
 

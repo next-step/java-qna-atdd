@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import nextstep.NotFoundException;
 import nextstep.domain.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +29,16 @@ public class QnAServiceTest extends BaseTest {
     }
 
     @Test
+    public void 질문을_등록한다() {
+        User writer = UserTest.newUser(1L);
+        QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
+
+        Question question = qnAService.createQuestion(writer, questionBody);
+
+        softly.assertThat(question.getQuestionBody()).isEqualTo(questionBody);
+    }
+
+    @Test
     public void 질문_목록을_조회한다() {
         List<Question> list = qnAService.findAll();
         softly.assertThat(list).hasSize(10);
@@ -40,14 +51,9 @@ public class QnAServiceTest extends BaseTest {
             .isEqualTo(new QuestionBody("This is title1", "This is contents1"));
     }
 
-    @Test
-    public void 질문을_등록한다() {
-        User writer = UserTest.newUser(1L);
-        QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
-
-        Question question = qnAService.createQuestion(writer, questionBody);
-
-        softly.assertThat(question.getQuestionBody()).isEqualTo(questionBody);
+    @Test(expected = NotFoundException.class)
+    public void 없는_질문이면_예외가_발생한다() {
+        qnAService.findById(100L);
     }
 
     @Test

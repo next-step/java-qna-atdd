@@ -1,6 +1,7 @@
 package nextstep.domain;
 
-import nextstep.web.exception.ForbiddenException;
+import nextstep.ForbiddenException;
+import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
@@ -24,7 +25,7 @@ public class QuestionTest extends BaseTest {
         softly.assertThat(question.isOwner(writer)).isTrue();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = UnAuthorizedException.class)
     public void 작성자가_없이_질문을_생성하면_예외가_발생한다() {
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         new Question(null, questionBody);

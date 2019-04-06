@@ -1,9 +1,8 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.QuestionRepository;
-import nextstep.domain.UserRepository;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +18,8 @@ public class HomeAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문목록이_출력된다() {
-        // fixme question을 바꾸면서 테스트가 깨짐
-//        questionRepository.save(new Question("This is title1", "This is contents1"));
-//        questionRepository.save(new Question("This is title2", "This is contents2"));
+        questionRepository.save(new Question(defaultUser(), new QuestionBody("This is title1", "This is contents1")));
+        questionRepository.save(new Question(defaultUser(), new QuestionBody("This is title2", "This is contents2")));
 
         ResponseEntity<String> response = template().getForEntity("/", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
