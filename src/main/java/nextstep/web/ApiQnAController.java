@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
@@ -9,7 +10,6 @@ import nextstep.service.QnAService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
@@ -18,6 +18,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/api/questions")
 public class ApiQnAController {
+    private static final String urlPrefix = "/api/";
     private final QnAService qnaService;
 
     public ApiQnAController(QnAService qnaService) {
@@ -31,7 +32,7 @@ public class ApiQnAController {
         return ResponseEntity.ok(new ListResponse<>(list));
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Question> findQuestion(@PathVariable Long id) {
         return ResponseEntity.ok(qnaService.findQuestionById(id));
     }
@@ -40,23 +41,41 @@ public class ApiQnAController {
     public ResponseEntity<Void> createQuestion(@LoginUser User loginUser, @RequestBody QuestionBody payload) {
         Question question = qnaService.createQuestion(loginUser, payload);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-            .buildAndExpand(question.getId()).toUri();
-
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(URI.create(urlPrefix + question.generateUrl())).build();
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Question> updateQuestion(@LoginUser User loginUser, @PathVariable Long id, @RequestBody QuestionBody newPayload) {
         Question question = qnaService.updateQuestion(id, loginUser, newPayload);
 
         return ResponseEntity.ok(question);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestion(@LoginUser User loginUser, @PathVariable Long id) {
         qnaService.deleteQuestion(id, loginUser);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{questionId}/answers")
+    public ResponseEntity<Void> addAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @RequestBody String contents) {
+        Answer answer = qnaService.addAnswer(loginUser, questionId, contents);
+
+        return ResponseEntity.created(URI.create(urlPrefix + answer.generateUrl())).build();
+    }
+
+    @GetMapping("/{questionId}/answers")
+    public ResponseEntity<ListResponse<Answer>> findAnswers(@PathVariable Long questionId) {
+        List<Answer> answers = qnaService.findAnswers(questionId);
+
+        return ResponseEntity.ok(new ListResponse<>(answers));
+    }
+
+    @GetMapping("/{questionId}/answers/{answerId}")
+    public ResponseEntity<Answer> findAnswer(@PathVariable Long questionId, @PathVariable Long answerId) {
+        Answer answer = qnaService.findAnswer(answerId);
+
+        return ResponseEntity.ok(answer);
     }
 }

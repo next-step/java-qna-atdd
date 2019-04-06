@@ -6,6 +6,9 @@ public class ListResponse<T> {
     private List<T> list;
     private Integer count;
 
+    public ListResponse() {
+    }
+
     public ListResponse(List<T> result) {
         list = result;
         count = result.size();

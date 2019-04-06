@@ -12,7 +12,7 @@ import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
@@ -26,7 +26,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    protected Question() {
+    public Question() {
     }
 
     public Question(User writer, QuestionBody questionBody) {
@@ -57,12 +57,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         deleted = true;
-    }
-
-
-    public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
     }
 
     public User getWriter() {

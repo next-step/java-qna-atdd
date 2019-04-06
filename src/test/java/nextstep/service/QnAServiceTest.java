@@ -11,14 +11,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import support.test.BaseTest;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
 public class QnAServiceTest extends BaseTest {
-    private User writer;
-    private List<Question> questions;
+    private User fixtureWriter;
+    private Question fixtureQuestion;
+    private Answer fixtureAnswer;
 
     @Autowired private QnAService qnaService;
 
@@ -28,21 +27,18 @@ public class QnAServiceTest extends BaseTest {
 
     @Before
     public void setUp() {
-        writer = new User("userId", "pass", "name", "javajigi@slipp.net");
-        questions = IntStream.rangeClosed(1, 10)
-            .mapToObj(i -> new QuestionBody("This is title" + i, "This is contents" + i))
-            .map(qb -> new Question(writer, qb))
-            .collect(Collectors.toList());
-
-        userRepository.save(writer);
-        questionRepository.saveAll(questions);
+        fixtureWriter = userRepository.save(
+            new User("userId", "pass", "name", "javajigi@slipp.net"));
+        fixtureQuestion = questionRepository.save(
+            new Question(fixtureWriter, new QuestionBody("This is title", "This is contents")));
+        fixtureAnswer = answerRepository.save(new Answer(fixtureWriter, fixtureQuestion, "fixtureAnswer"));
     }
 
     @Test
     public void 질문을_등록한다() {
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
 
-        Question question = qnaService.createQuestion(writer, questionBody);
+        Question question = qnaService.createQuestion(fixtureWriter, questionBody);
 
         softly.assertThat(question.getQuestionBody()).isEqualTo(questionBody);
     }
@@ -50,16 +46,16 @@ public class QnAServiceTest extends BaseTest {
     @Test
     public void 질문_목록을_조회한다() {
         List<Question> list = qnaService.findQuestions();
-        softly.assertThat(list).hasSize(10);
+        softly.assertThat(list).hasSize(1);
     }
 
     @Test
     public void 질문을_상세조회한다() {
-        Long questionId = questions.get(0).getId();
+        Long questionId = fixtureQuestion.getId();
 
         Question question = qnaService.findQuestionById(questionId);
         softly.assertThat(question.getQuestionBody())
-            .isEqualTo(new QuestionBody("This is title1", "This is contents1"));
+            .isEqualTo(fixtureQuestion.getQuestionBody());
     }
 
     @Test(expected = NotFoundException.class)
@@ -69,19 +65,19 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 질문을_수정한다() {
-        Long questionId = questions.get(0).getId();
+        Long questionId = fixtureQuestion.getId();
 
         QuestionBody newQuestionBody = new QuestionBody("This is updated title", "This is updated contents");
-        Question question = qnaService.updateQuestion(questionId, writer, newQuestionBody);
+        Question question = qnaService.updateQuestion(questionId, fixtureWriter, newQuestionBody);
 
         softly.assertThat(question.getQuestionBody()).isEqualTo(newQuestionBody);
     }
 
     @Test
     public void 질문을_삭제한다() {
-        Long questionId = questions.get(0).getId();
+        Long questionId = fixtureQuestion.getId();
 
-        qnaService.deleteQuestion(questionId, writer);
+        qnaService.deleteQuestion(questionId, fixtureWriter);
 
         Question question = questionRepository.findById(questionId).get();
         softly.assertThat(question.isDeleted()).isTrue();
@@ -89,24 +85,29 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 답변을_등록한다() {
-        Long questionId = questions.get(0).getId();
+        Long questionId = fixtureQuestion.getId();
 
-        String contents = "This is answer";
-        Answer answer = qnaService.addAnswer(writer, questionId, contents);
+        String contents = "This is fixtureAnswer";
+        Answer answer = qnaService.addAnswer(fixtureWriter, questionId, contents);
 
-        softly.assertThat(answer.getWriter()).isEqualTo(writer);
-        softly.assertThat(answer.getQuestion()).isEqualTo(questionRepository.findById(questionId).get());
+        softly.assertThat(answer.getWriter()).isEqualTo(fixtureWriter);
         softly.assertThat(answer.getContents()).isEqualTo(contents);
     }
 
     @Test
-    public void 답변을_조회한다() {
-        answerRepository.save(new Answer(writer, questions.get(0), "answer1"));
-        answerRepository.save(new Answer(writer, questions.get(0), "answer2"));
-
-        Long questionId = questions.get(0).getId();
+    public void 답변목록을_조회한다() {
+        Long questionId = fixtureQuestion.getId();
         List<Answer> answers = qnaService.findAnswers(questionId);
 
-        softly.assertThat(answers).hasSize(2);
+        softly.assertThat(answers).hasSize(1);
+    }
+
+    @Test
+    public void 답변을_상세조회한다() {
+        Long answerId = fixtureAnswer.getId();
+
+        Answer answer = qnaService.findAnswer(answerId);
+
+        softly.assertThat(answer.getContents()).isEqualTo(fixtureAnswer.getContents());
     }
 }

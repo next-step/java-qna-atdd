@@ -59,18 +59,21 @@ public class QnAService {
     @Transactional
     public Answer addAnswer(User writer, Long questionId, String contents) {
         Question question = findQuestionById(questionId);
-        // check 연관관계 편의메서드는 어떻게?
         Answer answer = new Answer(writer, question, contents);
-        question.addAnswer(answer);
 
         return answerRepository.save(answer);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Answer> findAnswers(Long questionId) {
         Question question = findQuestionById(questionId);
 
-        return question.getAnswers();
+        return answerRepository.findByQuestionAndDeletedFalse(question);
+    }
+
+    public Answer findAnswer(Long answerId) {
+        return answerRepository.findByIdAndDeletedFalse(answerId)
+            .orElseThrow(NotFoundException::new);
     }
 
     public Answer deleteAnswer(User writer, Long id) {

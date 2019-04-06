@@ -10,11 +10,11 @@ import javax.validation.constraints.Size;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
     private Question question;
 
@@ -24,7 +24,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    protected Answer() {
+    public Answer() {
     }
 
     public Answer(User writer, Question question, String contents) {
@@ -49,10 +49,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public User getWriter() {
         return writer;
-    }
-
-    public Question getQuestion() {
-        return question;
     }
 
     public String getContents() {

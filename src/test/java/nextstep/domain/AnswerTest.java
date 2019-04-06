@@ -14,7 +14,6 @@ public class AnswerTest extends BaseTest {
         Answer answer = new Answer(writer, question, "This is answer");
 
         softly.assertThat(answer.getWriter()).isEqualTo(writer);
-        softly.assertThat(answer.getQuestion()).isEqualTo(question);
         softly.assertThat(answer.getContents()).isEqualTo("This is answer");
     }
 
