@@ -55,16 +55,4 @@ public class UserController {
         userService.update(loginUser, id, target);
         return "redirect:/users";
     }
-
-    @PostMapping("/login")
-    public String login(String userId, String password, HttpSession httpSession) {
-        try {
-            User user = userService.login(userId, password);
-            httpSession.setAttribute(HttpSessionUtils.USER_SESSION_KEY, user);
-            return "redirect:/users";
-        } catch (UnAuthenticationException e) {
-            return "user/login_failed";
-
-        }
-    }
 }
