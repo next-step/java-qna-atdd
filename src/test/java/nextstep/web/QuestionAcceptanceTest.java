@@ -86,15 +86,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     }
 
-    private ResponseEntity<String> create(TestRestTemplate template) throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .post()
-                .addParameter("title", "ATDD는 어떻게하면 좋을까요?")
-                .addParameter("contents", "이렇게 하는게 맞는거겠죠?")
-                .build();
-        return template.postForEntity("/questions", request, String.class);
-    }
-
     @Test
     public void delete_no_login() throws Exception {
         ResponseEntity<String> response = delete(template());
@@ -105,13 +96,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void delete_login_owner() {
         ResponseEntity<String> response = delete(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-    }
-
-    private ResponseEntity<String> delete(TestRestTemplate template) {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .delete()
-                .build();
-        return template.postForEntity(String.format("/questions/%d", testQuestion.getId()), request, String.class);
     }
 
     @Test
@@ -150,6 +134,15 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+    private ResponseEntity<String> create(TestRestTemplate template) throws Exception {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .post()
+                .addParameter("title", "ATDD는 어떻게하면 좋을까요?")
+                .addParameter("contents", "이렇게 하는게 맞는거겠죠?")
+                .build();
+        return template.postForEntity("/questions", request, String.class);
+    }
+
     private ResponseEntity<String> update(TestRestTemplate template) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .put()
@@ -157,6 +150,13 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .addParameter("contents", "내용도 수정")
                 .build();
 
+        return template.postForEntity(String.format("/questions/%d", testQuestion.getId()), request, String.class);
+    }
+
+    private ResponseEntity<String> delete(TestRestTemplate template) {
+        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
+                .delete()
+                .build();
         return template.postForEntity(String.format("/questions/%d", testQuestion.getId()), request, String.class);
     }
 }
