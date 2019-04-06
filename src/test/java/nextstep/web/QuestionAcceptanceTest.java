@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.AnswerRepository;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -20,6 +21,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private AnswerRepository answerRepository;
 
     @Test
     public void 로그인_안한_사용자_form_접속() throws Exception {
@@ -34,7 +37,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate().getForEntity("/questions/form", String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
     }
 
     private ResponseEntity<String> createContents(TestRestTemplate template) {
@@ -53,14 +55,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = createContents(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void 로그인_안한_사용자_글작성() throws Exception {
         ResponseEntity<String> response = createContents(template());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
 
     private ResponseEntity<String> updateQuestion(TestRestTemplate template) throws Exception {
@@ -78,23 +78,19 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = updateQuestion(basicAuthTemplate());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void 로그인_한_다른_사용자_글_업데이트() throws Exception {
         ResponseEntity<String> response = updateQuestion(basicAuthTemplate(findByUserId("testid")));
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void 로그인_안한_사용자_글_업데이트() throws Exception {
         ResponseEntity<String> response = updateQuestion(basicAuthTemplate(User.GUEST_USER));
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
-
 
     private ResponseEntity<String> deleteQuestion(TestRestTemplate restTemplate, long id) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
@@ -105,27 +101,23 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 로그인_한_사용자_자신의_글삭제() throws Exception {
-        ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(), 1);
-
+        ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(), 4);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
-        log.debug("body : {}", response.getBody());
+        softly.assertThat(questionRepository.findById(4L).get().isDeleted()).isTrue();
     }
 
     @Test
     public void 로그인_한_사용자_다른_사용자의_글삭제() throws Exception {
         ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(findByUserId("testid")), 1);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
     public void 로그인_안한_사용자_다른_사용자의_글삭제() throws Exception {
         ResponseEntity<String> response = deleteQuestion(basicAuthTemplate(User.GUEST_USER), 1);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", response.getBody());
     }
-
 
     @Test
     public void 로그인_사용자_댓글_작성_가능() {
@@ -136,8 +128,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(defaultUser()).postForEntity("/questions/1/answers", request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        log.debug("body : {}", request.getBody());
-
     }
 
     @Test
@@ -148,7 +138,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
             .build();
         ResponseEntity<String> responseEntity = basicAuthTemplate(User.GUEST_USER).postForEntity("/questions/1/answers", build, String.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", build.getBody());
     }
 
     @Test
@@ -158,9 +147,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
             .build();
         ResponseEntity<String> responseEntity = basicAuthTemplate(defaultUser()).postForEntity("/questions/1/answers/3", build, String.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        log.debug("body : {}", build.getBody());
+        softly.assertThat(answerRepository.findById(3L).get().isDeleted()).isTrue();
     }
-
 
     @Test
     public void 다른_유저_댓글_삭제_불가능() {
@@ -169,8 +157,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
             .build();
         ResponseEntity<String> responseEntity = basicAuthTemplate(User.GUEST_USER).postForEntity("/questions/1/answers/3", build, String.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        log.debug("body : {}", build.getBody());
+        softly.assertThat(answerRepository.findById(3L).get().isDeleted()).isFalse();
     }
-
 
 }

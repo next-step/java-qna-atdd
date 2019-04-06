@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -74,12 +75,12 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 본인글_삭제_가능() {
-        Question createQuestion = new Question("제목원본", "내용원본");
-        String location = createLoginUserResource("/api/questions", createQuestion, defaultUser());
+//        Question createQuestion = new Question("제목원본", "내용원본");
+//        String location = createLoginUserResource("/api/questions/", createQuestion, defaultUser());
 
         ResponseEntity<Question> exchange =
-            basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.DELETE, null, Question.class);
-
+            basicAuthTemplate(defaultUser()).exchange("/api/questions/4", HttpMethod.DELETE, null, Question.class);
+//            basicAuthTemplate(defaultUser()).delete(template(),location);
         softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -87,12 +88,22 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void 다른_유저의_글_삭제_불가능() {
         Question createQuestion = new Question("제목원본", "내용원본");
         String location = createLoginUserResource("/api/questions", createQuestion, defaultUser());
-
         ResponseEntity<Question> exchange =
             basicAuthTemplate(User.GUEST_USER).exchange(location, HttpMethod.DELETE, createHttpEntity(null), Question.class);
 
         softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    @Test
+    public void 다른유저의_댓글이_있는_나의_글_삭제_불가능() {
+        //db 의존..import.sql
+        long questionsId = 1L;
+        Answer answer = new Answer(findByUserId("testid"), "내용수정");
+        basicAuthTemplate(findByUserId("sanjigi")).postForEntity(String.format("/api/questions/%d/answers", questionsId), createHttpEntity(answer), Void.class);
 
+        ResponseEntity<Question> exchange = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d",questionsId), HttpMethod.DELETE, null, Question.class);
+        softly.assertThat(exchange.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+
+    }
 }

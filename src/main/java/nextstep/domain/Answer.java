@@ -6,6 +6,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -39,12 +40,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.deleted = false;
     }
 
-
-    public void delete(User loginUser) throws UnAuthenticationException {
+    public DeleteHistory delete(User loginUser) throws UnAuthenticationException {
         if (!isOwner(loginUser)) {
             throw new UnAuthenticationException();
         }
         this.deleted = true;
+        return new DeleteHistory(ContentType.ANSWER, getId(), loginUser, LocalDateTime.now());
     }
 
     public User getWriter() {

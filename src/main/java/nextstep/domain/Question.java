@@ -1,12 +1,12 @@
 package nextstep.domain;
 
 import nextstep.UnAuthenticationException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,10 +24,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private  Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -39,11 +37,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public void delete(User loginUser) throws UnAuthenticationException {
+    public List<DeleteHistory> delete(User loginUser) throws UnAuthenticationException {
         if (!isOwner(loginUser)) {
             throw new UnAuthenticationException();
         }
+        List<DeleteHistory> deleteHistories = new ArrayList<>(answers.deleteAnswer(loginUser));
         this.deleted = true;
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
+        return deleteHistories;
     }
 
     public String getTitle() {

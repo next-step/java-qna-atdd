@@ -15,7 +15,7 @@ import javax.annotation.Resource;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/questions/{questionId}/answer")
+@RequestMapping("/api/questions/{questionId}/answers")
 public class ApiAnswerController {
 
 

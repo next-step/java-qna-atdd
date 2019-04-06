@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +46,8 @@ public class QnaService {
     @Transactional
     public Question deleteQuestion(User loginUser, long questionId) throws UnAuthenticationException {
         Question question = findById(questionId).orElseThrow(UnAuthenticationException::new);
-        question.delete(loginUser);
+        List<DeleteHistory> deleteHistories = question.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistories);
         return question;
     }
 
@@ -66,8 +68,8 @@ public class QnaService {
 
     public Answer deleteAnswer(User loginUser, long id) throws UnAuthenticationException {
         Answer answer = answerRepository.findById(id).orElseThrow(UnAuthenticationException::new);
-
-        answer.delete(loginUser);
+        DeleteHistory delete = answer.delete(loginUser);
+        deleteHistoryService.saveAll(Arrays.asList(delete));
         return answer;
     }
 
