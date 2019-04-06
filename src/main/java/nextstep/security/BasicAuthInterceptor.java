@@ -1,7 +1,7 @@
 package nextstep.security;
 
-import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.exception.UnAuthenticationException;
 import nextstep.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +20,7 @@ public class BasicAuthInterceptor extends HandlerInterceptorAdapter {
     private UserService userService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String authorization = request.getHeader("Authorization");
         log.debug("Authorization : {}", authorization);
         if (authorization == null || !authorization.startsWith("Basic")) {

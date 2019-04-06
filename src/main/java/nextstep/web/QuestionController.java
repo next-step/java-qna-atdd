@@ -1,9 +1,9 @@
 package nextstep.web;
 
 import lombok.RequiredArgsConstructor;
-import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.exception.ObjectDeletedException;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.springframework.stereotype.Controller;
@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.persistence.EntityNotFoundException;
 
 @Controller
 @RequestMapping("/questions")
@@ -31,32 +29,31 @@ public class QuestionController {
 
     @PostMapping
     public String create(@LoginUser User loginUser, Question question) {
-        qnaService.create(loginUser, question);
+        qnaService.createQuestion(loginUser, question);
         return "redirect:/";
     }
 
     @GetMapping("/{id}")
     public String show(Model model, @PathVariable long id) {
-        Question question = qnaService.findById(id)
-            .orElseThrow(EntityNotFoundException::new);
+        Question question = qnaService.findQuestionById(id);
         model.addAttribute("question", question);
         return "/qna/show";
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("question", qnaService.findById(loginUser, id));
+        model.addAttribute("question", qnaService.findQuestionById(loginUser, id));
         return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")
     public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
-        qnaService.update(loginUser, id, target);
+        qnaService.updateQuestion(loginUser, id, target);
         return "redirect:/";
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
+    public String delete(@LoginUser User loginUser, @PathVariable long id) throws ObjectDeletedException {
         qnaService.deleteQuestion(loginUser, id);
         return "redirect:/";
     }

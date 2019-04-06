@@ -4,7 +4,9 @@ import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
 import static nextstep.domain.UserTest.newUser;
@@ -43,11 +45,11 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         User original = basicAuthTemplate(newUser).getForObject(location, User.class);
 
         User updateUser = new User
-                (original.getId(), original.getUserId(), original.getPassword(),
-                        "javajigi2", "javajigi2@slipp.net");
+            (original.getId(), original.getUserId(), original.getPassword(),
+                "javajigi2", "javajigi2@slipp.net");
 
         ResponseEntity<User> responseEntity =
-                basicAuthTemplate(newUser).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), User.class);
+            basicAuthTemplate(newUser).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), User.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(updateUser.equalsNameAndEmail(responseEntity.getBody())).isTrue();
@@ -62,11 +64,11 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         User original = basicAuthTemplate(newUser).getForObject(location, User.class);
 
         User updateUser = new User
-                (original.getId(), original.getUserId(), original.getPassword(),
-                        "javajigi2", "javajigi2@slipp.net");
+            (original.getId(), original.getUserId(), original.getPassword(),
+                "javajigi2", "javajigi2@slipp.net");
 
         ResponseEntity<String> responseEntity =
-                template().exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
+            template().exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
         log.debug("error message : {}", responseEntity.getBody());
@@ -82,13 +84,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         User updateUser = new User(newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
 
         ResponseEntity<Void> responseEntity =
-                basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), Void.class);
+            basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-    }
-
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
     }
 }

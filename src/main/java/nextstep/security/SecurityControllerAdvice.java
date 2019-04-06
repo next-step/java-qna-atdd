@@ -1,8 +1,8 @@
 package nextstep.security;
 
-import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
-import nextstep.UnAuthorizedException;
+import nextstep.exception.ObjectDeletedException;
+import nextstep.exception.UnAuthenticationException;
+import nextstep.exception.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -17,10 +17,10 @@ import javax.persistence.EntityNotFoundException;
 public class SecurityControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(SecurityControllerAdvice.class);
 
-    @ExceptionHandler(CannotDeleteException.class)
+    @ExceptionHandler(ObjectDeletedException.class)
     @ResponseStatus(value = HttpStatus.METHOD_NOT_ALLOWED)
     public void cannotDeleteData() {
-        log.debug("CannotDeleteException is happened!");
+        log.debug("ObjectDeletedException is happened!");
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

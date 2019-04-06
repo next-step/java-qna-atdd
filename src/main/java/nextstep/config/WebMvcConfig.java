@@ -1,4 +1,4 @@
-package nextstep;
+package nextstep.config;
 
 import nextstep.converter.LocalDateConverter;
 import nextstep.converter.LocalDateTimeConverter;

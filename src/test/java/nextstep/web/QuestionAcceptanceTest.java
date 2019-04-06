@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -25,6 +26,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Autowired
     private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     @Test
     public void createForm() throws Exception {
@@ -229,6 +233,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
             .orElseThrow(EntityNotFoundException::new);
 
         // When
+        answerRepository.deleteAll();
         ResponseEntity<String> response = delete(template(), question.getId());
 
         // Then
@@ -241,6 +246,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         User loginUser = defaultUser();
 
         // When
+        answerRepository.deleteAll();
         ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), 100L);
 
         // Then
@@ -255,11 +261,13 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
             .orElseThrow(EntityNotFoundException::new);
 
         // When
+        answerRepository.deleteAll();
         ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
     }
+
 
     @Test
     public void 삭제_성공() throws Exception {
@@ -268,7 +276,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         Question question = questionRepository.findById(1L)
             .orElseThrow(EntityNotFoundException::new);
 
+
         //When
+        answerRepository.deleteAll();
         ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
 
         // Then
@@ -287,13 +297,14 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 삭제_후_조회_불가() {
+    public void 삭제_후_조회_불가() throws Exception {
         // Given
         User loginUser = defaultUser();
         Question question = questionRepository.findById(3L)
             .orElseThrow(EntityNotFoundException::new);
 
         //When
+        answerRepository.deleteAll();
         ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
 
         // Then

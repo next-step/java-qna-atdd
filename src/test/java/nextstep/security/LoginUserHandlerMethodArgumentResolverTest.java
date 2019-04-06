@@ -1,7 +1,7 @@
 package nextstep.security;
 
-import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
+import nextstep.exception.UnAuthenticationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +47,7 @@ public class LoginUserHandlerMethodArgumentResolverTest extends BaseTest {
         when(annotedLoginUser.required()).thenReturn(true);
         when(parameter.getParameterAnnotation(LoginUser.class)).thenReturn(annotedLoginUser);
         when(request.getAttribute(HttpSessionUtils.USER_SESSION_KEY, WebRequest.SCOPE_SESSION))
-                .thenReturn(User.GUEST_USER);
+            .thenReturn(User.GUEST_USER);
 
         loginUserHandlerMethodArgumentResolver.resolveArgument(parameter, null, request, null);
     }
@@ -57,7 +57,7 @@ public class LoginUserHandlerMethodArgumentResolverTest extends BaseTest {
         when(annotedLoginUser.required()).thenReturn(false);
         when(parameter.getParameterAnnotation(LoginUser.class)).thenReturn(annotedLoginUser);
         when(request.getAttribute(HttpSessionUtils.USER_SESSION_KEY, WebRequest.SCOPE_SESSION))
-                .thenReturn(User.GUEST_USER);
+            .thenReturn(User.GUEST_USER);
 
         User guestUser = (User) loginUserHandlerMethodArgumentResolver.resolveArgument(parameter, null, request, null);
         softly.assertThat(guestUser).isEqualTo(User.GUEST_USER);

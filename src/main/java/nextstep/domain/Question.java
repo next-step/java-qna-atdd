@@ -1,7 +1,8 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
-import nextstep.UnAuthorizedException;
+import nextstep.exception.CannotDeleteException;
+import nextstep.exception.ObjectDeletedException;
+import nextstep.exception.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -9,6 +10,7 @@ import support.domain.UrlGeneratable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
@@ -18,6 +20,7 @@ import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -81,7 +84,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public Question update(User loginUser, Question target) {
         if (isDeleted()) {
-            throw new CannotDeleteException();
+            throw new ObjectDeletedException();
         }
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
@@ -93,14 +96,28 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void delete(User loginUser) {
-        if (isDeleted()) {
+        if (!isContainsAnswer()) {
             throw new CannotDeleteException();
+        }
+        if (isDeleted()) {
+            throw new ObjectDeletedException();
         }
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
         this.deleted = true;
+    }
+
+    private boolean isContainsAnswer() {
+        return answers.isEmpty();
+    }
+
+    public Optional<Answer> getContainsAnswer(long id) {
+        return answers.stream()
+            .filter(answer -> answer.getId() == id)
+            .findFirst();
+
     }
 
     public boolean isOwner(User loginUser) {

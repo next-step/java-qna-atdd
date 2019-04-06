@@ -31,15 +31,15 @@ public class ApiUserController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/users/" + savedUser.getId()));
-        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public User show(@LoginUser User loginUser, @PathVariable long id) {
         return userService.findById(loginUser, id);
     }
 
-    @PutMapping("{id}")
+    @PutMapping("/{id}")
     public User update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody User updatedUser) {
         return userService.update(loginUser, id, updatedUser);
     }

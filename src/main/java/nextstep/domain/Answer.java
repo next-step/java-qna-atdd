@@ -1,9 +1,15 @@
 package nextstep.domain;
 
+import nextstep.exception.ObjectDeletedException;
+import nextstep.exception.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.Size;
 
 @Entity
@@ -57,6 +63,29 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public void toQuestion(Question question) {
         this.question = question;
+    }
+
+    public Answer update(User loginUser, Answer target) {
+        if (isDeleted()) {
+            throw new ObjectDeletedException();
+        }
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        contents = target.contents;
+        return this;
+    }
+
+    public void delete(User loginUser) {
+        if (isDeleted()) {
+            throw new ObjectDeletedException();
+        }
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        deleted = true;
     }
 
     public boolean isOwner(User loginUser) {
