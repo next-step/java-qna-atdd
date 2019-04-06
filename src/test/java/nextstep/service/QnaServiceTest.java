@@ -1,122 +1,160 @@
 package nextstep.service;
 
-import static nextstep.domain.UserTest.newUser;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import nextstep.domain.Answer;
-import nextstep.domain.AnswerRepository;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 import support.test.BaseTest;
 
-@RunWith(MockitoJUnitRunner.class)
+import java.util.List;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class QnaServiceTest extends BaseTest {
 
-    @Mock
-    private QuestionRepository questionRepository;
-
-    @Mock
-    private AnswerRepository answerRepository;
-
-    @InjectMocks
+    @Autowired
     private QnaService qnaService;
 
-    private User writer;
+    @Autowired
+    private UserService userService;
+
+    private User loginUser;
     private Question question;
 
     @Before
     public void setUp() {
-        writer = new User(1, "tester", "passwd", "name", "tester@test.com");
-        question = new Question("Question 제목", "본문 내용~~~");
-        question.writeBy(writer);
-        question.setId(1);
+        loginUser = userService.findByUserId("javajigi");
+        question = qnaService.createQuestion(loginUser, new Question("Question 제목", "본문 내용~~~"));
+    }
+
+    @After
+    public void tearDown() throws CannotDeleteException {
+        qnaService.deleteQuestion(loginUser, question.getId());
     }
 
     @Test
     public void update_question_success() {
         // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        String updatedTitle = "수정한 제목";
-        String updatedContents = "수정한 본문 내용";
+        Question updated = question.setTitle("수정한 제목").setContents("수정한 본문 내용");
 
         // When
-        qnaService.update(writer, 1L, new Question(updatedTitle, updatedContents));
+        Question result = qnaService.update(loginUser, question.getId(), updated);
 
         // Then
-        assertThat(question.getTitle()).isEqualTo(updatedTitle);
-        assertThat(question.getContents()).isEqualTo(updatedContents);
+        softly.assertThat(result.equalsTitleAndContents(updated)).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void update_question_failed_when_not_owner() {
+    public void update_question_다른사람() {
         // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        final User other = new User(2, "other", "passwd", "other", "other@test.com");
+        Question updated = question.setTitle("수정한 제목").setContents("수정한 본문 내용");
+        User other = userService.findByUserId("sanjigi");
 
         // When
-        qnaService.update(other, 1L, new Question("제목 수정!", "본문 수정 ~~"));
+        qnaService.update(other, question.getId(), updated);
 
         // Then :: expected
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void update_question_failed_when_deleted() throws CannotDeleteException {
-
-        // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        qnaService.deleteQuestion(writer, 1L);
+    public void update_question_삭제된_질문() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        qnaService.deleteQuestion(loginUser, question.getId());
 
         // When
-        qnaService.update(writer, 1L, new Question("제목 수정!", "본문 수정 ~~"));
+        qnaService.update(loginUser, question.getId(), new Question("제목 수정!", "본문 수정 ~~"));
 
         // Then :: expected
     }
 
     @Test
     public void delete_question_success() throws CannotDeleteException {
-        // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
 
         // When
-        qnaService.deleteQuestion(writer, 1L);
+        List<DeleteHistory> deleteHistories = qnaService.deleteQuestion(loginUser, question.getId());
+        DeleteHistory deleteQuestionHistory = deleteHistories.get(0);
 
         // Then
-        assertThat(question.isDeleted()).isEqualTo(true);
+        Question deleted = qnaService.findById(question.getId());
+        softly.assertThat(deleted.isDeleted()).isTrue();
+        softly.assertThat(deleteQuestionHistory.hasContentId(deleted.getId())).isTrue();
+        softly.assertThat(deleteQuestionHistory.hasContentType(ContentType.QUESTION)).isTrue();
+        softly.assertThat(deleteQuestionHistory.isDeletedBy(loginUser)).isTrue();
+    }
+
+    @Test
+    public void delete_question_질문_답변_작성자_모두같음() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
+
+        // When
+        List<DeleteHistory> deleteHistories = qnaService.deleteQuestion(loginUser, question.getId());
+
+        // Then
+        softly.assertThat(deleteHistories.size()).isEqualTo(2);
+        softly.assertThat(
+                deleteHistories.stream()
+                        .filter(h -> h.hasContentType(ContentType.QUESTION) &&
+                                h.hasContentId(question.getId()) &&
+                                h.isDeletedBy(loginUser))
+                        .findAny()
+                        .get()).isNotNull();
+
+        softly.assertThat(
+                deleteHistories.stream()
+                        .filter(h -> h.hasContentType(ContentType.ANSWER) &&
+                                h.hasContentId(savedAnswer.getId()) &&
+                                h.isDeletedBy(loginUser))
+                        .findAny()
+                        .get()).isNotNull();
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_question_질문_답변_작성자_다름() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        User other = userService.findByUserId("sanjigi");
+        qnaService.addAnswer(other, question.getId(), new Answer("답변 입니다! 이제 삭제할 수 없어요."));
+
+        // When
+        qnaService.deleteQuestion(loginUser, question.getId());
+
+        // Then
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void delete_question_failed_when_not_owner() throws CannotDeleteException {
+    public void delete_question_다른사람() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+
         // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        final User other = new User(2, "other", "passwd", "other", "other@test.com");
+        qnaService.deleteQuestion(loginUser, question.getId());
+        User other = userService.findByUserId("sanjigi");
 
         // When
-        qnaService.deleteQuestion(other, 1L);
+        qnaService.deleteQuestion(other, question.getId());
 
         // Then :: expected
     }
 
     @Test(expected = CannotDeleteException.class)
-    public void delete_question_failed_already_deleted() throws CannotDeleteException {
-        // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        question.delete(writer);
+    public void delete_question_삭제된질문() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        qnaService.deleteQuestion(loginUser, question.getId());
 
         // When
-        qnaService.deleteQuestion(writer, 1L);
+        qnaService.deleteQuestion(loginUser, question.getId());
 
         // Then :: expected
     }
@@ -124,58 +162,40 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void add_answer() {
         // Given :: setUp
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-        User answerWriter = newUser("answriter");
-        String answerContents = "comment~~~~";
+        Answer answer = new Answer("Good~~");
 
         // When
-        Answer answer = qnaService.addAnswer(answerWriter,1L, new Answer(answerContents));
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), answer);
 
         // Then
-        assertThat(answer.getQuestion()).isEqualTo(question);
-        assertThat(answer.getWriter()).isEqualTo(answerWriter);
-    }
-
-    @Test(expected = EntityNotFoundException.class)
-    public void add_answer_to_not_found_question() {
-        // Given :: setUp
-        User answerWriter = newUser("answriter");
-        String answerContents = "comment~~~~";
-
-        // When
-        Answer answer = qnaService.addAnswer(answerWriter, 2L, new Answer(answerContents));
+        softly.assertThat(savedAnswer.isOwner(loginUser)).isEqualTo(true);
+        softly.assertThat(savedAnswer.equalsContents(answer)).isEqualTo(true);
+        softly.assertThat(savedAnswer.getQuestion().equals(question)).isEqualTo(true);
     }
 
     @Test
     public void delete_answer() {
         // Given :: setUp
-        User answerWriter = newUser("answriter");
-        String comment = "comment~~~~";
-        Answer answer = new Answer(answerWriter, comment);
-        answer.setId(1);
-        question.addAnswer(answer);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
 
         // When
-        qnaService.deleteAnswer(answerWriter, 1L, 1L);
+        DeleteHistory deleteHistory = qnaService.deleteAnswer(loginUser, question.getId(), savedAnswer.getId());
 
         // Then
-        assertThat(answer.isDeleted()).isEqualTo(true);
+        softly.assertThat(deleteHistory.hasContentId(savedAnswer.getId())).isTrue();
+        softly.assertThat(deleteHistory.hasContentType(ContentType.ANSWER)).isTrue();
+        softly.assertThat(deleteHistory.isDeletedBy(loginUser)).isTrue();
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void delete_answer_not_owner() {
+    public void delete_answer_다른사람() {
         // Given :: setUp
-        User answerWriter = newUser(1L, "answriter", "test");
-        String comment = "comment~~~~";
-        Answer answer = new Answer(answerWriter, comment);
-        answer.setId(1L);
-        question.addAnswer(answer);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
+        User other = userService.findByUserId("sanjigi");
 
         // When
-        qnaService.deleteAnswer(newUser(2L, "other", "tt"), 1L, 1L);
+        qnaService.deleteAnswer(other, question.getId(), savedAnswer.getId());
+
+        // Then
     }
 }

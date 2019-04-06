@@ -34,7 +34,7 @@ public class QuestionController {
 
     @PostMapping("/")
     public String create(@LoginUser User loginUser, String title, String contents) {
-        Question createdQuestion = qnaService.create(loginUser, new Question(title, contents));
+        Question createdQuestion = qnaService.createQuestion(loginUser, new Question(title, contents));
 
         return "redirect:" + createdQuestion.generateUrl();
     }

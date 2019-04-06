@@ -1,35 +1,37 @@
 package nextstep.service;
 
-import java.util.List;
-import java.util.Optional;
-import javax.persistence.EntityNotFoundException;
 import nextstep.CannotDeleteException;
-import nextstep.domain.Answer;
-import nextstep.domain.AnswerRepository;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
+import java.util.List;
+
 @Service("qnaService")
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
     private final QuestionRepository questionRepository;
+    private final DeleteHistoryRepository deleteHistoryRepository;
     private final AnswerRepository answerRepository;
+
     private final DeleteHistoryService deleteHistoryService;
 
-    public QnaService(DeleteHistoryService deleteHistoryService, AnswerRepository answerRepository,
+    public QnaService(DeleteHistoryService deleteHistoryService,
+                      AnswerRepository answerRepository,
+                      DeleteHistoryRepository deleteHistoryRepository,
                       QuestionRepository questionRepository) {
+
         this.deleteHistoryService = deleteHistoryService;
         this.answerRepository = answerRepository;
+        this.deleteHistoryRepository = deleteHistoryRepository;
         this.questionRepository = questionRepository;
     }
 
-    public Question create(User loginUser, Question question) {
+    public Question createQuestion(User loginUser, Question question) {
         question.writeBy(loginUser);
         log.debug("question : {}", question);
 
@@ -50,9 +52,13 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+    public List<DeleteHistory> deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question deletedQuestion = findById(questionId);
-        deletedQuestion.delete(loginUser);
+
+        List<DeleteHistory> deleteHistories = deletedQuestion.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistories);
+
+        return deleteHistories;
     }
 
     public Iterable<Question> findAll() {
@@ -73,6 +79,7 @@ public class QnaService {
         return answer;
     }
 
+    @Transactional
     public Answer findAnswer(long questionId, long answerId) {
         return findById(questionId).getAnswer(answerId);
     }
@@ -84,8 +91,11 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer deleteAnswer(User loginUser, long questionId, long answerId) {
+    public DeleteHistory deleteAnswer(User loginUser, long questionId, long answerId) {
         Answer deletedAnswer = findAnswer(questionId, answerId);
-        return deletedAnswer.delete(loginUser);
+        DeleteHistory deleteHistory = deletedAnswer.delete(loginUser);
+        deleteHistoryRepository.save(deleteHistory);
+
+        return deleteHistory;
     }
 }
