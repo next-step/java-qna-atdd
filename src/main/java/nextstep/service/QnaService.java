@@ -1,6 +1,6 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -36,23 +35,31 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
+    public Question show(long id) {
+        return findById(id).orElseThrow(UnAuthorizedException::new);
+    }
+
     public Question findQuestion(long id, User loginUser) {
-        return findById(id).filter(question -> question
-                .isOwner(loginUser)).orElseThrow(NoSuchElementException::new);
+        return findById(id)
+                .filter(question -> question != null)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question question = findById(id).orElseThrow(NoSuchElementException::new);
-        return question.modify(loginUser, updatedQuestion);
+        return findById(id)
+                .filter(question -> question != null)
+                .map(question -> question.modify(loginUser, updatedQuestion))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = findById(questionId)
-                .orElseThrow(() -> new CannotDeleteException("Cannot findById : {}" + questionId));
-
-        question.delete(loginUser);
+    public Question deleteQuestion(User loginUser, long id) {
+        return findById(id)
+                .filter(question -> question != null)
+                .map(question -> question.delete(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     public Iterable<Question> findAll() {
@@ -63,7 +70,7 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
+    public Answer addAnswer(User loginUser, long id, String contents) {
         // TODO 답변 추가 기능 구현
         return null;
     }

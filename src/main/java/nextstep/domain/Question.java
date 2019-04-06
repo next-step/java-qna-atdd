@@ -92,9 +92,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws CannotDeleteException {
+    public Question delete(User loginUser) throws UnAuthorizedException {
         if (!isOwner(loginUser)) {
-            throw new CannotDeleteException("cannot delete, is not owner");
+            throw new UnAuthorizedException();
         }
 
         this.deleted = true;
@@ -104,6 +104,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
+    }
+
+    public String generateApiUrl() {
+        return String.format("/api/questions/%d", getId());
     }
 
     @Override
