@@ -1,6 +1,6 @@
 package nextstep.web;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -9,7 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class HomeController {
 
     private final QnaService qnaService;

@@ -1,4 +1,4 @@
-package nextstep.web;
+package nextstep.api;
 
 import nextstep.domain.User;
 import nextstep.security.LoginUser;

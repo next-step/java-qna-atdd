@@ -14,6 +14,6 @@ public class QuestionDto {
     private boolean deleted = false;
 
     public Question toEntity() {
-        return new Question(title, contents);
+        return Question.builder().title(title).contents(contents).build();
     }
 }

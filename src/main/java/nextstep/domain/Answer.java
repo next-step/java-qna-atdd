@@ -46,10 +46,20 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public Answer update(User loginUser, String contents) throws UnAuthenticationException {
-        if(!isOwner(loginUser)) {
+        if(isNotOwner(loginUser)) {
             throw new UnAuthenticationException("그대의 것이 아닌데?");
         }
         this.contents = contents;
+        return this;
+    }
+
+    public Answer delete(User loginUser) throws UnAuthenticationException {
+        System.out.println("유저 " + loginUser);
+        System.out.println("유저ddd " + isNotOwner(loginUser));
+        if(isNotOwner(loginUser)) {
+            throw new UnAuthenticationException("그대의 것이 아닌데?");
+        }
+        this.deleted = true;
         return this;
     }
 
@@ -57,8 +67,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.question = question;
     }
 
-    public boolean isOwner(User loginUser) {
-        return writer.equalsNameAndEmail(loginUser);
+    public boolean isNotOwner(User loginUser) {
+        return !writer.equalsNameAndEmail(loginUser);
     }
 
     @Override
