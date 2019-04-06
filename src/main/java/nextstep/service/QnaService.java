@@ -23,26 +23,31 @@ public class QnaService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final DeleteHistoryService deleteHistoryService;
+    private final UserRepository userRepository;
 
-    public Question create(User loginUser, Question question) {
-        question.writeBy(loginUser);
-        return questionRepository.save(question);
+    private User getUser(User loginUser) {
+        return userRepository.findByUserId(loginUser.getUserId()).orElseThrow(EntityNotFoundException::new);
     }
 
     public Optional<Question> findById(long id) {
         return questionRepository.findById(id);
     }
 
+    public Question create(User loginUser, Question question) {
+        question.writeBy(getUser(loginUser));
+        return questionRepository.save(question);
+    }
+
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) throws UnAuthenticationException {
-        Question question = questionRepository.findById(id).orElseThrow(NullPointerException::new);
+        Question question = findById(id).orElseThrow(EntityNotFoundException::new);
         question.update(loginUser, updatedQuestion);
         return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
+        Question question = findById(questionId).orElseThrow(EntityNotFoundException::new);
         if(question.isNotOwner(loginUser)) {
             throw new CannotDeleteException("This Question is Not Yours!");
         }
@@ -53,28 +58,27 @@ public class QnaService {
         return questionRepository.findByDeleted(false);
     }
 
-    public List<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable).getContent();
+    public Optional<Answer> findByAnswerId(long id) {
+        return answerRepository.findById(id);
     }
 
     @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = findById(questionId).orElseThrow(IllegalArgumentException::new);
-        Answer answer = new Answer(loginUser, contents);
-        question.addAnswer(answer);
-        questionRepository.save(question);
+        Answer answer = Answer.builder().writer(getUser(loginUser)).question(question).contents(contents).build();
+        answerRepository.save(answer);
         return answer;
     }
 
     @Transactional
     public void deleteAnswer(User loginUser, long id) throws Exception {
-        Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Answer answer = findByAnswerId(id).orElseThrow(EntityNotFoundException::new);
         answer.delete(loginUser);
     }
 
     @Transactional
     public Answer updateAnswer(User loginUser, Long id, String contents) throws Exception {
-        Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Answer answer = findByAnswerId(id).orElseThrow(EntityNotFoundException::new);
         answer.update(loginUser, contents);
         return answer;
     }
