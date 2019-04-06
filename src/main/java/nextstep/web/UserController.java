@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import lombok.AllArgsConstructor;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
@@ -14,10 +15,10 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/users")
+@AllArgsConstructor
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Resource(name = "userService")
     private UserService userService;
 
     @GetMapping("/form")

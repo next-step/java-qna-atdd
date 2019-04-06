@@ -10,6 +10,9 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.util.Set;
 
+import static nextstep.domain.Fixture.mockQuestion;
+import static nextstep.domain.Fixture.mockUser;
+
 public class QuestionValidationTest extends BaseTest {
     private static Validator validator;
 
@@ -20,8 +23,21 @@ public class QuestionValidationTest extends BaseTest {
     }
 
     @Test
+    public void 질문생성_테스트() throws Exception {
+        Set<ConstraintViolation<Question>> constraintViolcations = validator.validate(mockQuestion);
+        softly.assertThat(constraintViolcations).hasSize(0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void titleWhenIsEmpty() throws Exception {
-        Question question = new Question("", "당근 엄청 의미있는 활동이고 말고..");
+        Question question = new Question("", Fixture.contents);
+        Set<ConstraintViolation<Question>> constraintViolcations = validator.validate(question);
+        softly.assertThat(constraintViolcations).hasSize(1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void 컨텐츠_세글자_테스트() {
+        Question question = new Question(Fixture.title, "No");
         Set<ConstraintViolation<Question>> constraintViolcations = validator.validate(question);
         softly.assertThat(constraintViolcations).hasSize(1);
     }

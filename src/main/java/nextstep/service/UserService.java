@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import lombok.AllArgsConstructor;
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
@@ -7,12 +8,11 @@ import nextstep.domain.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Service("userService")
+@AllArgsConstructor
 public class UserService {
-    @Resource(name = "userRepository")
     private UserRepository userRepository;
 
     public User add(User user) {
@@ -34,6 +34,10 @@ public class UserService {
 
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    public User login(User loginUser) throws UnAuthenticationException {
+        return login(loginUser.getUserId(), loginUser.getPassword());
     }
 
     public User login(String userId, String password) throws UnAuthenticationException {

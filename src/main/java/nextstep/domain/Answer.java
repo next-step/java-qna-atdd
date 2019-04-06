@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import lombok.*;
+import nextstep.UnAuthenticationException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -7,6 +9,9 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 
 @Entity
+@Getter
+@NoArgsConstructor
+@ToString
 public class Answer extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
@@ -22,9 +27,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Answer() {
-    }
-
     public Answer(User writer, String contents) {
         this.writer = writer;
         this.contents = contents;
@@ -38,19 +40,15 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.deleted = false;
     }
 
-    public User getWriter() {
-        return writer;
-    }
-
-    public Question getQuestion() {
-        return question;
-    }
-
-    public String getContents() {
-        return contents;
-    }
-
     public Answer setContents(String contents) {
+        this.contents = contents;
+        return this;
+    }
+
+    public Answer update(User loginUser, String contents) throws UnAuthenticationException {
+        if(!isOwner(loginUser)) {
+            throw new UnAuthenticationException("그대의 것이 아닌데?");
+        }
         this.contents = contents;
         return this;
     }
@@ -60,20 +58,11 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean isOwner(User loginUser) {
-        return writer.equals(loginUser);
-    }
-
-    public boolean isDeleted() {
-        return deleted;
+        return writer.equalsNameAndEmail(loginUser);
     }
 
     @Override
     public String generateUrl() {
         return String.format("%s/answers/%d", question.generateUrl(), getId());
-    }
-
-    @Override
-    public String toString() {
-        return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
 }
