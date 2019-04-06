@@ -77,7 +77,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void delete(User loginUser) {
+    public DeleteHistory delete(User loginUser) {
         if (isDeleted()) {
             throw new ObjectDeletedException();
         }
@@ -86,6 +86,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         deleted = true;
+
+        return DeleteHistory.generateAnswerHistory(this.getId(), loginUser);
     }
 
     public boolean isOwner(User loginUser) {

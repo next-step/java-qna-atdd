@@ -1,5 +1,6 @@
 package nextstep.security;
 
+import nextstep.exception.CannotDeleteException;
 import nextstep.exception.ObjectDeletedException;
 import nextstep.exception.UnAuthenticationException;
 import nextstep.exception.UnAuthorizedException;
@@ -18,9 +19,15 @@ import javax.persistence.EntityNotFoundException;
 public class RestSecurityControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(RestSecurityControllerAdvice.class);
 
-    @ExceptionHandler(ObjectDeletedException.class)
+    @ExceptionHandler(CannotDeleteException.class)
     @ResponseStatus(value = HttpStatus.METHOD_NOT_ALLOWED)
     public void cannotDeleteData() {
+        log.debug("ObjectDeletedException is happened!");
+    }
+
+    @ExceptionHandler(ObjectDeletedException.class)
+    @ResponseStatus(value = HttpStatus.METHOD_NOT_ALLOWED)
+    public void objectDeletedData() {
         log.debug("ObjectDeletedException is happened!");
     }
 

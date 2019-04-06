@@ -3,9 +3,11 @@ package nextstep.service;
 import lombok.RequiredArgsConstructor;
 import nextstep.domain.Answer;
 import nextstep.domain.AnswerRepository;
+import nextstep.domain.DeleteHistory;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
+import nextstep.exception.CannotDeleteException;
 import nextstep.exception.UnAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +41,14 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) {
+    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question target = findQuestionById(questionId);
-        target.delete(loginUser);
+        List<DeleteHistory> deleteHistories = target.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Question findQuestionById(long id) {
-        return questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        return questionRepository.findByIdAndDeletedFalse(id).orElseThrow(EntityNotFoundException::new);
     }
 
     public Question findQuestionById(User loginUser, long id) {
@@ -56,10 +59,6 @@ public class QnaService {
         }
 
         return question;
-    }
-
-    public Iterable<Question> findAll() {
-        return questionRepository.findByDeleted(false);
     }
 
     public List<Question> findAll(int page, int size) {
@@ -81,10 +80,11 @@ public class QnaService {
     @Transactional
     public void deleteAnswer(User loginUser, long id) {
         Answer target = findAnswerById(id);
-        target.delete(loginUser);
+        DeleteHistory deleteHistory = target.delete(loginUser);
+        deleteHistoryService.save(deleteHistory);
     }
 
     public Answer findAnswerById(long id) {
-        return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        return answerRepository.findByIdAndDeletedFalse(id).orElseThrow(EntityNotFoundException::new);
     }
 }

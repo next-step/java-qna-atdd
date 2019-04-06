@@ -1,13 +1,14 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
 import nextstep.domain.Question;
+import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import support.helper.ApiExecuteBuilder;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
@@ -128,20 +129,6 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문_삭제_실패_500_답변_존재() throws Exception {
-        //given
-        long questionId = ID_ONE;
-
-        //when
-        ResponseEntity<Void> responseEntity = basicAuthTemplate(defaultUser())
-            .exchange(String.format("/api/questions/%d", questionId),
-                HttpMethod.DELETE, createHttpEntity(null), Void.class);
-
-        //then
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @Test
     public void 질문_삭제_실패_400_없는_질문() throws Exception {
         //given
         long questionId = ID_NOT_FOUND;
@@ -167,6 +154,52 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         //then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void 질문_삭제_실패_다른사용자_답변보유() {
+        //given
+        String location = questionPostTest();
+        answerPostTest(defaultUser(), location);
+        answerPostTest(secondLoginUser(), location);
+
+        //when
+        ResponseEntity<Void> responseEntity =
+            ApiExecuteBuilder.setUp(basicAuthTemplate(defaultUser()), Void.class)
+                .url(location)
+                .delete()
+                .execute();
+
+        //then
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @Test
+    public void 질문_삭제_가능_같은사용자_답변만() {
+        //given
+        String location = questionPostTest();
+        answerPostTest(defaultUser(), location);
+        answerPostTest(defaultUser(), location);
+        //when
+        ResponseEntity<Void> responseEntity =
+            ApiExecuteBuilder.setUp(basicAuthTemplate(defaultUser()), Void.class)
+                .url(location)
+                .delete()
+                .execute();
+
+        //then
+        Question dbQuestion = basicAuthTemplate(defaultUser()).getForObject(location, Question.class);
+        softly.assertThat(dbQuestion).isNull();
+    }
+
+    private String questionPostTest() {
+        ResponseEntity<Void> questionResponse = basicAuthTemplate(defaultUser())
+            .postForEntity("/api/questions", question, Void.class);
+        return questionResponse.getHeaders().getLocation().getPath();
+    }
+
+    private void answerPostTest(User user, String location) {
+        basicAuthTemplate(user).postForEntity(location + "/answers", originalContents, Void.class);
     }
 
     @Test

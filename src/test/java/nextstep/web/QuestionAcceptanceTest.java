@@ -76,7 +76,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void 질문_조회() throws Exception {
         // Given
-        Question question = questionRepository.findAll().get(0);
+        Question question = questionRepository.findAll().get(1);
 
         // When
         ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d", question.getId()), String.class);
@@ -265,7 +265,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = delete(basicAuthTemplate(loginUser), question.getId());
 
         // Then
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
 
