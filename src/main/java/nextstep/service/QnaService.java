@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import lombok.RequiredArgsConstructor;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import nextstep.domain.*;
@@ -15,17 +16,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service("qnaService")
+@RequiredArgsConstructor
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
-    @Resource(name = "questionRepository")
-    private QuestionRepository questionRepository;
-
-    @Resource(name = "answerRepository")
-    private AnswerRepository answerRepository;
-
-    @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+    private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
+    private final DeleteHistoryService deleteHistoryService;
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
@@ -46,7 +43,7 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question question = questionRepository.findById(questionId).orElseThrow(EntityNotFoundException::new);
-        if(!question.isOwner(loginUser)) {
+        if(question.isNotOwner(loginUser)) {
             throw new CannotDeleteException("This Question is Not Yours!");
         }
         question.deleteQuestion();
@@ -69,11 +66,10 @@ public class QnaService {
         return answer;
     }
 
-    public void deleteAnswer(User loginUser, long id) throws EntityNotFoundException {
+    @Transactional
+    public void deleteAnswer(User loginUser, long id) throws Exception {
         Answer answer = answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        if(answer.isOwner(loginUser)) {
-            answerRepository.delete(answer);
-        }
+        answer.delete(loginUser);
     }
 
     @Transactional
