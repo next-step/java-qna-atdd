@@ -30,6 +30,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question(User writer, QuestionBody questionBody) {
+        this(null, writer, questionBody);
+    }
+
+    public Question(Long id, User writer, QuestionBody questionBody) {
+        super(id);
+
         if(writer == null) {
             throw new UnAuthorizedException();
         }
@@ -54,6 +60,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
 
+    public void addAnswer(Answer answer) {
+        answer.toQuestion(this);
+        answers.add(answer);
+    }
+
     public User getWriter() {
         return writer;
     }
@@ -62,13 +73,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return questionBody;
     }
 
-    public void writeBy(User loginUser) {
-        this.writer = loginUser;
-    }
-
-    public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+    public List<Answer> getAnswers() {
+        return answers;
     }
 
     public boolean isOwner(User loginUser) {

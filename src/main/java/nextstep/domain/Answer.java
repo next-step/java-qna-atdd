@@ -1,6 +1,7 @@
 package nextstep.domain;
 
-import org.hibernate.annotations.SQLDelete;
+import nextstep.NotFoundException;
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -23,27 +24,27 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Answer() {
-    }
-
-    public Answer(User writer, String contents) {
-        this.writer = writer;
-        this.contents = contents;
+    protected Answer() {
     }
 
     public Answer(User writer, Question question, String contents) {
-        this.writer = writer;
-        this.question = question;
-        this.contents = contents;
-        this.deleted = false;
+        this(null, writer, question, contents);
     }
 
     public Answer(Long id, User writer, Question question, String contents) {
         super(id);
+
+        if(writer == null) {
+            throw new UnAuthorizedException();
+        }
+
+        if(question == null) {
+            throw new NotFoundException();
+        }
+
         this.writer = writer;
         this.question = question;
         this.contents = contents;
-        this.deleted = false;
     }
 
     public User getWriter() {

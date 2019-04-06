@@ -25,19 +25,19 @@ public class ApiQnAController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ListResponse<Question>> list() {
-        List<Question> list = qnaService.findAll();
+    public ResponseEntity<ListResponse<Question>> findQuestions() {
+        List<Question> list = qnaService.findQuestions();
 
         return ResponseEntity.ok(new ListResponse<>(list));
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Question> detail(@PathVariable Long id) {
-        return ResponseEntity.ok(qnaService.findById(id));
+    public ResponseEntity<Question> findQuestion(@PathVariable Long id) {
+        return ResponseEntity.ok(qnaService.findQuestionById(id));
     }
 
     @PostMapping("")
-    public ResponseEntity<Void> create(@LoginUser User loginUser, @RequestBody QuestionBody payload) {
+    public ResponseEntity<Void> createQuestion(@LoginUser User loginUser, @RequestBody QuestionBody payload) {
         Question question = qnaService.createQuestion(loginUser, payload);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
@@ -47,14 +47,14 @@ public class ApiQnAController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Question> update(@LoginUser User loginUser, @PathVariable Long id, @RequestBody QuestionBody newPayload) {
+    public ResponseEntity<Question> updateQuestion(@LoginUser User loginUser, @PathVariable Long id, @RequestBody QuestionBody newPayload) {
         Question question = qnaService.updateQuestion(id, loginUser, newPayload);
 
         return ResponseEntity.ok(question);
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Void> delete(@LoginUser User loginUser, @PathVariable Long id) {
+    public ResponseEntity<Void> deleteQuestion(@LoginUser User loginUser, @PathVariable Long id) {
         qnaService.deleteQuestion(id, loginUser);
 
         return ResponseEntity.ok().build();

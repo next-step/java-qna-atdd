@@ -12,7 +12,7 @@ import support.test.AcceptanceTest;
 
 import java.util.Optional;
 
-@DataJpaTest
+//@DataJpaTest
 public class ApiQnAAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
@@ -117,5 +117,27 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
         // then
         softly.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
-    */
+
+    @Test
+    public void 질문에_답변을_등록한다() {
+        // given
+        questionRepository.save(new Question(defaultUser(), new QuestionBody("This is title", "This is contents")));
+
+        // when
+        String contents = "This is answer";
+        ResponseEntity<Void> createResponse = createResource("/api/questions/1/answers", contents, defaultUser());
+
+        // then
+        String location = createResponse.getHeaders().getLocation().getPath();
+        softly.assertThat(location).isEqualTo("/api/questions/1/answers/1");
+        Optional<Answer> maybeCreatedAnswer = answerRepository.findById(1L);
+        softly.assertThat(maybeCreatedAnswer).isNotEmpty();
+    }
+
+    @Test
+    public void 질문의_답변들을_조회한다() {
+        // given
+        questionRepository.save(new Question(defaultUser(), new QuestionBody("This is title", "This is contents")));
+//        answerRepository.save(new Answer())
+    }
 }

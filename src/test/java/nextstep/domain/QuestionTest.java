@@ -6,9 +6,14 @@ import org.junit.Test;
 import support.test.BaseTest;
 
 public class QuestionTest extends BaseTest {
+    private User writer = UserTest.newUser(1L);
+
+    public static Question newQuestion(Long id) {
+        return new Question(id, UserTest.newUser(1L), new QuestionBody("This is title", "This is contents"));
+    }
+
     @Test
     public void 질문을_생성한다() {
-        User writer = UserTest.newUser(1L);
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         Question question = new Question(writer, questionBody);
 
@@ -18,7 +23,6 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void 작성자가_맞는지_확인한다() {
-        User writer = UserTest.newUser(1L);
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         Question question = new Question(writer, questionBody);
 
@@ -33,7 +37,6 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void 질문을_수정한다() {
-        User writer = UserTest.newUser(1L);
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         Question question = new Question(writer, questionBody);
 
@@ -45,7 +48,6 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = ForbiddenException.class)
     public void 작성자가_아닌데_질문을_수정하면_예외가_발생한다() {
-        User writer = UserTest.newUser(1L);
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         Question question = new Question(writer, questionBody);
 
@@ -56,7 +58,6 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void 질문울_삭제한다() {
-        User writer = UserTest.newUser(1L);
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         Question question = new Question(writer, questionBody);
 
@@ -67,7 +68,6 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = ForbiddenException.class)
     public void 작성자가_아닌데_질문을_삭제하면_예외가_발생한다() {
-        User writer = UserTest.newUser(1L);
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
         Question question = new Question(writer, questionBody);
 

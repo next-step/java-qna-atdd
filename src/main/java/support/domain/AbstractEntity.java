@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 public class AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, updatable = false)
     @CreatedDate
@@ -26,15 +26,15 @@ public class AbstractEntity {
     public AbstractEntity() {
     }
 
-    public AbstractEntity(long id) {
+    public AbstractEntity(Long id) {
         this.id = id;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public AbstractEntity setId(long id) {
+    public AbstractEntity setId(Long id) {
         this.id = id;
         return this;
     }

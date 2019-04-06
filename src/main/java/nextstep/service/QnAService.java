@@ -1,12 +1,10 @@
 package nextstep.service;
 
-import nextstep.domain.*;
 import nextstep.ForbiddenException;
 import nextstep.NotFoundException;
+import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,19 +32,19 @@ public class QnAService {
     }
 
     @Transactional(readOnly = true)
-    public List<Question> findAll() {
+    public List<Question> findQuestions() {
         return questionRepository.findByDeletedFalse();
     }
 
     @Transactional(readOnly = true)
-    public Question findById(long id) {
+    public Question findQuestionById(Long id) {
         return questionRepository.findByIdAndDeletedFalse(id)
             .orElseThrow(NotFoundException::new);
     }
 
     @Transactional
     public Question updateQuestion(Long id, User loginUser, QuestionBody newQuestionBody) {
-        Question question = findById(id);
+        Question question = findQuestionById(id);
         question.update(loginUser, newQuestionBody);
 
         return question;
@@ -54,35 +52,41 @@ public class QnAService {
 
     @Transactional
     public void deleteQuestion(Long id, User writer) {
-        Question question = findById(id);
+        Question question = findQuestionById(id);
         question.delete(writer);
     }
 
-    @Transactional(readOnly = true)
-    public Page<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable);
+    @Transactional
+    public Answer addAnswer(User writer, Long questionId, String contents) {
+        Question question = findQuestionById(questionId);
+        // check 연관관계 편의메서드는 어떻게?
+        Answer answer = new Answer(writer, question, contents);
+        question.addAnswer(answer);
+
+        return answerRepository.save(answer);
     }
 
+    @Transactional
+    public List<Answer> findAnswers(Long questionId) {
+        Question question = findQuestionById(questionId);
+
+        return question.getAnswers();
+    }
+
+    public Answer deleteAnswer(User writer, Long id) {
+        // TODO 답변 삭제 기능 구현
+        return null;
+    }
+
+    @Deprecated
     @Transactional(readOnly = true)
-    public Question findByOwner(User loginUser, long id) {
-        Question question = findById(id);
+    public Question findByOwner(User loginUser, Long id) {
+        Question question = findQuestionById(id);
 
         if (!question.isOwner(loginUser)) {
             throw new ForbiddenException();
         }
 
         return question;
-    }
-
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        Question question = findById(questionId);
-        Answer answer = new Answer(loginUser, question, contents);
-
-        return answerRepository.save(answer);
-    }
-
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
     }
 }

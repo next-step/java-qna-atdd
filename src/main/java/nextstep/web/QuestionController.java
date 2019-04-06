@@ -25,7 +25,7 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
-        Question result = qnAService.findById(id);
+        Question result = qnAService.findQuestionById(id);
 
         model.addAttribute("question", result);
         return "qna/show";
