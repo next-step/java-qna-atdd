@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -44,7 +43,7 @@ public class ApiQuestionController {
     }
 
     @DeleteMapping("{id}")
-    public void delete(@LoginUser User loginUser, @PathVariable long id) throws Exception {
+    public void delete(@LoginUser User loginUser, @PathVariable long id) {
         qnaService.deleteQuestion(loginUser, id);
     }
 }
