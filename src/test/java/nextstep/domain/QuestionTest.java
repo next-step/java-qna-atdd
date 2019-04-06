@@ -1,7 +1,7 @@
 package nextstep.domain;
 
-import static nextstep.domain.UserTest.newUser;
-import static org.assertj.core.api.Assertions.assertThat;
+import static nextstep.domain.User.GUEST_USER;
+import static nextstep.domain.UserTest.SANJIGI;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
@@ -9,62 +9,43 @@ import org.junit.Test;
 import support.test.BaseTest;
 
 public class QuestionTest extends BaseTest {
-    public static final User WEATHERMAN = new User(1L, "weatherman", "password", "wea man", "today@weather.com");
-    public static final Question QUESTION_WEATHER = new Question("오늘의 날씨는?", "강수 확률 높습니다! 우산 챙기세요");
-
-    @Test(expected = UnAuthorizedException.class)
-    public void update_guest() {
-        Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
-        origin.writeBy(WEATHERMAN);
-
-        Question target = new Question(QUESTION_WEATHER.getTitle() + "2 !!", QUESTION_WEATHER.getContents() + "2 ....");
-        origin.update(User.GUEST_USER, target);
-    }
+    public static final User WRITER = new User(1L, "weatherman", "password", "wea man", "today@weather.com");
+    public static final Question WEATHER_QUESTION =
+            new Question("오늘의 날씨는?", "강수 확률 높습니다! 우산 챙기세요")
+                    .writeBy(WRITER);
 
     @Test
     public void update_owner() {
-        Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
-        origin.writeBy(WEATHERMAN);
+        Question target = new Question(WEATHER_QUESTION.getTitle(), WEATHER_QUESTION.getContents());
+        WEATHER_QUESTION.update(WRITER, target);
+        softly.assertThat(WEATHER_QUESTION.equalsTitleAndContents(target)).isEqualTo(true);
+    }
 
-        Question target = new Question(QUESTION_WEATHER.getTitle() + "2 !!", QUESTION_WEATHER.getContents() + "2 ....");
-        origin.update(WEATHERMAN, target);
-
-        assertThat(origin.getTitle()).isEqualTo(target.getTitle());
-        assertThat(origin.getContents()).isEqualTo(target.getContents());
+    @Test(expected = UnAuthorizedException.class)
+    public void update_guest() {
+        Question target = new Question(WEATHER_QUESTION.getTitle(), WEATHER_QUESTION.getContents());
+        WEATHER_QUESTION.update(GUEST_USER, target);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() {
-        Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
-        origin.writeBy(WEATHERMAN);
-
-        Question target = new Question(QUESTION_WEATHER.getTitle() + "2 !!", QUESTION_WEATHER.getContents() + "2 ....");
-        origin.update(new User("other", "password", "other", "other@test.com"), target);
+        Question target = new Question(WEATHER_QUESTION.getTitle() + "2 !!", WEATHER_QUESTION.getContents() + "2 ....");
+        WEATHER_QUESTION.update(SANJIGI, target);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_guest() throws CannotDeleteException {
-        Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
-        origin.writeBy(WEATHERMAN);
-
-        origin.delete(User.GUEST_USER);
+        WEATHER_QUESTION.delete(GUEST_USER);
     }
 
     @Test
     public void delete_owner() throws CannotDeleteException {
-        Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
-        origin.writeBy(WEATHERMAN);
-
-        origin.delete(WEATHERMAN);
-
-        assertThat(origin.isDeleted()).isEqualTo(true);
+        WEATHER_QUESTION.delete(WRITER);
+        softly.assertThat(WEATHER_QUESTION.isDeleted()).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void delete_not_owner() throws CannotDeleteException {
-        Question origin = new Question(QUESTION_WEATHER.getTitle(), QUESTION_WEATHER.getContents());
-        origin.writeBy(WEATHERMAN);
-
-        origin.delete(newUser(2L, "other", "passwd"));
+        WEATHER_QUESTION.delete(SANJIGI);
     }
 }

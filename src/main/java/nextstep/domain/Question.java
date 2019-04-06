@@ -64,8 +64,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
+    public Question writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void addAnswer(Answer answer) {
