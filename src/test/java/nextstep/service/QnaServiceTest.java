@@ -186,7 +186,7 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
         when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
-        Answer savedAnswer = qnaService.findAnswerById(ID_ONE, ID_ONE);
+        Answer savedAnswer = qnaService.findAnswerById(ID_ONE);
         softly.assertThat(savedAnswer).isEqualTo(answer);
     }
 
@@ -200,7 +200,7 @@ public class QnaServiceTest extends BaseTest {
         when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
         when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
 
-        Answer savedAnswer = qnaService.findAnswerById(ID_ONE, ID_TWO);
+        Answer savedAnswer = qnaService.findAnswerById(ID_TWO);
     }
 
     @Test

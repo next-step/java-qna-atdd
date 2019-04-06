@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
 
 @Service("qnaService")
 @RequiredArgsConstructor
@@ -80,16 +79,12 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteAnswer(User loginUser, long questionId, long id) {
-        Answer target = findAnswerById(questionId, id);
+    public void deleteAnswer(User loginUser, long id) {
+        Answer target = findAnswerById(id);
         target.delete(loginUser);
     }
 
-    private Answer findAnswerById(long id) {
+    public Answer findAnswerById(long id) {
         return answerRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-    }
-
-    public Answer findAnswerById(long questionId, long id) {
-        return findQuestionById(questionId).getContainsAnswer(id).orElseThrow(EntityNotFoundException::new);
     }
 }

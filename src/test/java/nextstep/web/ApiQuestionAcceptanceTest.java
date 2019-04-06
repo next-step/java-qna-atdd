@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -12,6 +13,10 @@ import support.test.AcceptanceTest;
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger logger = LoggerFactory.getLogger(ApiAnswerAcceptanceTest.class);
     private static final Question question = new Question("질문 제목", "질문 내용");
+    private static final String originalContents = "답변 등록";
+    private static final long ID_ONE = 1L;
+    private static final long ID_TWO = 2L;
+    private static final long ID_NOT_FOUND = 100L;
 
     private static Question editQuestion(long id, String title, String content) {
         Question editQuestion = new Question(title, content);
@@ -48,7 +53,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void 질문_조회_성공() throws Exception {
         // Given
-        long questionId = 1L;
+        long questionId = ID_ONE;
 
         // When
         ResponseEntity<Question> response = template()
@@ -64,7 +69,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void 질문_조회_실패_400_없는_질문() throws Exception {
         // Given
-        long questionId = 100L;
+        long questionId = ID_NOT_FOUND;
 
         // When
         ResponseEntity<Question> response = template()
@@ -123,9 +128,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 답변_삭제_실패_500_질문_존재() throws Exception {
+    public void 질문_삭제_실패_500_답변_존재() throws Exception {
         //given
-        long questionId = 1L;
+        long questionId = ID_ONE;
 
         //when
         ResponseEntity<Void> responseEntity = basicAuthTemplate(defaultUser())
@@ -137,9 +142,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 답변_삭제_실패_400_없는_답변() throws Exception {
+    public void 질문_삭제_실패_400_없는_질문() throws Exception {
         //given
-        long questionId = 100L;
+        long questionId = ID_NOT_FOUND;
 
         //when
         ResponseEntity<Void> responseEntity = basicAuthTemplate(defaultUser())
@@ -151,9 +156,9 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 답변_삭제_실패_401_권한_없음() throws Exception {
+    public void 질문_삭제_실패_401_권한_없음() throws Exception {
         //given
-        long questionId = 1L;
+        long questionId = ID_ONE;
 
         //when
         ResponseEntity<Void> responseEntity = template()
@@ -162,5 +167,46 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         //then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void 답변_생성_성공() throws Exception {
+        // Given
+        long questionId = ID_TWO;
+
+        // When
+        ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).postForEntity(
+            String.format("/api/questions/%d/answers", questionId), originalContents, Void.class);
+
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
+
+    @Test
+    public void 답변_생성_실패_400_없는_질문() throws Exception {
+        // Given
+        long questionId = ID_NOT_FOUND;
+
+        // When
+        ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).postForEntity(
+            String.format("/api/questions/%d/answers", questionId), originalContents, Void.class);
+
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void 답변_생성_실패_401_권한_없음() throws Exception {
+        // Given
+        long questionId = ID_NOT_FOUND;
+
+        // When
+        ResponseEntity<Void> response = template().postForEntity(
+            String.format("/api/questions/%d/answers", questionId), originalContents, Void.class);
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }

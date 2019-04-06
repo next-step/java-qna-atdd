@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import lombok.RequiredArgsConstructor;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -58,5 +59,14 @@ public class ApiQuestionController {
     public ResponseEntity<Void> delete(@LoginUser User loginUser, @PathVariable long id) {
         qnaService.deleteQuestion(loginUser, id);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/{questionId}/answers")
+    public ResponseEntity<Answer> addAnswer(@PathVariable long questionId, @RequestBody String contents, @LoginUser User loginUser) {
+        Answer createdAnswer = qnaService.createAnswer(loginUser, questionId, contents);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/api" + createdAnswer.generateUrl()));
+        return new ResponseEntity<>(createdAnswer, headers, HttpStatus.CREATED);
     }
 }
