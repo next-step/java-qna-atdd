@@ -3,7 +3,7 @@ package nextstep.web;
 import lombok.AllArgsConstructor;
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
-import nextstep.domain.QuestionDto;
+import nextstep.domain.RequestQuestionDto;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -42,7 +42,7 @@ public class QnaController {
     }
 
     @PostMapping
-    public String createQuestion(@LoginUser User loginUser, @ModelAttribute QuestionDto question, Long id) throws Exception{
+    public String createQuestion(@LoginUser User loginUser, @ModelAttribute RequestQuestionDto question, Long id) throws Exception{
         if (id == null) {
             qnaService.create(loginUser, question.toEntity());
             return "redirect:/";

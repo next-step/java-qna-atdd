@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class QuestionDto {
+public class RequestQuestionDto {
     private String title;
     private String contents;
     private User writer;

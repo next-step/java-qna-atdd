@@ -11,8 +11,9 @@ import javax.validation.constraints.Size;
 @Entity
 @Getter
 @NoArgsConstructor
-@ToString
+@ToString(callSuper = true)
 public class Answer extends AbstractEntity implements UrlGeneratable {
+    public static final int MIN_CONTENTS_LENGTH = 6;
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;
@@ -27,8 +28,11 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     private boolean deleted = false;
 
-    public Answer(User writer, String contents) {
+    @Builder
+    public Answer(User writer, Question question, String contents) {
+        validate(contents);
         this.writer = writer;
+        this.question = question;
         this.contents = contents;
     }
 
@@ -40,27 +44,34 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.deleted = false;
     }
 
+    private void validate(String contents) {
+        if(contents.length() < MIN_CONTENTS_LENGTH) {
+            throw new IllegalArgumentException("무성의답변 안됩니다 ㅠㅠ");
+        }
+    }
+
     public Answer setContents(String contents) {
         this.contents = contents;
         return this;
     }
 
     public Answer update(User loginUser, String contents) throws UnAuthenticationException {
-        if(isNotOwner(loginUser)) {
-            throw new UnAuthenticationException("그대의 것이 아닌데?");
-        }
+        validateOwner(loginUser);
+        validate(contents);
         this.contents = contents;
         return this;
     }
 
     public Answer delete(User loginUser) throws UnAuthenticationException {
-        System.out.println("유저 " + loginUser);
-        System.out.println("유저ddd " + isNotOwner(loginUser));
-        if(isNotOwner(loginUser)) {
-            throw new UnAuthenticationException("그대의 것이 아닌데?");
-        }
+        validateOwner(loginUser);
         this.deleted = true;
         return this;
+    }
+
+    private void validateOwner(User loginUser) throws UnAuthenticationException {
+        if (isNotOwner(loginUser)) {
+            throw new UnAuthenticationException("그대의 것이 아닌데?");
+        }
     }
 
     public void toQuestion(Question question) {

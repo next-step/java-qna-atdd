@@ -12,7 +12,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.Optional;
 
 import static nextstep.domain.Fixture.*;
 
@@ -29,15 +28,10 @@ public class QnaServiceTest extends BaseTest {
     @Autowired
     private QnaService qnaService;
 
-    private Optional<Question> returnCacheValue;
-    private Optional<Answer> returnCacheAnswer;
-
     @Before
     public void setUp() {
         MOCK_QUESTION.writeBy(MOCK_USER);
         ANSWER.setId(1);
-        returnCacheValue = Optional.of((Question) MOCK_QUESTION);
-        returnCacheAnswer = Optional.of((Answer) ANSWER);
     }
 
     @Test
@@ -63,11 +57,10 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(result.getWriter()).isNotNull();
     }
 
-
-    // TODO : 이거 결과값 체크 필요
     @Test
     public void 삭제_테스트() throws CannotDeleteException {
         qnaService.deleteQuestion(OTHER_USER, 2);
+        softly.assertThat(qnaService.findById(2L).orElseGet(null).isDeleted()).isTrue();
     }
 
     @Test(expected = EntityNotFoundException.class)
@@ -79,6 +72,7 @@ public class QnaServiceTest extends BaseTest {
     public void 답변_추가_테스트() {
         Answer result = qnaService.addAnswer(MOCK_USER, 1, "엄마상어는요!");
         softly.assertThat(result.getContents()).isEqualTo("엄마상어는요!");
+        softly.assertThat(result.getId()).isEqualTo(3);
     }
 
     @Test
