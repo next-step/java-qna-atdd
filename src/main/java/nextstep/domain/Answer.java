@@ -60,8 +60,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public boolean hasContents(String contents) {
-        return StringUtils.equals(this.contents, contents);
+    public boolean equalsContents(Answer answer) {
+        return StringUtils.equals(this.contents, answer.contents);
     }
 
     public void writeBy(User loginUser) {

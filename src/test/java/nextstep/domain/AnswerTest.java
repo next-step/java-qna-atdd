@@ -14,8 +14,8 @@ public class AnswerTest extends BaseTest {
 
     @Test
     public void update_owner() {
-        ANSWER.update(JAVAJIGI, UPDATED_CONTENTS);
-        softly.assertThat(ANSWER.hasContents(UPDATED_CONTENTS)).isEqualTo(true);
+        Answer updated = ANSWER.update(JAVAJIGI, UPDATED_CONTENTS);
+        softly.assertThat(ANSWER.equalsContents(updated)).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
