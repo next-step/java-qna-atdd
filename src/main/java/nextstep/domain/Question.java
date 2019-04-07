@@ -35,6 +35,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
+    public Question(long id, String title, String contents, User writer, boolean deleted) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
+        this.deleted = deleted;
+    }
+
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
@@ -84,6 +92,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException("The owner doesn't match");
         }
 
+        if (isDeleted()) {
+            throw new IllegalStateException("It's deleted question");
+        }
+
         this.title = updatedQuestion.title;
         this.contents = updatedQuestion.contents;
     }
@@ -103,6 +115,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
+    }
+
+    public String generateRestUrl() {
+        return String.format("/api/questions/%d", getId());
     }
 
     @Override
