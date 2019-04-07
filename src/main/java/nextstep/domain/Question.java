@@ -11,9 +11,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -30,10 +28,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
+
 
     private boolean deleted = false;
 
@@ -111,16 +108,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("이미 지워진 질문");
         }
 
-        if (answers.size() > 0 && answers.stream().anyMatch(a -> a.isNotOwner(loginUser))) {
-            throw new CannotDeleteException("답변자가 존재하는 질문");
-        }
-
+        List<DeleteHistory> deleteHistories = answers.delete(loginUser);
         this.deleted = true;
-
-        List<DeleteHistory> deleteHistories = answers.stream()
-                .map(answer -> answer.delete(loginUser))
-                .collect(Collectors.toList());
-
         deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
 
         return deleteHistories;
@@ -135,15 +124,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
                 contents.equals(target.contents);
     }
 
-    public List<Answer> getAnswers() {
+    public Answers getAnswers() {
         return answers;
     }
 
     public Answer getAnswer(long answerId) {
-        return answers.stream()
-                .filter(answer -> answer.hasId(answerId))
-                .findAny()
-                .orElseThrow(EntityNotFoundException::new);
+        return answers.getAnswer(answerId);
     }
 
     @Override

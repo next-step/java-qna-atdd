@@ -76,7 +76,7 @@ public class QnaService {
         answer.writeBy(loginUser);
         question.addAnswer(answer);
 
-        return answer;
+        return answerRepository.save(answer);
     }
 
     @Transactional
