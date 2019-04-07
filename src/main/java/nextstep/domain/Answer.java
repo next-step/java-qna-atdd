@@ -111,7 +111,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String generateUrl() {
-        return String.format("%s/answers/%d", question.generateUrl(), getId());
+        return String.format("%s/answers/%d", question.generateRestUrl(), getId());
     }
 
     @Override
