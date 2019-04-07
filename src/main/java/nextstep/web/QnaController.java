@@ -1,14 +1,13 @@
 package nextstep.web;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
-import nextstep.domain.QuestionDto;
+import nextstep.domain.RequestQuestionDto;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +17,8 @@ import javax.persistence.EntityNotFoundException;
 @Controller
 @RequestMapping("/questions")
 @AllArgsConstructor
+@Slf4j
 public class QnaController {
-    private static final Logger log = LoggerFactory.getLogger(QnaController.class);
-
     private final QnaService qnaService;
 
     @GetMapping
@@ -42,7 +40,7 @@ public class QnaController {
     }
 
     @PostMapping
-    public String createQuestion(@LoginUser User loginUser, @ModelAttribute QuestionDto question, Long id) throws Exception{
+    public String createQuestion(@LoginUser User loginUser, @ModelAttribute RequestQuestionDto question, Long id) throws Exception{
         if (id == null) {
             qnaService.create(loginUser, question.toEntity());
             return "redirect:/";
@@ -85,7 +83,7 @@ public class QnaController {
     // TODO : 질문 수정 만들어야함!
 
     @DeleteMapping("/{id}/answers/{answerId}")
-    public String deleteAnswer(@LoginUser User loginUser, @PathVariable Long id, @PathVariable Long answerId) throws CannotDeleteException {
+    public String deleteAnswer(@LoginUser User loginUser, @PathVariable Long id, @PathVariable Long answerId) throws Exception {
         qnaService.deleteAnswer(loginUser, answerId);
         return "redirect:/questions/"+id;
     }

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class QuestionDto {
+public class RequestQuestionDto {
     private String title;
     private String contents;
     private User writer;
@@ -14,6 +14,9 @@ public class QuestionDto {
     private boolean deleted = false;
 
     public Question toEntity() {
-        return new Question(title, contents);
+        return Question.builder()
+                .title(title)
+                .contents(contents)
+                .build();
     }
 }

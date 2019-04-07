@@ -1,4 +1,4 @@
-package nextstep.web;
+package nextstep.web.api;
 
 import nextstep.domain.User;
 import org.junit.Test;

@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
@@ -14,8 +15,10 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
+@ToString(exclude = {"answers"})
 public class Question extends AbstractEntity implements UrlGeneratable {
+    public static final int MIN_DATA_LENGTH = 3;
+    public static final int MAX_TITLE_LENGTH = 100;
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -24,6 +27,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Lob
     private String contents;
 
+    // FIXED : (cascade={CascadeType.ALL}) 얘와 관련이 되어 보입니다?
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
@@ -31,26 +35,31 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
     @OrderBy("id ASC")
+    @JsonIgnore
     private List<Answer> answers = new ArrayList<>();
 
     private boolean deleted = false;
 
-    public Question(String title, String contents) {
+    @Builder
+    private Question(String title, String contents) {
         validate(title, contents);
         this.title = title;
         this.contents = contents;
     }
 
-    public Question(String title, String contents, Long id) {
-        this(title, contents);
-        super.setId(id);
+    private void validate(String title, String contents) {
+        validateTitle(title);
+        validateContents(contents);
     }
 
-    private void validate(String title, String contents) {
-        if(title.length() < 3 | title.length() > 100) {
+    private void validateTitle(String title) {
+        if(title.length() < MIN_DATA_LENGTH | title.length() > MAX_TITLE_LENGTH) {
              throw new IllegalArgumentException("제목은 3 ~ 100 자 내에서 가능합니다");
         }
-        if(contents.length() < 3) {
+    }
+
+    private void validateContents(String contents) {
+        if(contents.length() < MIN_DATA_LENGTH) {
             throw new IllegalArgumentException("내용이 빈약하네요. 좀 더 써보세요");
         }
     }
@@ -64,12 +73,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         answers.add(answer);
     }
     
-    public boolean isOwner(User loginUser) {
-        return writer.equalsNameAndEmail(loginUser);
+    public boolean isNotOwner(User loginUser) {
+        return !writer.equalsNameAndEmail(loginUser);
     }
 
     public Question update(User loginUser, Question question) throws UnAuthenticationException {
-        if(!isOwner(loginUser)) {
+        if(isNotOwner(loginUser)) {
             throw new UnAuthenticationException("그대의 것이 아닌데?");
         }
         validate(question.title, question.contents);
