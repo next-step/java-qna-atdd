@@ -1,5 +1,8 @@
 package nextstep.domain;
 
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -24,10 +27,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -98,17 +99,19 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
 
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
+        List<DeleteHistory> deleteHistories = answers.deleteAll(loginUser);
 
         this.deleted = true;
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
+        return deleteHistories;
     }
 
     public boolean containAnswer(long answerId) {
-        return answers.stream()
-            .anyMatch(answer -> answer.getId() == answerId);
+        return answers.isContain(answerId);
     }
 }

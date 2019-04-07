@@ -52,7 +52,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     // Given
     long questionId = 1L;
-    long answerId = 1L;
+    long answerId = 2L;
 
     // When
     ResponseEntity<Answer> response = template().getForEntity(String.format("/api/questions/%d/answers/%d", questionId, answerId), Answer.class);
@@ -169,10 +169,10 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     // Given
     long questionId = 1L;
-    long answerId = 1L;
+    long answerId = 2L;
 
     // When
-    ResponseEntity<Void> response = basicAuthTemplate(findByUserId("sanjigi")).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
+    ResponseEntity<Void> response = basicAuthTemplate(defaultUser()).exchange(String.format("/api/questions/%d/answers/%d", questionId, answerId), HttpMethod.DELETE, createHttpEntity(null), Void.class);
 
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);

@@ -35,8 +35,8 @@ public class ApiQuestionController {
 
   @PostMapping("")
   public ResponseEntity<Void> create(
-      @LoginUser User loginUser, @Valid @RequestBody Question question) {
-
+      @LoginUser User loginUser,
+      @Valid @RequestBody Question question) {
     Question savedQuestion = qnaService.create(loginUser, question);
 
     HttpHeaders headers = new HttpHeaders();
@@ -48,13 +48,11 @@ public class ApiQuestionController {
   public List<Question> list(
       @RequestParam(required = false, defaultValue = "1") int page,
       @RequestParam(required = false, defaultValue = "20") int size) {
-
     return qnaService.findAll(PageRequest.of(page - 1, size));
   }
 
   @GetMapping("{id}")
   public Question show(@PathVariable long id) {
-
     return qnaService.findById(id)
         .orElseThrow(EntityNotFoundException::new);
   }
@@ -64,7 +62,6 @@ public class ApiQuestionController {
       @LoginUser User loginUser,
       @PathVariable long id,
       @Valid @RequestBody Question updatedQuestion) {
-
     return qnaService.update(loginUser, id, updatedQuestion);
   }
 
@@ -72,7 +69,6 @@ public class ApiQuestionController {
   public ResponseEntity<Void> delete(
       @LoginUser User loginUser,
       @PathVariable long id) throws CannotDeleteException {
-
     qnaService.deleteQuestion(loginUser, id);
     return ResponseEntity.ok(null);
   }

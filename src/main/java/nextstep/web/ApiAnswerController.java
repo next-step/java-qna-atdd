@@ -24,18 +24,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/questions")
+@RequestMapping("/api/questions/{questionId}/answers")
 public class ApiAnswerController {
 
   @Resource(name = "qnaService")
   private QnaService qnaService;
 
-  @PostMapping("{questionId}/answers")
+  @PostMapping("")
   public ResponseEntity<Void> create(
       @LoginUser User loginUser,
       @PathVariable(value = "questionId") long questionId,
       @RequestBody String contents) {
-
     Answer savedAnswer = qnaService.addAnswer(loginUser, questionId, contents);
 
     HttpHeaders headers = new HttpHeaders();
@@ -43,20 +42,18 @@ public class ApiAnswerController {
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
 
-  @GetMapping("{questionId}/answers/{id}")
+  @GetMapping("{id}")
   public Answer show(
       @PathVariable(value = "questionId") long questionId,
       @PathVariable(value = "id") long id) {
-
     return qnaService.findAnswerById(questionId, id);
   }
 
-  @DeleteMapping("{questionId}/answers/{id}")
+  @DeleteMapping("{id}")
   public ResponseEntity<Void> delete(
       @LoginUser User loginUser,
       @PathVariable(value = "questionId") long questionId,
       @PathVariable long id) {
-
     qnaService.findById(questionId)
         .filter(question -> question.containAnswer(id))
         .orElseThrow(EntityNotFoundException::new);

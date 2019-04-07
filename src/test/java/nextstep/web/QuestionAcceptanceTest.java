@@ -278,8 +278,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
   public void delete() throws Exception {
 
     // Given
-    User loginUser = defaultUser();
-    Question question = questionRepository.findById(1L)
+    User loginUser = findByUserId("sanjigi");
+    Question question = questionRepository.findById(2L)
         .orElseThrow(EntityNotFoundException::new);
 
     //When
@@ -288,7 +288,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     // Then
     softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
-    softly.assertThat(questionRepository.findById(1L).orElseThrow(EntityNotFoundException::new).isDeleted()).isTrue();
+    softly.assertThat(questionRepository.findById(2L).orElseThrow(EntityNotFoundException::new).isDeleted()).isTrue();
   }
 
   private ResponseEntity<String> delete(TestRestTemplate testRestTemplate, long id) {

@@ -2,6 +2,8 @@ package nextstep.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
@@ -48,22 +50,58 @@ public class QuestionTest extends BaseTest {
   }
 
   @Test
-  public void delete_success() {
+  public void delete_success_notContainAnswer() throws CannotDeleteException {
 
     // Given
-    User loginUser = new User("sanjigi", "password", "name", "javajigi@slipp.net");
+    User loginUser = new User(23L, "sanjigi", "password", "name", "javajigi@slipp.net");
     Question question = new Question("질문 제목", "질문 내용");
     question.writeBy(loginUser);
 
     // When
-    question.delete(loginUser);
+    List<DeleteHistory> deleteHistories = question.delete(loginUser);
 
     // Then
     softly.assertThat(question.isDeleted()).isTrue();
+    softly.assertThat(deleteHistories.size()).isEqualTo(1);
+  }
+
+  @Test
+  public void delete_success_containAnswer() throws CannotDeleteException {
+
+    // Given
+    User loginUser = new User(23L, "sanjigi", "password", "name", "javajigi@slipp.net");
+    Question question = new Question("질문 제목", "질문 내용");
+    question.writeBy(loginUser);
+
+    Answer answer = new Answer(100L, loginUser, question, "답변 내용");
+    question.addAnswer(answer);
+
+    // When
+    List<DeleteHistory> deleteHistories = question.delete(loginUser);
+
+    // Then
+    softly.assertThat(question.isDeleted()).isTrue();
+    softly.assertThat(deleteHistories.size()).isEqualTo(2);
+  }
+
+  @Test(expected = CannotDeleteException.class)
+  public void delete_fail_notOwnerContainAnswer() throws CannotDeleteException{
+
+    // Given
+    User loginUser = new User(23L, "sanjigi", "password", "name", "javajigi@slipp.net");
+    Question question = new Question("질문 제목", "질문 내용");
+    question.writeBy(loginUser);
+
+    User answerOwner = new User(25L, "javajigi", "test", "자바지기", "javajigi@slipp.net");
+    Answer answer = new Answer(100L, answerOwner, question, "답변 내용");
+    question.addAnswer(answer);
+
+    // When
+    question.delete(loginUser);
   }
 
   @Test(expected = UnAuthorizedException.class)
-  public void delete_notOwner() {
+  public void delete_notOwner() throws CannotDeleteException {
 
     // Given
     User loginUser = new User("sanjigi", "password", "name", "javajigi@slipp.net");
