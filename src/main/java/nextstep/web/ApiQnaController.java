@@ -3,6 +3,7 @@ package nextstep.web;
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -55,8 +56,8 @@ public class ApiQnaController {
     }
 
     @PostMapping("{id}/answer/add")
-    public ResponseEntity<Answer> answerAdd(@LoginUser User loginUser, @PathVariable long id, @RequestBody Answer answer) {
-        Answer newAnswer = qnaService.addAnswer(loginUser, id, answer.getContents());
+    public ResponseEntity<AnswerDTO> answerAdd(@LoginUser User loginUser, @PathVariable long id, @RequestBody Answer answer) {
+        AnswerDTO newAnswer = qnaService.addAnswer(loginUser, id, answer.getContents());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/questions/" + id));

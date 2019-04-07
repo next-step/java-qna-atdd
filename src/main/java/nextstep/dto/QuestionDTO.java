@@ -1,31 +1,59 @@
 package nextstep.dto;
 
-import nextstep.domain.Question;
+import java.util.List;
 
 public class QuestionDTO {
-    private Question question;
+    private long id;
+
+    private String title;
+
+    private String contents;
+
+    private UserDTO writer;
+
+    private List<AnswerDTO> answers;
+
+    private boolean deleted = false;
+
     private int answerSize;
 
     public QuestionDTO() {}
 
-    public QuestionDTO(Question question, int answerSize) {
-        this.question = question;
-        this.answerSize = answerSize;
+    public QuestionDTO(long id, String title, String contents, UserDTO writer, List<AnswerDTO> answers, boolean deleted) {
+        this.id = id;
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
+        this.answers = answers;
+        this.deleted = deleted;
+        this.answerSize = this.answers.size();
     }
 
-    public void setQuestion(Question question) {
-        this.question = question;
+    public String getTitle() {
+        return title;
     }
 
-    public void setAnswerSize(int answerSize) {
-        this.answerSize = answerSize;
+    public String getContents() {
+        return contents;
     }
 
-    public Question getQuestion() {
-        return question;
+    public UserDTO getWriter() {
+        return writer;
+    }
+
+    public List<AnswerDTO> getAnswers() {
+        return answers;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
 
     public int getAnswerSize() {
         return answerSize;
+    }
+
+    public long getId() {
+        return id;
     }
 }

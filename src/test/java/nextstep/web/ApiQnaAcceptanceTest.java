@@ -2,13 +2,16 @@ package nextstep.web;
 
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
+import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
@@ -17,6 +20,9 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     private Question newQuestion;
     private String createLocation;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @Before
     public void setUp() {
@@ -35,8 +41,8 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String location = response.getHeaders().getLocation().getPath();
 
-        Question question = getResource(location, Question.class, defaultUser());
-        softly.assertThat(question).isNotNull();
+        QuestionDTO question = getResource(location, QuestionDTO.class, defaultUser());
+        softly.assertThat(question.getTitle()).isEqualTo("question title");
     }
 
     @Test
@@ -88,7 +94,7 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     public void show() {
         ResponseEntity<QuestionDTO> responseEntity = template().getForEntity(createLocation, QuestionDTO.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(responseEntity.getBody().getQuestion().getTitle()).isEqualTo("question title");
+        softly.assertThat(responseEntity.getBody().getTitle()).isEqualTo("question title");
     }
 
     @Test
@@ -99,7 +105,7 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
         ResponseEntity<QuestionDTO> questionDTO = template().getForEntity(createLocation, QuestionDTO.class);
-        softly.assertThat(questionDTO.getBody().getQuestion().getAnswers().get(0).getContents()).isEqualTo("answer test");
+        softly.assertThat(questionDTO.getBody().getAnswers().get(0).getContents()).isEqualTo("answer test");
     }
 
     @Test
@@ -117,8 +123,9 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Answer> responseEntity = basicAuthTemplate().postForEntity(url, newAnswer, Answer.class);
 
         Answer answer = responseEntity.getBody();
+        AnswerDTO answerDTO = new AnswerDTO(answer);
         url = createLocation + "/answer/delete/";
-        ResponseEntity<Void> deleteResponseEntity = basicAuthTemplate().exchange(url, HttpMethod.DELETE, createHttpEntity(answer), Void.class);
+        ResponseEntity<Void> deleteResponseEntity = basicAuthTemplate().exchange(url, HttpMethod.DELETE, createHttpEntity(answerDTO), Void.class);
 
         softly.assertThat(deleteResponseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -130,8 +137,9 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Answer> responseEntity = basicAuthTemplate().postForEntity(url, newAnswer, Answer.class);
 
         Answer answer = responseEntity.getBody();
+        AnswerDTO answerDTO = new AnswerDTO(answer);
         url = createLocation + "/answer/delete/";
-        ResponseEntity<Void> deleteResponseEntity = template().exchange(url, HttpMethod.DELETE, createHttpEntity(answer), Void.class);
+        ResponseEntity<Void> deleteResponseEntity = template().exchange(url, HttpMethod.DELETE, createHttpEntity(answerDTO), Void.class);
 
         softly.assertThat(deleteResponseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -147,8 +155,9 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @After
     public void tearDown() {
-        basicAuthTemplate().exchange(
-                createLocation, HttpMethod.DELETE, createHttpEntity(newQuestion), Void.class);
+        /*basicAuthTemplate().exchange(
+                createLocation, HttpMethod.DELETE, createHttpEntity(newQuestion), Void.class);*/
+        questionRepository.deleteAll();
     }
 
     private HttpEntity createHttpEntity(Object body) {

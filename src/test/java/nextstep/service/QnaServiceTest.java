@@ -4,6 +4,7 @@ import nextstep.UnAuthenticationException;
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +40,7 @@ public class QnaServiceTest extends BaseTest {
         testQuestionId = result.getId();
 
         user = userService.login(user.getUserId(), user.getPassword());
-        Answer answer = qnaService.addAnswer(user, question.getId(), "answer test");
+        AnswerDTO answer = qnaService.addAnswer(user, testQuestionId, "answer test");
         testAnswerId = answer.getId();
     }
 
@@ -100,7 +101,7 @@ public class QnaServiceTest extends BaseTest {
         Question question = qnaService.findById(testQuestionId);
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
-        Answer result = qnaService.addAnswer(user, question.getId(), "answer test");
+        AnswerDTO result = qnaService.addAnswer(user, question.getId(), "answer test");
         softly.assertThat(result.getContents()).isEqualTo("answer test");
     }
 
@@ -116,7 +117,6 @@ public class QnaServiceTest extends BaseTest {
     public void tearDown() throws Exception {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
-//        Question question = qnaService.findById(testQuestionId);
         qnaService.deleteQuestion(user, testQuestionId);
     }
 }

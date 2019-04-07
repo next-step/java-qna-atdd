@@ -50,6 +50,12 @@ public abstract class AcceptanceTest extends BaseTest {
         return response.getHeaders().getLocation().getPath();
     }
 
+    protected String createResourceWithUser(String path, Object bodyPayload, User loginUser) {
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(path, bodyPayload, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return response.getHeaders().getLocation().getPath();
+    }
+
     protected <T> T getResource(String location, Class<T> responseType, User loginUser) {
         return basicAuthTemplate(loginUser).getForObject(location, responseType);
     }

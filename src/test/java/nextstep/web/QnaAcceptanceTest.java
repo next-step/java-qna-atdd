@@ -1,8 +1,12 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
+import nextstep.dto.QuestionDTO;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +24,25 @@ public class QnaAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    private String createLocation;
+    private long questionId;
+    private long answerId;
+
+    @Before
+    public void setUp() {
+        User loginUser = defaultUser();
+        String location = createResourceWithUser("/api/questions", new Question("question title", "question contents"), loginUser);
+        QuestionDTO questionDTO = getResource(location, QuestionDTO.class, defaultUser());
+        questionId = questionDTO.getId();
+        createLocation = location;
+        String answerLocation = createResourceWithUser(String.format("/api/questions/%d/answer/add", questionId), new Answer(defaultUser(), "answer test"), loginUser);
+        questionDTO = getResource(location, QuestionDTO.class, defaultUser());
+        answerId = questionDTO.getAnswers().get(0).getId();
+    }
+
     @Test
     public void showQuestion() {
-        ResponseEntity<String> response = template().getForEntity(String.format("/questions/show/%d", 1L), String.class);
+        ResponseEntity<String> response = template().getForEntity(String.format("/questions/show/%d", questionId), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -71,7 +91,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
         HttpEntity<MultiValueMap<String, Object>> request = builder.build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/update/%d", 1L), request, String.class);
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/update/%d", questionId), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
@@ -90,7 +110,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
         newQuestion_save();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/delete/%d", 3L), request, String.class);
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/delete/%d", questionId), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
@@ -107,7 +127,7 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
         HttpEntity<MultiValueMap<String, Object>> request = builder.build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%d/answer/add", 1L), request, String.class);
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%d/answer/add", questionId), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
@@ -124,11 +144,14 @@ public class QnaAcceptanceTest extends AcceptanceTest {
 
         HttpEntity<MultiValueMap<String, Object>> request = builder.build();
 
-        addAnswer();
-
-        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%d/answer/delete/%d", 1L, 3L), request, String.class);
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(String.format("/questions/%d/answer/delete/%d", questionId, answerId), request, String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        questionRepository.deleteAll();
     }
 }
