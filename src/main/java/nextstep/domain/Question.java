@@ -27,10 +27,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -106,15 +104,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
-
-        List<DeleteHistory> deleteHistories;
-        try {
-            deleteHistories = this.answers.stream()
-                .map(answer -> answer.delete(loginUser))
-                .collect(Collectors.toList());
-        } catch(UnAuthorizedException unAuthorizedException) {
-            throw new CannotDeleteException("삭제가 불가능한 답변이 존재합니다.");
-        }
+        List<DeleteHistory> deleteHistories = answers.deleteAll(loginUser);
 
         this.deleted = true;
         deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
@@ -122,7 +112,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean containAnswer(long answerId) {
-        return answers.stream()
-            .anyMatch(answer -> answer.matchId(answerId));
+        return answers.isContain(answerId);
     }
 }
