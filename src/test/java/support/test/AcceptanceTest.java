@@ -54,9 +54,15 @@ public abstract class AcceptanceTest extends BaseTest {
         return response.getHeaders().getLocation().getPath();
     }
 
-    protected <T> T getResourceWithLogin(String location, Class<T> responseType, User loginUser) {
-        T returnObject = basicAuthTemplate(loginUser).getForObject(location, responseType);
+    protected <T> T getResource(String location, Class<T> responseType) {
+        T returnObject = template.getForObject(location, responseType);
         softly.assertThat(returnObject).isNotNull();
         return returnObject;
+    }
+
+    protected <T> T getResourceWithLogin(String location, Class<T> responseType, User loginUser) {
+//        T returnObject = basicAuthTemplate(loginUser).getForObject(location, responseType);
+//        softly.assertThat(returnObject).isNotNull();
+        return basicAuthTemplate(loginUser).getForObject(location, responseType);
     }
 }

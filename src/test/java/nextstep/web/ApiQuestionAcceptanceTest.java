@@ -1,13 +1,10 @@
 package nextstep.web;
 
-import nextstep.domain.Question;
-import nextstep.domain.User;
-import nextstep.web.lib.HtmlFormDataBuilder;
+import nextstep.domain.entity.Question;
+import nextstep.domain.entity.User;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
@@ -29,11 +26,10 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     //GET
     @Test
-    public void show() throws Exception {
+    public void show() {
         String location = createResourceWithLogin(CREATE_PATH, testQuestion, defaultUser());
-
-        Question savedQuestion = getResourceWithLogin(location, Question.class, defaultUser());
-        softly.assertThat(savedQuestion).isNotNull();
+        Question response = template().getForObject(location, Question.class);
+        softly.assertThat(response).isNotNull();
     }
 
     //PUT
@@ -116,14 +112,5 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         return new HttpEntity(body, headers);
 
-    }
-
-    private ResponseEntity<Void> create(TestRestTemplate template) {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .post()
-                .addParameter("title", "RestfulAPI를 잘 만드려면?")
-                .addParameter("contents", "어떻게해야할까요")
-                .build();
-        return template.postForEntity("/api/questions", request, Void.class);
     }
 }

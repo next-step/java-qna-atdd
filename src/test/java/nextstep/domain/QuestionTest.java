@@ -49,4 +49,10 @@ public class QuestionTest {
         User loginUser = new User(2L, "bubble", "tea", "GongCha", "jap@gmail.com");
         this.question.delete(loginUser);
     }
+
+    @Test
+    public void add_Answer() {
+        question.addAnswer(new Answer(user, "안녕하세요!"));
+        assertThat(question.getAnswers().size()).isEqualTo(1);
+    }
 }
