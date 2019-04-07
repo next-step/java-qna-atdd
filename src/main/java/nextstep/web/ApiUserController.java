@@ -3,6 +3,7 @@ package nextstep.web;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,13 @@ import java.net.URI;
 @RestController
 @RequestMapping("/api/users")
 public class ApiUserController {
-    @Resource(name = "userService")
-    private UserService userService;
+
+    private final UserService userService;
+
+    @Autowired
+    public ApiUserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("")
     public ResponseEntity<Void> create(@Valid @RequestBody User user) {

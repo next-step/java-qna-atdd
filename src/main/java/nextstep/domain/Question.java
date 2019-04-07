@@ -66,7 +66,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question update(User loginUser, Question updatedQuestion) {
-        if (!isOwner(loginUser)) {
+        if (isNotOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         this.title = updatedQuestion.title;
@@ -76,7 +76,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void delete(User loginUser) {
-        if (!isOwner(loginUser)) {
+        if (isNotOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
         deleted = true;
@@ -89,6 +89,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isOwner(User loginUser) {
         return writer.equals(loginUser);
+    }
+
+    public boolean isNotOwner(User loginUser) {
+        return !writer.equals(loginUser);
     }
 
     public boolean isDeleted() {

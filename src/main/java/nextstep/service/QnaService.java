@@ -5,6 +5,7 @@ import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +21,18 @@ import java.util.Optional;
 public class QnaService {
     private static final Logger log = LoggerFactory.getLogger(QnaService.class);
 
-    @Resource(name = "questionRepository")
-    private QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
 
-    @Resource(name = "answerRepository")
-    private AnswerRepository answerRepository;
+    private final AnswerRepository answerRepository;
 
-    @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+    private final DeleteHistoryService deleteHistoryService;
+
+    @Autowired
+    public QnaService(QuestionRepository questionRepository, AnswerRepository answerRepository, DeleteHistoryService deleteHistoryService) {
+        this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
+        this.deleteHistoryService = deleteHistoryService;
+    }
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
@@ -40,15 +45,13 @@ public class QnaService {
     }
 
     public Question findById(User loginUser, long id) {
-        Optional<Question> question = questionRepository.findById(id);
+        Question question = questionRepository.findById(id)
+                .orElseThrow(EntityNotFoundException::new);
 
-        if(!question.isPresent()) {
-            throw new EntityNotFoundException();
+        if (question.isNotOwner(loginUser)) {
+            throw new UnAuthorizedException();
         }
-
-        return question
-                .filter( result -> result.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
+        return question;
     }
 
     @Transactional

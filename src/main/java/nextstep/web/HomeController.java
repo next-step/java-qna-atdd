@@ -10,8 +10,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class HomeController {
+
+    private final QnaService qnaService;
+
     @Autowired
-    private QnaService qnaService;
+    public HomeController(QnaService qnaService) {
+        this.qnaService = qnaService;
+    }
 
     @GetMapping("/")
     public String home(@RequestParam(required = false, defaultValue = "1") int page,
