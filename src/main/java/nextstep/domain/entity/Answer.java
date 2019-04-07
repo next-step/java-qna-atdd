@@ -77,10 +77,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-//    public boolean isRightQuestionId(long questionId) {
-//        return question.getId() == questionId;
-//    }
-
     public Answer update(User loginUser, Answer newAnswer) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
