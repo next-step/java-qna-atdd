@@ -47,11 +47,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    private Question(String title, String contents, Long id) {
-        this(title, contents);
-        super.setId(id);
-    }
-
     private void validate(String title, String contents) {
         validateTitle(title);
         validateContents(contents);

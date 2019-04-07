@@ -1,14 +1,13 @@
 package nextstep.web;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nextstep.CannotDeleteException;
 import nextstep.domain.Question;
 import nextstep.domain.RequestQuestionDto;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +17,8 @@ import javax.persistence.EntityNotFoundException;
 @Controller
 @RequestMapping("/questions")
 @AllArgsConstructor
+@Slf4j
 public class QnaController {
-    private static final Logger log = LoggerFactory.getLogger(QnaController.class);
-
     private final QnaService qnaService;
 
     @GetMapping

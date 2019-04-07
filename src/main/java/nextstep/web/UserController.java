@@ -1,24 +1,21 @@
 package nextstep.web;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Controller
 @RequestMapping("/users")
 @AllArgsConstructor
+@Slf4j
 public class UserController {
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
-
     private UserService userService;
 
     @GetMapping("/form")

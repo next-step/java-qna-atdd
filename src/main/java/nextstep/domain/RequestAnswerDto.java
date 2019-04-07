@@ -14,6 +14,10 @@ public class RequestAnswerDto {
     private Question question;
     
     public Answer toEntity() {
-        return Answer.builder().writer(writer).question(question).contents(contents).build();
+        return Answer.builder()
+                .writer(writer)
+                .question(question)
+                .contents(contents)
+                .build();
     }
 }

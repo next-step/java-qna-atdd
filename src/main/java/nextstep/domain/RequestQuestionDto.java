@@ -14,6 +14,9 @@ public class RequestQuestionDto {
     private boolean deleted = false;
 
     public Question toEntity() {
-        return Question.builder().title(title).contents(contents).build();
+        return Question.builder()
+                .title(title)
+                .contents(contents)
+                .build();
     }
 }
