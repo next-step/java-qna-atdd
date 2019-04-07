@@ -3,24 +3,19 @@ package nextstep.domain;
 import nextstep.exception.CannotDeleteException;
 import nextstep.exception.ObjectDeletedException;
 import nextstep.exception.UnAuthorizedException;
-import org.hibernate.annotations.Where;
+import nextstep.web.dto.QuestionRequestDTO;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -36,10 +31,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -49,6 +42,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public static Question of(QuestionRequestDTO questionRequestDTO) {
+        return new Question(questionRequestDTO.getTitle(), questionRequestDTO.getContents());
     }
 
     public String getTitle() {
@@ -90,8 +87,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
 
-        this.title = target.title;
-        this.contents = target.contents;
+        this.title = target.getTitle();
+        this.contents = target.getContents();
         return this;
     }
 
@@ -99,26 +96,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
-        if (!isAnswersSameOwner(loginUser)) {
+        if (!this.answers.isAnswersSameOwner(loginUser)) {
             throw new CannotDeleteException();
         }
 
         this.deleted = true;
-        List<DeleteHistory> deleteHistories = deleteAllAnswers(loginUser);
+        List<DeleteHistory> deleteHistories = this.answers.deleteAllAnswers(loginUser);
         deleteHistories.add(DeleteHistory.generateQuestionHistory(this.getId(), loginUser));
 
         return deleteHistories;
-    }
-
-    private List<DeleteHistory> deleteAllAnswers(User requestUser) {
-        return this.answers.stream()
-            .map(answer -> answer.delete(requestUser))
-            .collect(Collectors.toList());
-    }
-
-    private boolean isAnswersSameOwner(User requestUser) {
-        return this.answers.stream()
-            .allMatch(answer -> answer.isOwner(requestUser));
     }
 
     public boolean isOwner(User loginUser) {

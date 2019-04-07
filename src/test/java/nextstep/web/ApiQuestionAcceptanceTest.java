@@ -2,6 +2,7 @@ package nextstep.web;
 
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.web.dto.QuestionRequestDTO;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +19,10 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final long ID_ONE = 1L;
     private static final long ID_TWO = 2L;
     private static final long ID_NOT_FOUND = 100L;
-
-    private static Question editQuestion(long id, String title, String content) {
-        Question editQuestion = new Question(title, content);
-        editQuestion.setId(id);
-        return editQuestion;
-    }
+    private static final QuestionRequestDTO updatedQuestion = QuestionRequestDTO.builder()
+        .title("제목 수정")
+        .contents("내용 수정")
+        .build();
 
     @Test
     public void 질문_생성_성공() throws Exception {
@@ -85,17 +84,17 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         //given
         String location = createResource("/api/questions", question, defaultUser());
         Question original = getResource(location, Question.class, defaultUser());
-        Question editedQuestion = editQuestion(original.getId(), "제목 수정", "내용 수정");
 
         //when
         ResponseEntity<Question> responseEntity = basicAuthTemplate(defaultUser())
-            .exchange(location, HttpMethod.PUT, createHttpEntity(editedQuestion), Question.class);
+            .exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
 
         Question responseQuestion = responseEntity.getBody();
 
         //then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(responseQuestion).isEqualTo(editedQuestion);
+        softly.assertThat(responseQuestion.getTitle()).isEqualTo(updatedQuestion.getTitle());
+        softly.assertThat(responseQuestion.getContents()).isEqualTo(updatedQuestion.getContents());
     }
 
     @Test
@@ -103,11 +102,10 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         //given
         String location = createResource("/api/questions", question, defaultUser());
         Question original = getResource(location, Question.class, defaultUser());
-        Question editedQuestion = editQuestion(original.getId(), "제목 수정", "내용 수정");
 
         //when
         ResponseEntity<Question> responseEntity = basicAuthTemplate(secondLoginUser())
-            .exchange(location, HttpMethod.PUT, createHttpEntity(editedQuestion), Question.class);
+            .exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
 
         //then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -118,11 +116,10 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         //given
         String location = createResource("/api/questions", question, defaultUser());
         Question original = getResource(location, Question.class, defaultUser());
-        Question editedQuestion = editQuestion(original.getId(), "제목 수정", "내용 수정");
 
         //when
         ResponseEntity<Question> responseEntity = template()
-            .exchange(location, HttpMethod.PUT, createHttpEntity(editedQuestion), Question.class);
+            .exchange(location, HttpMethod.PUT, createHttpEntity(updatedQuestion), Question.class);
 
         //then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -188,6 +185,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
                 .execute();
 
         //then
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         Question dbQuestion = basicAuthTemplate(defaultUser()).getForObject(location, Question.class);
         softly.assertThat(dbQuestion).isNull();
     }
