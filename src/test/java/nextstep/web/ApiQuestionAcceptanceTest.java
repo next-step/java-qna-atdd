@@ -4,7 +4,6 @@ import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -13,8 +12,9 @@ import org.springframework.util.MultiValueMap;
 import support.domain.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
 
-public class QuestionAcceptanceTest extends AcceptanceTest {
+public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
+    private static final String FORMAT_PATH_VALUE_ID = "/%d";
 
     @Test
     public void createForm() throws Exception {
@@ -35,11 +35,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .addParameter("contents", contents)
                 .build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity("/questions", request, String.class);
-        
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
+        softly.assertThat(foundResource(getQuestionPath(""), request)).startsWith("/questions");
     }
 
     @Test
@@ -59,33 +55,21 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void update() throws Exception {
-        ResponseEntity<String> response = update(basicAuthTemplate());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
-    }
-
-    private ResponseEntity<String> update(TestRestTemplate template) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .put()
                 .addParameter("title", "제목수정한 것")
                 .addParameter("contents", "내용 수정된 것")
                 .build();
 
-        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+        softly.assertThat(foundResource(getQuestionPath(FORMAT_PATH_VALUE_ID), request).startsWith("/questions"));
     }
 
     @Test
     public void delete() throws Exception {
-        ResponseEntity<String> response = delete(basicAuthTemplate());
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
-    }
-
-    private ResponseEntity<String> delete(TestRestTemplate template) throws Exception {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .delete()
                 .build();
 
-        return template.postForEntity(String.format("/questions/%d", defaultQuestion().getId()), request, String.class);
+        softly.assertThat(foundResource(getQuestionPath(FORMAT_PATH_VALUE_ID), request)).startsWith("/questions");
     }
 }

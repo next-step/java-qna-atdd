@@ -37,10 +37,9 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     @Test
     public void update() throws Exception {
         User newUser = newUser("testuser3");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+
+        String location = createResource("/api/users", newUser);
+        User original = getResource(location, User.class, newUser);
 
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
@@ -56,10 +55,9 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_no_login() throws Exception {
         User newUser = newUser("testuser4");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+
+        String location = createResource("/api/users", newUser);
+        User original = getResource(location, User.class, newUser);
 
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
@@ -75,10 +73,8 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_다른_사람() throws Exception {
         User newUser = newUser("testuser5");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
 
+        String location = createResource("/api/users", newUser);
         User updateUser = new User(newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
 
         ResponseEntity<Void> responseEntity =
