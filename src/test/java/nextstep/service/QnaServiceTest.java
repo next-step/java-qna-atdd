@@ -75,7 +75,20 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void delete_question_success() throws CannotDeleteException {
+    public void delete_question() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+
+        // When
+        qnaService.deleteQuestion(loginUser, question.getId());
+
+        // Then
+        Question deleted = qnaService.findById(question.getId());
+        softly.assertThat(deleted.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void delete_question_삭제_이력() throws CannotDeleteException {
         // Given
         Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
 
@@ -84,52 +97,7 @@ public class QnaServiceTest extends BaseTest {
         DeleteHistory deleteQuestionHistory = deleteHistories.get(0);
 
         // Then
-        Question deleted = qnaService.findById(question.getId());
-        softly.assertThat(deleted.isDeleted()).isTrue();
-        softly.assertThat(deleteQuestionHistory.hasContentId(deleted.getId())).isTrue();
-        softly.assertThat(deleteQuestionHistory.hasContentType(ContentType.QUESTION)).isTrue();
-        softly.assertThat(deleteQuestionHistory.isDeletedBy(loginUser)).isTrue();
-    }
-
-    @Test
-    public void delete_question_질문_답변_작성자_모두같음() throws CannotDeleteException {
-        // Given
-        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
-        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
-
-        // When
-        List<DeleteHistory> deleteHistories = qnaService.deleteQuestion(loginUser, question.getId());
-
-        // Then
-        softly.assertThat(deleteHistories.size()).isEqualTo(2);
-        softly.assertThat(
-                deleteHistories.stream()
-                        .filter(h -> h.hasContentType(ContentType.QUESTION) &&
-                                h.hasContentId(question.getId()) &&
-                                h.isDeletedBy(loginUser))
-                        .findAny()
-                        .get()).isNotNull();
-
-        softly.assertThat(
-                deleteHistories.stream()
-                        .filter(h -> h.hasContentType(ContentType.ANSWER) &&
-                                h.hasContentId(savedAnswer.getId()) &&
-                                h.isDeletedBy(loginUser))
-                        .findAny()
-                        .get()).isNotNull();
-    }
-
-    @Test(expected = CannotDeleteException.class)
-    public void delete_question_질문_답변_작성자_다름() throws CannotDeleteException {
-        // Given
-        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
-        User other = userService.findByUserId("sanjigi");
-        qnaService.addAnswer(other, question.getId(), new Answer("답변 입니다! 이제 삭제할 수 없어요."));
-
-        // When
-        qnaService.deleteQuestion(loginUser, question.getId());
-
-        // Then
+        softly.assertThat(deleteQuestionHistory.isDeleteHistoryOf(ContentType.QUESTION, question.getId())).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -143,6 +111,45 @@ public class QnaServiceTest extends BaseTest {
 
         // When
         qnaService.deleteQuestion(other, question.getId());
+
+        // Then :: expected
+    }
+
+    @Test
+    public void delete_question_질문_답변_작성자_모두같음() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
+
+        // When
+        qnaService.deleteQuestion(loginUser, question.getId());
+
+        // Then
+        softly.assertThat(qnaService.findById(question.getId()).isDeleted()).isTrue();
+    }
+
+    @Test
+    public void delete_question_질문_답변_작성자_모두같음_삭제이력() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
+
+        // When
+        List<DeleteHistory> deleteHistories = qnaService.deleteQuestion(loginUser, question.getId());
+
+        // Then
+        softly.assertThat(deleteHistories.size()).isEqualTo(2);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_question_질문_답변_작성자_다름() throws CannotDeleteException {
+        // Given
+        Question question = qnaService.createQuestion(loginUser, new Question("삭제할 질문이에요.", "본문 내용~~~"));
+        User other = userService.findByUserId("sanjigi");
+        qnaService.addAnswer(other, question.getId(), new Answer("답변 입니다! 이제 삭제할 수 없어요."));
+
+        // When
+        qnaService.deleteQuestion(loginUser, question.getId());
 
         // Then :: expected
     }
@@ -179,12 +186,19 @@ public class QnaServiceTest extends BaseTest {
         Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
 
         // When
+        qnaService.deleteAnswer(loginUser, question.getId(), savedAnswer.getId());
+    }
+
+    @Test
+    public void delete_answer_삭제이력() {
+        // Given :: setUp
+        Answer savedAnswer = qnaService.addAnswer(loginUser, question.getId(), new Answer("Good~~"));
+
+        // When
         DeleteHistory deleteHistory = qnaService.deleteAnswer(loginUser, question.getId(), savedAnswer.getId());
 
         // Then
-        softly.assertThat(deleteHistory.hasContentId(savedAnswer.getId())).isTrue();
-        softly.assertThat(deleteHistory.hasContentType(ContentType.ANSWER)).isTrue();
-        softly.assertThat(deleteHistory.isDeletedBy(loginUser)).isTrue();
+        softly.assertThat(deleteHistory.isDeleteHistoryOf(ContentType.ANSWER, savedAnswer.getId())).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -196,6 +210,6 @@ public class QnaServiceTest extends BaseTest {
         // When
         qnaService.deleteAnswer(other, question.getId(), savedAnswer.getId());
 
-        // Then
+        // Then :: expected
     }
 }
