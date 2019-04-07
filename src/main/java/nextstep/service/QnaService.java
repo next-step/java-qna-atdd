@@ -56,10 +56,13 @@ public class QnaService {
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        return null;
+        Optional<Question> question = findById(questionId);
+        return question.orElseThrow(IllegalAccessError::new).addAnswer(new Answer(loginUser, contents));
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        return null;
+    @Transactional
+    public void deleteAnswer(User loginUser, long answerId) {
+        Optional<Answer> answer = answerRepository.findById(answerId);
+        answer.orElseThrow(IllegalArgumentException::new).deleteAnswer(loginUser);
     }
 }

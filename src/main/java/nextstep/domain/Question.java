@@ -57,17 +57,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public User getWriter() {
-        return writer;
-    }
 
     public void writeBy(User loginUser) {
         this.writer = loginUser;
-    }
-
-    public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -105,6 +97,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
+    }
+
+    public Answer addAnswer(Answer answer) {
+        answer.toQuestion(this);
+        answers.add(answer);
+        return answer;
     }
 
     @Override

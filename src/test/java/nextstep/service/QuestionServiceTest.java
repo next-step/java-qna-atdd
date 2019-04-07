@@ -36,7 +36,7 @@ public class QuestionServiceTest extends BaseTest {
 
     @Test
     public void create_question_success() {
-        when(questionRepository.findById(user.getId())).thenReturn(Optional.of(question));
+        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
         qnaService.create(user, question);
     }
@@ -60,6 +60,8 @@ public class QuestionServiceTest extends BaseTest {
         target.writeBy(user);
 
         qnaService.update(user, target.getId(), target);
+        softly.assertThat(original.getTitle()).isEqualTo(target.getTitle());
+        softly.assertThat(original.getContents()).isEqualTo(target.getContents());
     }
 
     @Test(expected = NullPointerException.class)
