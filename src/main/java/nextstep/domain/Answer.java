@@ -1,11 +1,13 @@
 package nextstep.domain;
 
 import nextstep.UnAuthorizedException;
+import org.apache.commons.lang3.StringUtils;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -59,12 +61,25 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public boolean equalsContents(Answer answer) {
+        return StringUtils.equals(this.contents, answer.contents);
+    }
+
+    public void writeBy(User loginUser) {
+        this.writer = loginUser;
+    }
+
+
     public void toQuestion(Question question) {
         this.question = question;
     }
 
     public boolean isOwner(User loginUser) {
         return writer.equals(loginUser);
+    }
+
+    public boolean isNotOwner(User loginUser) {
+        return !writer.equals(loginUser);
     }
 
     public Answer update(User loginUser, String contents) {
@@ -80,8 +95,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Answer delete(User loginUser) {
-        if (!isOwner(loginUser)) {
+    public DeleteHistory delete(User loginUser) {
+        if (isNotOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
@@ -90,7 +105,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
-        return this;
+
+        return new DeleteHistory(ContentType.ANSWER, getId(), loginUser, LocalDateTime.now());
     }
 
     public boolean isDeleted() {

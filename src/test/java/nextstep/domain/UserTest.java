@@ -25,36 +25,31 @@ public class UserTest extends BaseTest {
     }
 
     @Test
-    public void update_owner() throws Exception {
-        User origin = newUser("sanjigi");
-        User loginUser = origin;
-        User target = new User("sanjigi", "password", "name2", "javajigi@slipp.net2");
-        origin.update(loginUser, target);
-        softly.assertThat(origin.getName()).isEqualTo(target.getName());
-        softly.assertThat(origin.getEmail()).isEqualTo(target.getEmail());
+    public void update_owner() {
+        final User target = newUser(JAVAJIGI.getUserId());
+        JAVAJIGI.update(JAVAJIGI, target);
+        softly.assertThat(JAVAJIGI.equalsNameAndEmail(target)).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
-    public void update_not_owner() throws Exception {
-        User origin = newUser("sanjigi");
-        User loginUser = newUser("javajigi");
-        User target = new User("sanjigi", "password", "name2", "javajigi@slipp.net2");
-        origin.update(loginUser, target);
+    public void update_not_owner() {
+        final User target = newUser(JAVAJIGI.getUserId())
+                .setEmail("tester@test.com")
+                .setName("tester");
+        JAVAJIGI.update(SANJIGI, target);
     }
 
     @Test
     public void update_match_password() {
-        User origin = newUser("sanjigi");
-        User target = new User("sanjigi", "password", "name2", "javajigi@slipp.net2");
-        origin.update(origin, target);
-        softly.assertThat(origin.getName()).isEqualTo(target.getName());
-        softly.assertThat(origin.getEmail()).isEqualTo(target.getEmail());
+        User target = newUser(JAVAJIGI.getUserId())
+                .setPassword("password");
+        softly.assertThat(JAVAJIGI.equalsNameAndEmail(target)).isEqualTo(true);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_mismatch_password() {
-        User origin = newUser("sanjigi", "password");
-        User target = new User("sanjigi", "password2", "name2", "javajigi@slipp.net2");
-        origin.update(origin, target);
+        User target = newUser(JAVAJIGI.getUserId())
+                .setPassword("wrongPassword");
+        JAVAJIGI.update(JAVAJIGI, target);
     }
 }

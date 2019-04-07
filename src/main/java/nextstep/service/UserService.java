@@ -7,6 +7,7 @@ import nextstep.domain.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Service("userService")
@@ -32,6 +33,11 @@ public class UserService {
         return userRepository.findById(id)
                 .filter(user -> user.equals(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
+    }
+
+    public User findByUserId(String userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public List<User> findAll() {

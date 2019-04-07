@@ -34,14 +34,17 @@ public class QuestionController {
 
     @PostMapping("/")
     public String create(@LoginUser User loginUser, String title, String contents) {
-        Question createdQuestion = qnaService.create(loginUser, new Question(title, contents));
+        Question createdQuestion = qnaService.createQuestion(loginUser, new Question(title, contents));
 
         return "redirect:" + createdQuestion.generateUrl();
     }
 
     @GetMapping("/{id}")
     public String show(@PathVariable long id, Model model) {
-        model.addAttribute("question", qnaService.findById(id));
+        Question question = qnaService.findById(id);
+
+        model.addAttribute("question", question);
+        model.addAttribute("answersSize", question.getAnswers().size());
 
         return "/qna/show";
     }

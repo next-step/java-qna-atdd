@@ -1,15 +1,15 @@
 package nextstep.domain;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
+
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,10 +27,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
+
 
     private boolean deleted = false;
 
@@ -64,8 +63,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
+    public Question writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void addAnswer(Answer answer) {
@@ -77,12 +77,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer.equals(loginUser);
     }
 
+    public boolean isNotOwner(User loginUser) {
+        return !writer.equals(loginUser);
+    }
+
     public boolean isDeleted() {
         return deleted;
     }
 
     public void update(User loginUser, Question target) {
-        if (!isOwner(loginUser)) {
+        if (isNotOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
@@ -94,16 +98,20 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
-        if (!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+        if (isNotOwner(loginUser)) {
+            throw new UnAuthorizedException("다른 사람이 작성한 질문");
         }
 
         if (isDeleted()) {
-            throw new CannotDeleteException("deleted question");
+            throw new CannotDeleteException("이미 지워진 질문");
         }
 
+        List<DeleteHistory> deleteHistories = answers.delete(loginUser);
         this.deleted = true;
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), loginUser, LocalDateTime.now()));
+
+        return deleteHistories;
     }
 
     public boolean equalsTitleAndContents(Question target) {
@@ -112,12 +120,15 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         return title.equals(target.title) &&
-               contents.equals(target.contents);
+                contents.equals(target.contents);
     }
 
-    public boolean containsAnswer(long answerId) {
-        return answers.stream()
-                .anyMatch(answer -> answer.hasId(answerId));
+    public Answers getAnswers() {
+        return answers;
+    }
+
+    public Answer getAnswer(long answerId) {
+        return answers.getAnswer(answerId);
     }
 
     @Override
@@ -128,6 +139,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents
-            + ", writer=" + writer + "]";
+                + ", writer=" + writer + "]";
     }
 }

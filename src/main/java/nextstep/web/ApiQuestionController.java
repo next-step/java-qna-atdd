@@ -41,7 +41,7 @@ public class ApiQuestionController {
 
     @PostMapping("")
     public ResponseEntity create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
-        Question createdQuestion = qnaService.create(loginUser, question);
+        Question createdQuestion = qnaService.createQuestion(loginUser, question);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api" + createdQuestion.generateUrl()));

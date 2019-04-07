@@ -30,6 +30,11 @@ public class DeleteHistory {
         this.createDate = createDate;
     }
 
+    public boolean isDeleteHistoryOf(ContentType contentType, Long contentId) {
+        return this.contentId == contentId &&
+                this.contentType == contentType;
+    }
+
     @Override
     public String toString() {
         return "DeleteHistory [id=" + id + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="

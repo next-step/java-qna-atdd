@@ -1,7 +1,6 @@
 package support.test;
 
 import nextstep.domain.User;
-import nextstep.domain.UserRepository;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,9 +19,6 @@ public abstract class AcceptanceTest extends BaseTest {
     @Autowired
     private TestRestTemplate template;
 
-    @Autowired
-    private UserRepository userRepository;
-
     public TestRestTemplate template() {
         return template;
     }
@@ -36,11 +32,11 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected User defaultUser() {
-        return findByUserId(DEFAULT_LOGIN_USER);
+        return getByUserId(DEFAULT_LOGIN_USER);
     }
 
-    protected User findByUserId(String userId) {
-        return userRepository.findByUserId(userId).get();
+    protected User getByUserId(String userId) {
+        return getResource(String.format("/api/users?userId=%s", userId), User.class, User.GUEST_USER);
     }
 
     protected HttpEntity createHttpEntity(Object body) {
@@ -51,6 +47,12 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected String createResourceWithDefaultUser(String path, Object bodyPayload) {
         ResponseEntity<String> response = basicAuthTemplate().postForEntity(path, bodyPayload, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return response.getHeaders().getLocation().getPath();
+    }
+
+    protected String createResource(String path, Object bodyPayload, User loginUser) {
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).postForEntity(path, bodyPayload, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return response.getHeaders().getLocation().getPath();
     }

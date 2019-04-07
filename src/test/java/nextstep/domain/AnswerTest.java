@@ -1,44 +1,46 @@
 package nextstep.domain;
 
-import static nextstep.domain.UserTest.newUser;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
+import support.test.BaseTest;
 
-public class AnswerTest {
-    public static final User answerWriter = newUser(1L);
+import static nextstep.domain.User.GUEST_USER;
+import static nextstep.domain.UserTest.JAVAJIGI;
+import static nextstep.domain.UserTest.SANJIGI;
+
+public class AnswerTest extends BaseTest {
+    public static final Answer ANSWER = new Answer(JAVAJIGI, "contents...");
+    public static final String UPDATED_CONTENTS = "update~~~~~~";
 
     @Test
     public void update_owner() {
-        Answer answer = new Answer(answerWriter, "contents...");
-        String updatedContents = "update~~~~~~";
+        Answer updated = ANSWER.update(JAVAJIGI, UPDATED_CONTENTS);
+        softly.assertThat(ANSWER.equalsContents(updated)).isEqualTo(true);
+    }
 
-        answer.update(answerWriter, updatedContents);
-
-        assertThat(answer.getContents()).isEqualTo(updatedContents);
+    @Test(expected = UnAuthorizedException.class)
+    public void update_guest() {
+        ANSWER.update(GUEST_USER, UPDATED_CONTENTS);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() {
-        Answer answer = new Answer(answerWriter, "contents...");
-        String updatedContents = "update~~~~~~";
-
-        answer.update(newUser(2L), updatedContents);
+        ANSWER.update(SANJIGI, UPDATED_CONTENTS);
     }
 
     @Test
-    public void delete_owner() throws CannotDeleteException {
-        Answer answer = new Answer(answerWriter, "contents...");
-        answer.delete(answerWriter);
-
-        assertThat(answer.isDeleted()).isEqualTo(true);
+    public void delete_owner() {
+        ANSWER.delete(JAVAJIGI);
+        softly.assertThat(ANSWER.isDeleted()).isEqualTo(true);
      }
 
     @Test(expected = UnAuthorizedException.class)
-    public void delete_not_owner() throws CannotDeleteException {
-        Answer answer = new Answer(answerWriter, "contents...");
-        answer.delete(newUser(2L));
+    public void delete_guest() {
+        ANSWER.delete(GUEST_USER);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_not_owner() {
+        ANSWER.delete(SANJIGI);
     }
 }
