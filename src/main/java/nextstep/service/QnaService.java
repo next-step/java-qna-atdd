@@ -38,14 +38,12 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long questionId, Question updatedQuestion) {
         Question question = findById(questionId);
-        question.writeBy(question.getWriter());
         return question.update(loginUser, updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question question = findById(questionId);
-        question.writeBy(question.getWriter());
         question.delete(loginUser);
     }
 

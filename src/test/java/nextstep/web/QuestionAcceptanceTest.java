@@ -24,10 +24,18 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     private QuestionRepository questionRepository;
 
     @Test
-    public void form() {
+    public void form_show_success() {
         ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("body: {}", response.getBody());
+    }
+
+    @Test
+    public void form_show_fail() {
+        User loginUser = defaultUser();
+        ResponseEntity<String> response = basicAuthTemplate(loginUser).getForEntity("/questions/form", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
+        log.debug("body: {}", response.getBody());
     }
 
     @Test
@@ -81,7 +89,8 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void delete_success() {
         Question question = questionRepository.findById(UserTest.JAVAJIGI.getId()).get();
         ResponseEntity<String> response = this.delete(basicAuthTemplate(), question);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
         log.debug("body : {}", response.getBody());
     }
 
@@ -95,7 +104,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> update(TestRestTemplate template, Question question) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "put")
+                .put()
                 .addParameter("title", "update title")
                 .addParameter("contents", "update contnets")
                 .build();
@@ -105,9 +114,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> delete(TestRestTemplate template, Question question) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("_method", "delete")
+                .delete()
                 .build();
 
-        return template().postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
+        return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
     }
 }
