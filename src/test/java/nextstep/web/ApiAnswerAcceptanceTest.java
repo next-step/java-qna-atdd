@@ -17,7 +17,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     
     @Autowired
     private AnswerRepository answerRepository;
-    
+
     @Test
     public void answer_read_no_login() {
         // given
@@ -65,20 +65,6 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void answer_create_login_존재하지_않는_질문() {
-        // given
-        User loginUser = defaultUser();
-        long nonExistsQuestionId = 1234123432;
-        String contents = "Hello World";
-
-        // when
-        ResponseEntity<String> response = createAnswerResource(loginUser, contents, nonExistsQuestionId);
-
-        // then
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
     public void answer_delete_no_login() {
         // given
         Answer answer = defaultAnswer();
@@ -107,35 +93,6 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void answer_delete_login_작성자_아닌_경우() {
-        // given
-        User loginUser = defaultUser();
-        Answer otherAnswer = otherAnswer();
-
-        // when
-        ResponseEntity<String> response = deleteAnswerResource(loginUser, otherAnswer);
-
-        // then
-        Answer notDeletedAnswer = answerRepository.findById(otherAnswer.getId()).get();
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
-        softly.assertThat(notDeletedAnswer.isDeleted()).isFalse();
-    }
-
-    @Test
-    public void answer_delete_login_존재하지_않는_답변() {
-        // given
-        User loginUser = defaultUser();
-        Answer nonExistentAnswer = defaultAnswer();
-        nonExistentAnswer.setId(23_947_230L);
-
-        // when
-        ResponseEntity<String> response = deleteAnswerResource(loginUser, nonExistentAnswer);
-
-        // then
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
     public void answer_update_no_login() {
         // given
         Answer answer = defaultAnswer();
@@ -153,7 +110,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void answer_update_login_작성자() {
+    public void answer_update_login() {
         // given
         User loginUser = defaultUser();
         Answer answer = defaultAnswer();
@@ -168,41 +125,6 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         Answer dbAnswer = answerRepository.findById(answer.getId()).get();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
         softly.assertThat(dbAnswer.getContents()).isEqualTo(modifiedContents);
-    }
-
-    @Test
-    public void answer_update_login_작성자가_아닌_경우() {
-        // given
-        User loginUser = defaultUser();
-        Answer answer = otherAnswer();
-
-        // when
-        String modifiedContents = "Hello World";
-        answer.setContents(modifiedContents);
-
-        ResponseEntity<Answer> response = updateAnswerResource(loginUser, answer.generateUrl(), answer);
-
-        // then
-        Answer dbAnswer = answerRepository.findById(answer.getId()).get();
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
-        softly.assertThat(dbAnswer.getContents()).isNotEqualTo(modifiedContents);
-    }
-
-    @Test
-    public void answer_update_login_존재하지_않는_답변() {
-        // given
-        User loginUser = defaultUser();
-        Answer answer = defaultAnswer();
-
-        // when
-        String modifiedContents = "Hello World";
-        answer.setContents(modifiedContents);
-
-        String location = "/api/answers/656544";
-        ResponseEntity<Answer> response = updateAnswerResource(loginUser, location, answer);
-
-        // then
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.BAD_REQUEST);
     }
 
     private Answer otherAnswer() {
@@ -221,7 +143,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
                 .addParameter("questionId", questionId)
                 .build();
 
-        return template().postForEntity("/api/answers", request, String.class);
+        return template().postForEntity(String.format("/api/questions/%d/answers", questionId), request, String.class);
     }
 
     private ResponseEntity<String> createAnswerResource(User loginUser, String contents, long questionId) {
@@ -230,7 +152,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
                 .addParameter("questionId", questionId)
                 .build();
 
-        return basicAuthTemplate(loginUser).postForEntity("/api/answers", request, String.class);
+        return basicAuthTemplate(loginUser).postForEntity(String.format("/api/questions/%d/answers", questionId), request, String.class);
     }
 
     private ResponseEntity<String> deleteAnswerResource(User loginUser, Answer answer) {

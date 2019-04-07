@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
 import nextstep.domain.Answer;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
@@ -13,7 +14,7 @@ import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
-@RequestMapping("/api/answers")
+@RequestMapping("/api/questions/{questionId}/answers")
 public class ApiAnswerController {
     private final QnaService qnaService;
 
@@ -22,12 +23,13 @@ public class ApiAnswerController {
     }
 
     @GetMapping("/{answerId}")
-    public Answer show(@PathVariable long answerId) {
-        return qnaService.findAnswerById(answerId);
+    public Answer read(@PathVariable long questionId, @PathVariable long answerId) {
+        return qnaService.findAnswerByIdAndQuestion(answerId, questionId);
     }
 
     @PostMapping
-    public ResponseEntity<Void> createAnswer(@LoginUser User loginUser, long questionId, @Valid Answer answer) {
+    public ResponseEntity<Void> createAnswer(@LoginUser User loginUser, @PathVariable long questionId,
+                                             @Valid Answer answer) {
         Answer savedAnswer = qnaService.addAnswer(loginUser, questionId, answer.getContents());
 
         HttpHeaders headers = new HttpHeaders();
@@ -35,15 +37,16 @@ public class ApiAnswerController {
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{answerId}")
-    public ResponseEntity<Void> deleteAnswer(@LoginUser User loginUser, @PathVariable long answerId) {
-        qnaService.deleteAnswer(loginUser, answerId);
-
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{answerId}")
+    public Answer updateAnswer(@LoginUser User loginUser, @PathVariable long questionId,
+                               @PathVariable long answerId, @RequestBody @Valid Answer answer) {
+        return qnaService.updateAnswer(loginUser, questionId, answerId, answer);
     }
 
-    @PutMapping("/{answerId}")
-    public Answer updateAnswer(@LoginUser User loginUser, @PathVariable long answerId, @RequestBody @Valid Answer answer) {
-        return qnaService.updateAnswer(loginUser, answerId, answer);
+    @DeleteMapping("/{answerId}")
+    public ResponseEntity<Void> deleteAnswer(@LoginUser User loginUser, @PathVariable long questionId,
+                                             @PathVariable long answerId) throws CannotDeleteException {
+        qnaService.deleteAnswer(loginUser, questionId, answerId);
+        return ResponseEntity.noContent().build();
     }
 }

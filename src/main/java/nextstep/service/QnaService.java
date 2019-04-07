@@ -71,11 +71,7 @@ public class QnaService {
         return questionRepository.findAllByDeleted(false, pageable);
     }
 
-    public Answer findAnswerById(long answerId) {
-        return answerRepository.findById(answerId)
-                .orElseThrow(IllegalArgumentException::new);
-    }
-
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = findById(questionId)
                 .orElseThrow(IllegalArgumentException::new);
@@ -87,14 +83,21 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer deleteAnswer(User loginUser, long id) {
-        Answer answer = findAnswerById(id);
-        return answer.delete(loginUser);
+    public void deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException {
+        Answer answer = findAnswerByIdAndQuestion(answerId, questionId);
+        answer.delete(loginUser);
     }
 
     @Transactional
-    public Answer updateAnswer(User loginUser, long id, Answer modifiedAnswer) {
-        Answer answer = findAnswerById(id);
-        return answer.update(loginUser, modifiedAnswer);
+    public Answer updateAnswer(User loginUser, long questionId, long answerId, Answer modifiedAnswer) {
+        Answer answer = findAnswerByIdAndQuestion(answerId, questionId);
+        answer.update(loginUser, modifiedAnswer);
+
+        return answer;
+    }
+
+    public Answer findAnswerByIdAndQuestion(long answerId, long questionId) {
+        return answerRepository.findByIdAndQuestionId(answerId, questionId)
+                .orElseThrow(IllegalArgumentException::new);
     }
 }
