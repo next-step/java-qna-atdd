@@ -18,14 +18,11 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/questions")
-public class QuestionController {
+public class ApiQuestionController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Resource(name = "qnaService")
     private QnaService qnaService;
-
-    @Resource(name = "userService")
-    private UserService userService;
 
     @GetMapping("/form")
     public String form() {
