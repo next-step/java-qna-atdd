@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -39,6 +40,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.deleted = false;
     }
 
+    public Answer(Long id, User writer, Question question, String contents, boolean deleted) {
+        super(id);
+        this.writer = writer;
+        this.question = question;
+        this.contents = contents;
+        this.deleted = deleted;
+    }
+
     public User getWriter() {
         return writer;
     }
@@ -68,27 +77,33 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Answer delete(User loginUser) {
+    public void update(User user, Answer updatedAnswer) {
+        if (!isOwner(user)) {
+            throw new UnAuthorizedException("The owner doesn't match");
+        }
+
+        if (isDeleted()) {
+            throw new IllegalStateException("It's deleted answer");
+        }
+
+        this.contents = updatedAnswer.contents;
+    }
+
+    public void delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
+            throw new UnAuthorizedException("The owner doesn't match");
+        }
+
+        if (isDeleted()) {
+            throw new CannotDeleteException("This answer has already deleted");
         }
 
         this.deleted = true;
-        return this;
-    }
-
-    public Answer update(User loginUser, Answer modifiedAnswer) {
-        if (!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
-
-        this.contents = modifiedAnswer.contents;
-        return this;
     }
 
     @Override
     public String generateUrl() {
-        return String.format("/api/answers/%d", getId());
+        return String.format("%s/answers/%d", question.generateUrl(), getId());
     }
 
     @Override
@@ -96,3 +111,4 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
 }
+
