@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 @Getter
 @NoArgsConstructor
 @ToString(callSuper = true)
-public class Answer extends AbstractEntity implements UrlGeneratable {
+public class Answer extends AbstractEntity implements UrlGeneratable, DeleteHIstoryGenerator {
     public static final int MIN_CONTENTS_LENGTH = 6;
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
@@ -82,8 +82,19 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return !writer.equalsNameAndEmail(loginUser);
     }
 
+//    public create
+
     @Override
     public String generateUrl() {
         return String.format("%s/answers/%d", question.generateUrl(), getId());
+    }
+
+    @Override
+    public DeleteHistory toDeleteHistory() {
+        return DeleteHistory.builder()
+                            .contentType(ContentType.ANSWER)
+                            .contentId(this.getId())
+                            .deletedBy(writer)
+                            .build();
     }
 }

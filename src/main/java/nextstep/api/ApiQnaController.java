@@ -1,6 +1,7 @@
 package nextstep.api;
 
 import lombok.RequiredArgsConstructor;
+import nextstep.CannotDeleteException;
 import nextstep.domain.*;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
@@ -33,7 +34,7 @@ public class ApiQnaController {
      }
 
     @DeleteMapping("/{id}")
-    public void deleteQuestion(@LoginUser User loginUser, @PathVariable Long id) throws Exception {
+    public void deleteQuestion(@LoginUser User loginUser, @PathVariable Long id) throws CannotDeleteException {
         qnaService.deleteQuestion(loginUser, id);
     }
 

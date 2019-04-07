@@ -73,6 +73,4 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
     }
-
-    // TODO : 답변 CRUD 테스트 추가할 것!
 }

@@ -20,4 +20,13 @@ public class DeleteHistoryService {
             deleteHistoryRepository.save(deleteHistory);
         }
     }
+
+    public DeleteHistory save(DeleteHistory deleteHistory) {
+        return deleteHistoryRepository.save(deleteHistory);
+    }
+
+    public DeleteHistory findByContentId(Long contentId) {
+        return deleteHistoryRepository.findByContentId(contentId);
+    }
+
 }

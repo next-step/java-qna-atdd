@@ -1,9 +1,13 @@
 package nextstep.domain;
 
+import lombok.Builder;
+import lombok.Getter;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 public class DeleteHistory {
     @Id
     @GeneratedValue
@@ -21,6 +25,13 @@ public class DeleteHistory {
     private LocalDateTime createDate = LocalDateTime.now();
 
     public DeleteHistory() {
+    }
+
+    @Builder
+    private DeleteHistory(ContentType contentType, Long contentId, User deletedBy) {
+        this.contentType = contentType;
+        this.contentId = contentId;
+        this.deletedBy = deletedBy;
     }
 
     public DeleteHistory(ContentType contentType, Long contentId, User deletedBy, LocalDateTime createDate) {
