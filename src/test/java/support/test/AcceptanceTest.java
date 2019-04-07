@@ -1,7 +1,7 @@
 package support.test;
 
-import nextstep.domain.User;
-import nextstep.domain.UserRepository;
+import nextstep.domain.entity.User;
+import nextstep.domain.repository.UserRepository;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

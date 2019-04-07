@@ -1,4 +1,4 @@
-package nextstep.domain;
+package nextstep.domain.entity;
 
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
@@ -26,6 +26,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer() {
     }
 
+    public Answer(String contents) {
+        this.contents = contents;
+    }
+
     public Answer(User writer, String contents) {
         this.writer = writer;
         this.contents = contents;
@@ -41,6 +45,11 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public User getWriter() {
         return writer;
+    }
+
+    public Answer writeBy(User writer) {
+        this.writer = writer;
+        return this;
     }
 
     public Question getQuestion() {
@@ -68,6 +77,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+//    public boolean isRightQuestionId(long questionId) {
+//        return question.getId() == questionId;
+//    }
+
     public Answer update(User loginUser, Answer newAnswer) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
@@ -83,6 +96,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
         this.deleted = Boolean.TRUE;
         return this;
+    }
+
+    public String generateApiUrl() {
+        return String.format("%s/answers/%d", question.generateApiUrl(), getId());
     }
 
     @Override

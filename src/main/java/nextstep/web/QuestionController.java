@@ -1,7 +1,7 @@
 package nextstep.web;
 
-import nextstep.domain.Question;
-import nextstep.domain.User;
+import nextstep.domain.entity.Question;
+import nextstep.domain.entity.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.slf4j.Logger;

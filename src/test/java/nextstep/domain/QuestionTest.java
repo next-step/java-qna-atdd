@@ -1,14 +1,15 @@
 package nextstep.domain;
 
 import nextstep.UnAuthorizedException;
+import nextstep.domain.entity.Answer;
+import nextstep.domain.entity.Question;
+import nextstep.domain.entity.User;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuestionTest {
-    //TODO : Question과 Answers에 대한 관계 테스트
-
     private Question question;
     private User user;
 

@@ -1,7 +1,7 @@
 package support.aspect;
 
 import nextstep.QnaApplication;
-import nextstep.domain.User;
+import nextstep.domain.entity.User;
 import nextstep.web.UserController;
 import org.junit.Test;
 import org.junit.runner.RunWith;

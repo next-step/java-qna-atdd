@@ -1,7 +1,7 @@
 package nextstep.security;
 
 import nextstep.UnAuthenticationException;
-import nextstep.domain.User;
+import nextstep.domain.entity.User;
 import nextstep.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

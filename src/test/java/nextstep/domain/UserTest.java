@@ -1,6 +1,7 @@
 package nextstep.domain;
 
 import nextstep.UnAuthorizedException;
+import nextstep.domain.entity.User;
 import org.junit.Test;
 import support.test.BaseTest;
 
