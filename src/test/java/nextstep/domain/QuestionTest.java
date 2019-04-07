@@ -40,7 +40,7 @@ public class QuestionTest extends BaseTest {
     public void 업데이트_작성자_아닐_경우_UnAuthorizedException() {
         // given
         User loginUser = UserTest.SANJIGI;
-        Question javajigiQuestion = newQuestion(1L);
+        Question javajigiQuestion = JAVA_QUESTION;
 
         Question modifiedQuestion = new Question("Hello", "World");
 
