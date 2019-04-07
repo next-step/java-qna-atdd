@@ -1,6 +1,7 @@
 package nextstep.service;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.naming.AuthenticationException;
+import javax.persistence.EntityNotFoundException;
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,15 +39,29 @@ public class QnaService {
         return questionRepository.findById(id);
     }
 
+    public Question findById(User loginUser, long id) {
+        Optional<Question> question = questionRepository.findById(id);
+
+        if(!question.isPresent()) {
+            throw new EntityNotFoundException();
+        }
+
+        return question
+                .filter( result -> result.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
+    }
+
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+        Question question = questionRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        return questionRepository.save(question.update(loginUser, updatedQuestion));
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(EntityNotFoundException::new);
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -63,4 +81,5 @@ public class QnaService {
         // TODO 답변 삭제 기능 구현 
         return null;
     }
+
 }
