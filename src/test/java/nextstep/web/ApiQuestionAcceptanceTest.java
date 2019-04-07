@@ -87,7 +87,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void question_update_login_작성자() {
+    public void question_update_login() {
         // given
         User loginUser = defaultUser();
         Question question = defaultQuestion();
@@ -127,7 +127,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void question_delete_login_작성자() {
+    public void question_delete_login() {
         // given
         User loginUser = defaultUser();
         Question question = defaultQuestion();
