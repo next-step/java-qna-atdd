@@ -82,6 +82,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException("The owner doesn't match");
         }
 
+        if (question.isDeleted()) {
+            throw new IllegalStateException("It's deleted question");
+        }
+
         if (isDeleted()) {
             throw new IllegalStateException("It's deleted answer");
         }
@@ -92,6 +96,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public void delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("The owner doesn't match");
+        }
+
+        if (question.isDeleted()) {
+            throw new CannotDeleteException("It's deleted question");
         }
 
         if (isDeleted()) {

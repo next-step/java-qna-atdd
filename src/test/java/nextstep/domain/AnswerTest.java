@@ -10,7 +10,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 public class AnswerTest extends BaseTest {
     public static final Answer JAVA_ANSWER = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.JAVA_QUESTION, "자바 댓글", false);
-    public static final Answer SAN_ANSWER = new Answer(2L, UserTest.SANJIGI, QuestionTest.SAN_QUESTION, "산 댓글", true);
+    public static final Answer SAN_ANSWER = new Answer(2L, UserTest.SANJIGI, QuestionTest.SAN_QUESTION, "산 댓글", false);
+    public static final Answer DELETED_ANSWER = new Answer(3L, UserTest.JAVAJIGI, QuestionTest.JAVA_QUESTION, "삭제된 답변", true);
 
     private Answer newAnswer(long id) {
         return new Answer(id, UserTest.JAVAJIGI, QuestionTest.JAVA_QUESTION, "자바 답변");
@@ -51,10 +52,23 @@ public class AnswerTest extends BaseTest {
     }
 
     @Test
-    public void 업데이트_삭제된_글일_경우_IllegalStateException() {
+    public void 업데이트_삭제된_질문일_경우_IllegalStateException() {
         // given
         User loginUser = UserTest.SANJIGI;
         Answer answer = SAN_ANSWER;
+
+        Answer modifiedAnswer = getAnswerBody("Hello");
+
+        // when
+        // then
+        assertThatIllegalStateException().isThrownBy(() -> answer.update(loginUser, modifiedAnswer));
+    }
+
+    @Test
+    public void 업데이트_삭제된_답변일_경우_IllegalStateException() {
+        // given
+        User loginUser = UserTest.JAVAJIGI;
+        Answer answer = DELETED_ANSWER;
 
         Answer modifiedAnswer = getAnswerBody("Hello");
 
@@ -89,6 +103,17 @@ public class AnswerTest extends BaseTest {
 
     @Test
     public void 삭졔_이미_삭제되있을_경우_CannotDeleteException() {
+        // given
+        User loginUser = UserTest.JAVAJIGI;
+        Answer sanAnswer = DELETED_ANSWER;
+
+        // when
+        // then
+        assertThatExceptionOfType(CannotDeleteException.class).isThrownBy(() -> sanAnswer.delete(loginUser));
+    }
+
+    @Test
+    public void 삭제_질문이_삭제되있을_경우_CannotDeleteException() {
         // given
         User loginUser = UserTest.SANJIGI;
         Answer sanAnswer = SAN_ANSWER;
