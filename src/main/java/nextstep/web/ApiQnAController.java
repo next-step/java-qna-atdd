@@ -18,7 +18,8 @@ import java.util.List;
 @Controller
 @RequestMapping("/api/questions")
 public class ApiQnAController {
-    private static final String urlPrefix = "/api/";
+    private static final String URL_PREFIX = "/api/";
+
     private final QnAService qnaService;
 
     public ApiQnAController(QnAService qnaService) {
@@ -41,7 +42,7 @@ public class ApiQnAController {
     public ResponseEntity<Void> createQuestion(@LoginUser User loginUser, @RequestBody QuestionBody payload) {
         Question question = qnaService.createQuestion(loginUser, payload);
 
-        return ResponseEntity.created(URI.create(urlPrefix + question.generateUrl())).build();
+        return ResponseEntity.created(URI.create(URL_PREFIX + question.generateUrl())).build();
     }
 
     @PutMapping("/{id}")
@@ -62,7 +63,7 @@ public class ApiQnAController {
     public ResponseEntity<Void> addAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @RequestBody String contents) {
         Answer answer = qnaService.addAnswer(loginUser, questionId, contents);
 
-        return ResponseEntity.created(URI.create(urlPrefix + answer.generateUrl())).build();
+        return ResponseEntity.created(URI.create(URL_PREFIX + answer.generateUrl())).build();
     }
 
     @GetMapping("/{questionId}/answers")
@@ -77,5 +78,12 @@ public class ApiQnAController {
         Answer answer = qnaService.findAnswer(answerId);
 
         return ResponseEntity.ok(answer);
+    }
+
+    @DeleteMapping("/{questionId}/answers/{answerId}")
+    public ResponseEntity<Void> deleteAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @PathVariable Long answerId) {
+        qnaService.deleteAnswer(loginUser, answerId);
+
+        return ResponseEntity.ok().build();
     }
 }

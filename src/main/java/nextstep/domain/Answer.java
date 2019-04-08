@@ -47,25 +47,16 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
+    public void delete() {
+        deleted = true;
+    }
+
     public User getWriter() {
         return writer;
     }
 
     public String getContents() {
         return contents;
-    }
-
-    public Answer setContents(String contents) {
-        this.contents = contents;
-        return this;
-    }
-
-    public void toQuestion(Question question) {
-        this.question = question;
-    }
-
-    public boolean isOwner(User loginUser) {
-        return writer.equals(loginUser);
     }
 
     public boolean isDeleted() {

@@ -2,26 +2,25 @@ package nextstep.web;
 
 import nextstep.domain.*;
 import nextstep.dto.ListResponse;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import support.RestApiTestCaller;
 import support.test.AcceptanceTest;
 
-import java.util.Random;
-
 public class ApiQnAAcceptanceTest extends AcceptanceTest {
-    @Autowired private UserRepository userRepository;
-    @Autowired private QuestionRepository questionRepository;
-    @Autowired private AnswerRepository answerRepository;
+    @Autowired
+    private QuestionRepository questionRepository;
+    @Autowired
+    private AnswerRepository answerRepository;
 
-    private User generateUser() {
-//        return userRepository.save(new User("userId", "userPass", "userName", "javajigi@slipp.net"));
-        return defaultUser();
+    private RestApiTestCaller restApiTestCaller;
+
+    @Before
+    public void setUp() {
+        restApiTestCaller = new RestApiTestCaller(template());
     }
 
     private Question generateQuestion(User writer) {
@@ -35,149 +34,171 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문을_등록한다() {
-        // given
-        User givenUser = generateUser();
-
         // when
         QuestionBody payload = new QuestionBody("This is title", "This is contents");
-        ResponseEntity<Void> createResponse = createResource("/api/questions", payload, givenUser);
+        ResponseEntity<Void> response = restApiTestCaller.createResource("/api/questions", payload, defaultUser());
 
         // then
-        String location = createResponse.getHeaders().getLocation().getPath();
-        Question question = getResource(location, Question.class, givenUser).getBody();
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+        String location = response.getHeaders().getLocation().getPath();
+        Question question = restApiTestCaller.getResource(location, Question.class, defaultUser()).getBody();
         softly.assertThat(question.getQuestionBody()).isEqualTo(payload);
     }
 
     @Test
     public void 질문_목록을_조회한다() {
         // given
-        User givenUser = generateUser();
-        generateQuestion(givenUser);
-        generateQuestion(givenUser);
+        generateQuestion(defaultUser());
+        generateQuestion(defaultUser());
 
         // when
-        ListResponse<Question> result = getListResource(
-            "/api/questions", Question.class, givenUser).getBody();
+        ResponseEntity<ListResponse<Question>> response = restApiTestCaller.getListResource(
+            "/api/questions", Question.class, defaultUser());
 
         // then
-        softly.assertThat(result.getCount()).isGreaterThanOrEqualTo(2);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        ListResponse<Question> responseQuestions = response.getBody();
+        softly.assertThat(responseQuestions.getCount()).isEqualTo(questionRepository.findByDeletedFalse().size());
     }
 
     @Test
     public void 질문_상세를_조회한다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
+        Question question = generateQuestion(defaultUser());
 
         // when
-        Question question = getResource(String.format("/api/questions/%d", givenQuestion.getId()),
-            Question.class, givenUser).getBody();
+        ResponseEntity<Question> response = restApiTestCaller.getResource(
+            String.format("/api/questions/%d", question.getId()), Question.class, defaultUser());
 
         // then
-        softly.assertThat(question.getQuestionBody()).isNotNull();
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        Question responseQuestion = response.getBody();
+        softly.assertThat(responseQuestion.getQuestionBody()).isEqualTo(question.getQuestionBody());
     }
 
     @Test
     public void 질문을_수정한다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
+        Question question = generateQuestion(defaultUser());
 
         // when
         QuestionBody newPayload = new QuestionBody("This is updated title", "This is updated contents");
-        Question updatedQuestion = updateResource(String.format("/api/questions/%d", givenQuestion.getId()),
-            newPayload, Question.class, givenUser).getBody();
+        ResponseEntity<Question> response = restApiTestCaller.updateResource(
+            String.format("/api/questions/%d", question.getId()), newPayload, Question.class, defaultUser());
 
         // then
-        softly.assertThat(updatedQuestion.getQuestionBody()).isEqualTo(newPayload);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        Question responseQuestion = response.getBody();
+        softly.assertThat(responseQuestion.getQuestionBody()).isEqualTo(newPayload);
     }
 
     @Test
     public void 작성자가_어니면_질문을_수정할수_없다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
+        Question question = generateQuestion(defaultUser());
 
         // when
         QuestionBody newPayload = new QuestionBody("This is updated title", "This is updated contents");
-        ResponseEntity<Void> updateResponse = basicAuthTemplate(findByUserId("sanjigi")).exchange(
-            String.format("/api/questions/%d", givenQuestion.getId()),
-            HttpMethod.PUT, createHttpEntity(newPayload), Void.class);
+        ResponseEntity<Question> response = restApiTestCaller.updateResource(
+            String.format("/api/questions/%d", question.getId()), newPayload, Question.class, findByUserId("sanjigi"));
 
         // then
-        softly.assertThat(updateResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     public void 질문을_삭제한다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
+        Question question = generateQuestion(defaultUser());
 
         // when
-        deleteResource(String.format("/api/questions/%d", givenQuestion.getId()), givenUser);
+        ResponseEntity<Void> response =
+            restApiTestCaller.deleteResource(String.format("/api/questions/%d", question.getId()), defaultUser());
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(questionRepository.findById(question.getId()).get().isDeleted()).isTrue();
     }
 
     @Test
     public void 작성자가_어니면_질문을_삭제할수_없다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
+        Question question = generateQuestion(defaultUser());
 
         // when
-        ResponseEntity<Void> deleteResponse = basicAuthTemplate(findByUserId("sanjigi")).exchange(
-            String.format("/api/questions/%d", givenQuestion.getId()),
-            HttpMethod.DELETE, null, Void.class);
+        ResponseEntity<Void> response = restApiTestCaller.deleteResource(
+            String.format("/api/questions/%d", question.getId()), findByUserId("sanjigi"));
 
         // then
-        softly.assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     public void 질문에_답변을_등록한다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
+        Question question = generateQuestion(defaultUser());
 
         // when
         String contents = "This is answer";
-        ResponseEntity<Void> createResponse = createResource(
-            String.format("/api/questions/%d/answers", givenQuestion.getId()), contents, givenUser);
+        ResponseEntity<Void> response = restApiTestCaller.createResource(
+            String.format("/api/questions/%d/answers", question.getId()), contents, defaultUser());
 
         // then
-        String location = createResponse.getHeaders().getLocation().getPath();
-        Answer answer = getResource(location, Answer.class, givenUser).getBody();
-        softly.assertThat(answer.getContents()).isEqualTo(contents);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String location = response.getHeaders().getLocation().getPath();
+        Answer responseAnswer = restApiTestCaller.getResource(location, Answer.class, defaultUser()).getBody();
+        softly.assertThat(responseAnswer.getContents()).isEqualTo(contents);
     }
 
     @Test
     public void 질문의_답변들을_조회한다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
-        generateAnswer(givenUser, givenQuestion);
-        generateAnswer(givenUser, givenQuestion);
+        Question question = generateQuestion(defaultUser());
+        generateAnswer(defaultUser(), question);
+        generateAnswer(defaultUser(), question);
 
         // when
-        ListResponse<Answer> result = getListResource(
-            String.format("/api/questions/%d/answers", givenQuestion.getId()), Answer.class, givenUser).getBody();
+        ResponseEntity<ListResponse<Answer>> response = restApiTestCaller.getListResource(
+            String.format("/api/questions/%d/answers", question.getId()), Answer.class, defaultUser());
 
         // then
-        softly.assertThat(result.getCount()).isEqualTo(2);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        ListResponse<Answer> responseAnswers = response.getBody();
+        softly.assertThat(responseAnswers.getCount()).isEqualTo(answerRepository.findByQuestionAndDeletedFalse(question).size());
     }
 
     @Test
     public void 질문의_답변_한건을_조회한다() {
         // given
-        User givenUser = generateUser();
-        Question givenQuestion = generateQuestion(givenUser);
-        Answer givenAnswer = generateAnswer(givenUser, givenQuestion);
+        Question question = generateQuestion(defaultUser());
+        Answer answer = generateAnswer(defaultUser(), question);
 
         // when
-        Answer answer = getResource(
-            String.format("/api/questions/%d/answers/%d", givenQuestion.getId(), givenAnswer.getId()), Answer.class, givenUser).getBody();
+        ResponseEntity<Answer> response = restApiTestCaller.getResource(
+            String.format("/api/questions/%d/answers/%d", question.getId(), answer.getId()), Answer.class, defaultUser());
 
         // then
-        softly.assertThat(answer.getContents()).isEqualTo(givenAnswer.getContents());
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Answer responseAnswer = response.getBody();
+        softly.assertThat(responseAnswer.getContents()).isEqualTo(responseAnswer.getContents());
+    }
+
+    @Test
+    public void 질문의_답변을_삭제한다() {
+        // given
+        Question question = generateQuestion(defaultUser());
+        Answer answer = generateAnswer(defaultUser(), question);
+
+        // when
+        ResponseEntity<Void> response = restApiTestCaller.deleteResource(
+            String.format("/api/questions/%d/answers/%d", question.getId(), answer.getId()), defaultUser());
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(answerRepository.findById(answer.getId()).get().isDeleted()).isTrue();
     }
 }

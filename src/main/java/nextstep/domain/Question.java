@@ -83,4 +83,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public String generateUrl() {
         return String.format("/questions/%d", getId());
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
 }

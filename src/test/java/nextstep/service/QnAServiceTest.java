@@ -44,7 +44,7 @@ public class QnAServiceTest extends BaseTest {
         // answer
         when(answerRepository.save(any(Answer.class))).thenReturn(answer);
         when(answerRepository.findByQuestionAndDeletedFalse(question)).thenReturn(answers);
-//        when(answerRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(answer));
+        when(answerRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(answer));
     }
 
     @Test
@@ -103,5 +103,19 @@ public class QnAServiceTest extends BaseTest {
         List<Answer> returned = qnaService.findAnswers(1L);
 
         softly.assertThat(returned).isEqualTo(answers);
+    }
+
+    @Test
+    public void 답변을_조회한다() {
+        Answer returned = qnaService.findAnswer(1L);
+
+        softly.assertThat(returned).isEqualTo(answer);
+    }
+
+    @Test
+    public void 답변을_삭제한다() {
+        qnaService.deleteAnswer(writer, 1L);
+
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 }

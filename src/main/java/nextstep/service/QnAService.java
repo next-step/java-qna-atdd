@@ -51,9 +51,11 @@ public class QnAService {
     }
 
     @Transactional
-    public void deleteQuestion(Long id, User writer) {
+    public Question deleteQuestion(Long id, User writer) {
         Question question = findQuestionById(id);
         question.delete(writer);
+
+        return question;
     }
 
     @Transactional
@@ -71,14 +73,18 @@ public class QnAService {
         return answerRepository.findByQuestionAndDeletedFalse(question);
     }
 
+    @Transactional(readOnly = true)
     public Answer findAnswer(Long answerId) {
         return answerRepository.findByIdAndDeletedFalse(answerId)
             .orElseThrow(NotFoundException::new);
     }
 
+    @Transactional
     public Answer deleteAnswer(User writer, Long id) {
-        // TODO 답변 삭제 기능 구현
-        return null;
+        Answer answer = findAnswer(id);
+        answer.delete();
+
+        return answer;
     }
 
     @Deprecated

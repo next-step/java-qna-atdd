@@ -30,4 +30,12 @@ public class AnswerTest extends BaseTest {
     public void 없는_질문에_답변을_달수없다() {
         new Answer(writer, null, "This is contents");
     }
+
+    @Test
+    public void 답변을_삭제한다() {
+        Answer answer = new Answer(writer, question, "This is answer");
+        answer.delete();
+
+        softly.assertThat(answer.isDeleted()).isTrue();
+    }
 }
