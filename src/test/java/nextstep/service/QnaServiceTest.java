@@ -7,11 +7,13 @@ import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,129 +27,64 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @RunWith(SpringRunner.class)
 public class QnaServiceTest extends BaseTest {
-    @Mock
-    private QuestionRepository questionRepository;
 
-    @InjectMocks
+    private User loginUser;
+    private User otherLoginUser;
+
+    @Autowired
     private QnaService qnaService;
+
+    @Before
+    public void setUp() throws Exception {
+        loginUser = new User("javajigi", "test", "자바지기", "javajigi@slipp.net");
+        loginUser.setId(1L);
+        otherLoginUser = new User("sanjigi", "test", "산지기", "sanjigi@slipp.net");
+        otherLoginUser.setId(2L);
+    }
 
     @Test
     public void 질문_조회() throws Exception {
-        User loginUser = new User("sy", "test", "seoyeong", "seoyeong@slipp.net");
-        Question question = new Question("제목입니다.", "내용입니다.");
-        question.writeBy(loginUser);
-        question.setId(1L);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-        Question findQuestion = qnaService.findById(loginUser, question.getId());
-        softly.assertThat(findQuestion).isEqualTo(question);
+        Question findQuestion = qnaService.findById(loginUser, 1L);
+        softly.assertThat(findQuestion).isNotNull();
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 다른_사용자_질문_조회() {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-        User writer = new User("sysy", "test", "sysy", "sysy@slipp.net");
-        writer.setId(1L);
-        Question question = new Question("제목입니다.", "내용입니다.");
-        question.writeBy(writer);
-        question.setId(1L);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
-
-        qnaService.findById(loginUser, question.getId());
+        qnaService.findById(loginUser, 2L);
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void 질문_업데이트_없는경우() {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-
-        User writer = new User("sysy", "test", "sysy", "sysy@slipp.net");
-        writer.setId(1L);
-
         Question question = new Question("제목입니다", "내용입니다");
-        question.writeBy(writer);
-        question.setId(1L);
-
-
-        qnaService.update(loginUser, 2L, question);
+        qnaService.update(loginUser, 100L, question);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 다른_사용자_질문_업데이트() {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-
-        User writer = new User("sysy", "test", "sysy", "sysy@slipp.net");
-        writer.setId(1L);
-
-        Question question = new Question("제목입니다", "내용입니다");
-        question.writeBy(writer);
-        question.setId(1L);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        qnaService.update(loginUser, 1L, question);
+        qnaService.update(loginUser, 2L, new Question("제목 수정", "내용 수정"));
     }
 
     @Test
     public void 질문_업데이트_성공() {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-
-        Question question = new Question("제목입니다", "내용입니다");
-        question.writeBy(loginUser);
-        question.setId(1L);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
         qnaService.update(loginUser, 1L, new Question("제목 수정", "내용 수정"));
+        softly.assertThat(qnaService.findById(1L).orElseThrow(EntityNotFoundException::new).getTitle()).isEqualTo("제목 수정");
+        softly.assertThat(qnaService.findById(1L).orElseThrow(EntityNotFoundException::new).getContents()).isEqualTo("내용 수정");
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void 삭제할_질문_없는경우() throws CannotDeleteException {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-
-        User writer = new User("sysy", "test", "sysy", "sysy@slipp.net");
-        writer.setId(1L);
-
-        Question question = new Question("제목입니다", "내용입니다");
-        question.writeBy(writer);
-        question.setId(1L);
-
-
-        qnaService.deleteQuestion(loginUser, 2L);
+        qnaService.deleteQuestion(loginUser, 100L);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void 다른_사용자_질문_삭제() throws CannotDeleteException {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-
-        User writer = new User("sysy", "test", "sysy", "sysy@slipp.net");
-        writer.setId(1L);
-
-        Question question = new Question("제목입니다", "내용입니다");
-        question.writeBy(writer);
-        question.setId(1L);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        qnaService.deleteQuestion(loginUser, 1L);
+        qnaService.deleteQuestion(otherLoginUser, 1L);
     }
 
     @Test
     public void 질문_삭제_성공() throws CannotDeleteException {
-        User loginUser = new User("seoyeong", "test", "seoyeong", "seoyeong@slipp.net");
-        loginUser.setId(2L);
-
-        Question question = new Question("제목입니다", "내용입니다");
-        question.writeBy(loginUser);
-        question.setId(1L);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
         qnaService.deleteQuestion(loginUser, 1L);
+        softly.assertThat(qnaService.findById(1L).orElseThrow(EntityNotFoundException::new).isDeleted()).isTrue();
     }
 }
 
