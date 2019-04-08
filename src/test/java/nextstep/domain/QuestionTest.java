@@ -12,6 +12,10 @@ public class QuestionTest extends BaseTest {
         return new Question(id, UserTest.newUser(1L), new QuestionBody("This is title", "This is contents"));
     }
 
+    public static Question newQuestion(Long id, User user) {
+        return new Question(id, user, new QuestionBody("This is title", "This is contents"));
+    }
+
     @Test
     public void 질문을_생성한다() {
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");

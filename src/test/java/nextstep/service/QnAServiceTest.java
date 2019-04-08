@@ -5,109 +5,103 @@ import nextstep.domain.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-@RunWith(SpringRunner.class)
-@DataJpaTest
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+
+@RunWith(MockitoJUnitRunner.class)
 public class QnAServiceTest extends BaseTest {
-    private User fixtureWriter;
-    private Question fixtureQuestion;
-    private Answer fixtureAnswer;
+    @Mock
+    private QuestionRepository questionRepository;
+    @Mock
+    private AnswerRepository answerRepository;
 
-    @Autowired private QnAService qnaService;
+    @InjectMocks
+    private QnAService qnaService;
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private QuestionRepository questionRepository;
-    @Autowired private AnswerRepository answerRepository;
+    private User writer = UserTest.newUser(1L);
+    private List<Question> questions = new ArrayList<>();
+    private Question question = QuestionTest.newQuestion(1L);
+    private List<Answer> answers = new ArrayList<>();
+    private Answer answer = AnswerTest.newAnswer(1L);
 
     @Before
     public void setUp() {
-        fixtureWriter = userRepository.save(
-            new User("userId", "pass", "name", "javajigi@slipp.net"));
-        fixtureQuestion = questionRepository.save(
-            new Question(fixtureWriter, new QuestionBody("This is title", "This is contents")));
-        fixtureAnswer = answerRepository.save(new Answer(fixtureWriter, fixtureQuestion, "fixtureAnswer"));
+        // question
+        when(questionRepository.save(any(Question.class))).thenReturn(question);
+        when(questionRepository.findByDeletedFalse()).thenReturn(questions);
+        when(questionRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(question));
+
+        // answer
+        when(answerRepository.save(any(Answer.class))).thenReturn(answer);
+        when(answerRepository.findByQuestionAndDeletedFalse(question)).thenReturn(answers);
+//        when(answerRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(answer));
     }
 
     @Test
     public void 질문을_등록한다() {
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
+        Question returned = qnaService.createQuestion(writer, questionBody);
 
-        Question question = qnaService.createQuestion(fixtureWriter, questionBody);
-
-        softly.assertThat(question.getQuestionBody()).isEqualTo(questionBody);
+        softly.assertThat(returned).isEqualTo(question);
     }
 
     @Test
     public void 질문_목록을_조회한다() {
-        List<Question> list = qnaService.findQuestions();
-        softly.assertThat(list).hasSize(1);
+        List<Question> returned = qnaService.findQuestions();
+
+        softly.assertThat(returned).isEqualTo(questions);
     }
 
     @Test
     public void 질문을_상세조회한다() {
-        Long questionId = fixtureQuestion.getId();
+        Question returned = qnaService.findQuestionById(1L);
 
-        Question question = qnaService.findQuestionById(questionId);
-        softly.assertThat(question.getQuestionBody())
-            .isEqualTo(fixtureQuestion.getQuestionBody());
+        softly.assertThat(returned).isEqualTo(question);
     }
 
     @Test(expected = NotFoundException.class)
     public void 없는_질문이면_예외가_발생한다() {
-        qnaService.findQuestionById(0L); // auto_increment 는 1부터 시작하니까..
+        qnaService.findQuestionById(100L);
     }
 
     @Test
     public void 질문을_수정한다() {
-        Long questionId = fixtureQuestion.getId();
-
         QuestionBody newQuestionBody = new QuestionBody("This is updated title", "This is updated contents");
-        Question question = qnaService.updateQuestion(questionId, fixtureWriter, newQuestionBody);
+        Question returned = qnaService.updateQuestion(1L, writer, newQuestionBody);
 
-        softly.assertThat(question.getQuestionBody()).isEqualTo(newQuestionBody);
+        softly.assertThat(returned.getQuestionBody()).isEqualTo(newQuestionBody);
     }
 
     @Test
     public void 질문을_삭제한다() {
-        Long questionId = fixtureQuestion.getId();
+        qnaService.deleteQuestion(1L, writer);
 
-        qnaService.deleteQuestion(questionId, fixtureWriter);
-
-        Question question = questionRepository.findById(questionId).get();
         softly.assertThat(question.isDeleted()).isTrue();
     }
 
     @Test
     public void 답변을_등록한다() {
-        Long questionId = fixtureQuestion.getId();
-
+        User user = UserTest.newUser(2L);
         String contents = "This is fixtureAnswer";
-        Answer answer = qnaService.addAnswer(fixtureWriter, questionId, contents);
+        Answer returned = qnaService.addAnswer(user, 1L, contents);
 
-        softly.assertThat(answer.getWriter()).isEqualTo(fixtureWriter);
-        softly.assertThat(answer.getContents()).isEqualTo(contents);
+        softly.assertThat(returned).isEqualTo(answer);
     }
 
     @Test
     public void 답변목록을_조회한다() {
-        Long questionId = fixtureQuestion.getId();
-        List<Answer> answers = qnaService.findAnswers(questionId);
+        List<Answer> returned = qnaService.findAnswers(1L);
 
-        softly.assertThat(answers).hasSize(1);
-    }
-
-    @Test
-    public void 답변을_상세조회한다() {
-        Long answerId = fixtureAnswer.getId();
-
-        Answer answer = qnaService.findAnswer(answerId);
-
-        softly.assertThat(answer.getContents()).isEqualTo(fixtureAnswer.getContents());
+        softly.assertThat(returned).isEqualTo(answers);
     }
 }

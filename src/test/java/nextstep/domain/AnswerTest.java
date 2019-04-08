@@ -9,6 +9,10 @@ public class AnswerTest extends BaseTest {
     private User writer = UserTest.newUser(1L);
     private Question question = QuestionTest.newQuestion(1L);
 
+    public static Answer newAnswer(Long id) {
+        return new Answer(id, new User(), new Question(), "answer");
+    }
+
     @Test
     public void 답변을_생성한다() {
         Answer answer = new Answer(writer, question, "This is answer");

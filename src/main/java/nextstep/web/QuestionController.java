@@ -45,7 +45,7 @@ public class QuestionController {
 
     @GetMapping("{id}/form")
     public String updateForm(@LoginUser User user, @PathVariable Long id, Model model) {
-        Question result = qnAService.findByOwner(user, id);
+        Question result = qnAService.findQuestionById(id);
 
         model.addAttribute("question", result);
         return "qna/updateForm";
