@@ -33,7 +33,7 @@ public class QnaController {
     public String showQuestion(@PathVariable("id") long questionId, Model model) {
 //        Question question = qnaService.findById(questionId);
         QuestionDTO questionDTO = qnaService.findQuestionAndAnswerById(questionId);
-        model.addAttribute("question", questionDTO.getQuestion());
+        model.addAttribute("question", questionDTO);
         model.addAttribute("answersSize", questionDTO.getAnswerSize());
 
         return "/qna/show";

@@ -2,7 +2,9 @@ package nextstep.service;
 
 import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
+import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
+import nextstep.dto.UserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("qnaService")
 public class QnaService {
@@ -31,7 +34,6 @@ public class QnaService {
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
-        log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
@@ -75,26 +77,34 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
+    public AnswerDTO addAnswer(User loginUser, long questionId, String contents) {
         Question question = findById(questionId);
         Answer answer = new Answer(loginUser, contents);
         question.addAnswer(answer);
-        return answerRepository.save(answer);
+        answer = answerRepository.save(answer);
+
+        return new AnswerDTO(answer);
     }
 
     @Transactional
-    public Answer deleteAnswer(User loginUser, long id) {
+    public AnswerDTO deleteAnswer(User loginUser, long id) {
         checkAnswerOwner(id, loginUser);
         Answer answer = findAnswerById(id);
         answerRepository.delete(answer);
-        return answer;
+        return new AnswerDTO(answer);
     }
 
     @Transactional
     public QuestionDTO findQuestionAndAnswerById(long questionId) {
         Question question = findQuestionWithAnswer(questionId);
-        int answerSize = question.getAnswers().size();
-        return new QuestionDTO(question, answerSize);
+        return new QuestionDTO(question.getId(),
+                question.getTitle(),
+                question.getContents(),
+                new UserDTO(question.getWriter()),
+                question.getAnswers().stream()
+                .map(AnswerDTO::new)
+                .collect(Collectors.toList()),
+                question.isDeleted());
     }
 
     private void checkQuestionOwner(long questionId, User loginUser) {
