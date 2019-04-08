@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
+import static nextstep.domain.Fixture.MOCK_USER;
+import static nextstep.domain.Fixture.OTHER_USER;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @Slf4j
@@ -18,6 +20,9 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @Autowired
     private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryRepository deleteHistoryRepository;
 
     @Test
     public void 질문_생성() {
@@ -67,13 +72,26 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문_삭제() {
+    public void 질문_삭제_성공_테스트_답변0개() {
         String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
         basicAuthTemplate().delete(location);
 
         Question result = basicAuthTemplate().getForObject(location, Question.class);
         softly.assertThat(result).isNotNull();
         softly.assertThat(result.isDeleted()).isTrue();
+
+        DeleteHistory deleteResult = deleteHistoryRepository.findByContentId(result.getId());
+        softly.assertThat(deleteResult.getContentType()).isEqualTo(ContentType.QUESTION);
+        softly.assertThat(deleteResult.getContentId()).isEqualTo(result.getId());
+        softly.assertThat(deleteResult.getDeletedBy()).isEqualTo(MOCK_USER);
+    }
+
+    @Test
+    public void 질문_삭제_실패_테스트_답변있음() {
+        String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
+        basicAuthTemplate(OTHER_USER).postForEntity(location + "/answers", "답변이애오 히히", String.class);
+        ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.DELETE, createHttpEntity(null), Void.class);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -134,6 +152,11 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         Answer result = basicAuthTemplate().getForObject(location, Answer.class);
         softly.assertThat(result).isNotNull();
         softly.assertThat(result.isDeleted()).isTrue();
+
+        DeleteHistory deleteResult = deleteHistoryRepository.findByContentId(result.getId());
+        softly.assertThat(deleteResult.getContentType()).isEqualTo(ContentType.ANSWER);
+        softly.assertThat(deleteResult.getContentId()).isEqualTo(result.getId());
+        softly.assertThat(deleteResult.getDeletedBy()).isEqualTo(MOCK_USER);
     }
 
     @Test
