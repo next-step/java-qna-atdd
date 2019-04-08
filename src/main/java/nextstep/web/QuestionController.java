@@ -22,7 +22,6 @@ public class QuestionController {
 
     private final QnaService qnaService;
 
-    @Autowired
     public QuestionController(QnaService qnaService) {
         this.qnaService = qnaService;
     }

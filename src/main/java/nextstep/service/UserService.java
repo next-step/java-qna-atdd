@@ -4,11 +4,9 @@ import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.User;
 import nextstep.domain.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Service("userService")
@@ -16,7 +14,6 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

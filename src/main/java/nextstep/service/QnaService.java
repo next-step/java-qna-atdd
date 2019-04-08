@@ -5,15 +5,11 @@ import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import javax.naming.AuthenticationException;
 import javax.persistence.EntityNotFoundException;
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +23,6 @@ public class QnaService {
 
     private final DeleteHistoryService deleteHistoryService;
 
-    @Autowired
     public QnaService(QuestionRepository questionRepository, AnswerRepository answerRepository, DeleteHistoryService deleteHistoryService) {
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;

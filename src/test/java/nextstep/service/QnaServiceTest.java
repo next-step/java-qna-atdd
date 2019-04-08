@@ -12,7 +12,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.junit4.SpringRunner;
 import support.test.BaseTest;
 
 import javax.persistence.EntityNotFoundException;
@@ -20,7 +22,8 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@SpringBootTest
+@RunWith(SpringRunner.class)
 public class QnaServiceTest extends BaseTest {
     @Mock
     private QuestionRepository questionRepository;

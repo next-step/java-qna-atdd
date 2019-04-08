@@ -5,7 +5,6 @@ import nextstep.UnAuthenticationException;
 import nextstep.domain.User;
 import nextstep.security.HttpSessionUtils;
 import nextstep.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +18,6 @@ public class LoginController {
 
     private final UserService userService;
 
-    @Autowired
     public LoginController(UserService userService) {
         this.userService = userService;
     }
