@@ -1,6 +1,5 @@
 package nextstep.domain;
 
-import lombok.EqualsAndHashCode;
 import nextstep.UnAuthorizedException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import support.domain.AbstractEntity;
@@ -11,7 +10,6 @@ import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Entity
-@EqualsAndHashCode
 public class User extends AbstractEntity {
     public static final GuestUser GUEST_USER = new GuestUser();
 

@@ -2,6 +2,7 @@ package nextstep.web.api;
 
 import lombok.extern.slf4j.Slf4j;
 import nextstep.domain.*;
+import nextstep.service.DeleteHistoryService;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     private AnswerRepository answerRepository;
 
     @Autowired
-    private DeleteHistoryRepository deleteHistoryRepository;
+    private DeleteHistoryService deleteHistoryService;
 
     @Test
     public void 질문_생성() {
@@ -80,7 +81,8 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(result).isNotNull();
         softly.assertThat(result.isDeleted()).isTrue();
 
-        DeleteHistory deleteResult = deleteHistoryRepository.findByContentId(result.getId());
+        DeleteHistory deleteResult = deleteHistoryService.findByContentId(result.getId());
+
         softly.assertThat(deleteResult.getContentType()).isEqualTo(ContentType.QUESTION);
         softly.assertThat(deleteResult.getContentId()).isEqualTo(result.getId());
         softly.assertThat(deleteResult.getDeletedBy()).isEqualTo(MOCK_USER);
@@ -153,7 +155,8 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(result).isNotNull();
         softly.assertThat(result.isDeleted()).isTrue();
 
-        DeleteHistory deleteResult = deleteHistoryRepository.findByContentId(result.getId());
+        DeleteHistory deleteResult = deleteHistoryService.findByContentId(result.getId());
+        
         softly.assertThat(deleteResult.getContentType()).isEqualTo(ContentType.ANSWER);
         softly.assertThat(deleteResult.getContentId()).isEqualTo(result.getId());
         softly.assertThat(deleteResult.getDeletedBy()).isEqualTo(MOCK_USER);
