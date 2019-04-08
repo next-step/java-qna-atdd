@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import nextstep.exception.CannotDeleteException;
 import nextstep.exception.ObjectDeletedException;
 import nextstep.exception.UnAuthorizedException;
@@ -7,25 +8,19 @@ import nextstep.web.dto.QuestionRequestDTO;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
-import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @Size(min = 3, max = 100)
-    @Column(length = 100, nullable = false)
-    private String title;
 
-    @Size(min = 3)
-    @Lob
-    private String contents;
+    @Embedded
+    @JsonProperty
+    private QuestionBody questionBody;
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
@@ -40,8 +35,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
+        this.questionBody = new QuestionBody(title, contents);
     }
 
     public static Question of(QuestionRequestDTO questionRequestDTO) {
@@ -49,20 +43,20 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public String getTitle() {
-        return this.title;
+        return this.questionBody.getTitle();
     }
 
     public Question setTitle(String title) {
-        this.title = title;
+        this.questionBody.setTitle(title);
         return this;
     }
 
     public String getContents() {
-        return this.contents;
+        return this.questionBody.getContents();
     }
 
     public Question setContents(String contents) {
-        this.contents = contents;
+        this.questionBody.setContents(contents);
         return this;
     }
 
@@ -87,8 +81,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
 
-        this.title = target.getTitle();
-        this.contents = target.getContents();
+        this.questionBody.update(target.getTitle(), target.getContents());
         return this;
     }
 
@@ -122,6 +115,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + this.title + ", contents=" + this.contents + ", writer=" + this.writer + "]";
+        return "Question [id=" + getId() + ", title=" + this.questionBody.getTitle() + ", contents=" + this.questionBody.getContents() + ", writer=" + this.writer + "]";
     }
 }
