@@ -97,9 +97,7 @@ public class QnaService {
     @Transactional
     public QuestionDTO findQuestionAndAnswerById(long questionId) {
         Question question = findQuestionWithAnswer(questionId);
-        return new QuestionDTO(question.getId(),
-                question.getTitle(),
-                question.getContents(),
+        return new QuestionDTO(question,
                 new UserDTO(question.getWriter()),
                 question.getAnswers().stream()
                 .map(AnswerDTO::new)

@@ -40,6 +40,11 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         answerId = questionDTO.getAnswers().get(0).getId();
     }
 
+    @After
+    public void tearDown() throws Exception {
+        questionRepository.deleteAll();
+    }
+
     @Test
     public void showQuestion() {
         ResponseEntity<String> response = template().getForEntity(String.format("/questions/show/%d", questionId), String.class);
@@ -150,8 +155,5 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
-    @After
-    public void tearDown() throws Exception {
-        questionRepository.deleteAll();
-    }
+
 }

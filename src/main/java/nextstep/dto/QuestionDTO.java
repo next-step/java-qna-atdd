@@ -1,5 +1,7 @@
 package nextstep.dto;
 
+import nextstep.domain.Question;
+
 import java.util.List;
 
 public class QuestionDTO {
@@ -19,10 +21,10 @@ public class QuestionDTO {
 
     public QuestionDTO() {}
 
-    public QuestionDTO(long id, String title, String contents, UserDTO writer, List<AnswerDTO> answers, boolean deleted) {
-        this.id = id;
-        this.title = title;
-        this.contents = contents;
+    public QuestionDTO(Question question, UserDTO writer, List<AnswerDTO> answers, boolean deleted) {
+        this.id = question.getId();
+        this.title = question.getTitle();
+        this.contents = question.getContents();
         this.writer = writer;
         this.answers = answers;
         this.deleted = deleted;
@@ -55,5 +57,9 @@ public class QuestionDTO {
 
     public long getId() {
         return id;
+    }
+
+    AnswerDTO get(int index) {
+        return answers.get(index);
     }
 }

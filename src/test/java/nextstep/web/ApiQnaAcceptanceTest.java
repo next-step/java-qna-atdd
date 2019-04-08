@@ -34,6 +34,13 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         this.newQuestion = newQuestion;
     }
 
+    @After
+    public void tearDown() {
+        /*basicAuthTemplate().exchange(
+                createLocation, HttpMethod.DELETE, createHttpEntity(newQuestion), Void.class);*/
+        questionRepository.deleteAll();
+    }
+
     @Test
     public void createQuestion() {
         Question newQuestion = new Question("question title", "question contents");
@@ -151,13 +158,6 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(url, HttpMethod.DELETE, createHttpEntity(answer), Void.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @After
-    public void tearDown() {
-        /*basicAuthTemplate().exchange(
-                createLocation, HttpMethod.DELETE, createHttpEntity(newQuestion), Void.class);*/
-        questionRepository.deleteAll();
     }
 
     private HttpEntity createHttpEntity(Object body) {

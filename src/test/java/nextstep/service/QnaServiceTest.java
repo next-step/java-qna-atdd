@@ -44,6 +44,13 @@ public class QnaServiceTest extends BaseTest {
         testAnswerId = answer.getId();
     }
 
+    @After
+    public void tearDown() throws Exception {
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        qnaService.deleteQuestion(user, testQuestionId);
+    }
+
     /*@Test
     public void create() throws UnAuthenticationException {
         Question question = new Question("질문하기", "테스트");
@@ -111,12 +118,5 @@ public class QnaServiceTest extends BaseTest {
         user = userService.login(user.getUserId(), user.getPassword());
         Answer answer = qnaService.findAnswerById(testAnswerId);
         qnaService.deleteAnswer(user, answer.getId());
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
-        user = userService.login(user.getUserId(), user.getPassword());
-        qnaService.deleteQuestion(user, testQuestionId);
     }
 }
