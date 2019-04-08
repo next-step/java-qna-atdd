@@ -2,8 +2,9 @@ package nextstep.domain;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface DeleteHistoryRepository extends CrudRepository<DeleteHistory, Long> {
+import java.util.Optional;
 
-    DeleteHistory findByContentId(Long contentId);
+public interface DeleteHistoryRepository extends CrudRepository<DeleteHistory, Long> {
+    Optional<DeleteHistory> findByContentId(Long contentId);
 
 }

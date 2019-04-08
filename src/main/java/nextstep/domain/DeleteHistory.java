@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 public class DeleteHistory {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)

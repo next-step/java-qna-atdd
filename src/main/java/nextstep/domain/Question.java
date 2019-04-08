@@ -18,7 +18,7 @@ import java.util.Optional;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @ToString(exclude = {"answers"})
-public class Question extends AbstractEntity implements UrlGeneratable, DeleteHIstoryGenerator {
+public class Question extends AbstractEntity implements UrlGeneratable, DeleteHistoryGenerator {
     public static final int MIN_DATA_LENGTH = 3;
     public static final int MAX_TITLE_LENGTH = 100;
     @Size(min = 3, max = 100)
@@ -97,8 +97,8 @@ public class Question extends AbstractEntity implements UrlGeneratable, DeleteHI
     }
 
     private void checkAnswerByWriter() throws CannotDeleteException {
-        Optional<Answer> test = answers.stream().filter(answer -> answer.isNotOwner(writer)).findAny();
-        if(test.isPresent()) {
+        Optional<Answer> filteredAnser = answers.stream().filter(answer -> answer.isNotOwner(writer)).findAny();
+        if(filteredAnser.isPresent()) {
             throw new CannotDeleteException("다른 사람의 답변까지 지울 수 없어요!");
         }
     }

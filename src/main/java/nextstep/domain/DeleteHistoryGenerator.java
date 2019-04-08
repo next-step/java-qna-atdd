@@ -1,5 +1,5 @@
 package nextstep.domain;
 
-public interface DeleteHIstoryGenerator {
+public interface DeleteHistoryGenerator {
     DeleteHistory toDeleteHistory();
 }

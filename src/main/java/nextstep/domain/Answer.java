@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 @Getter
 @NoArgsConstructor
 @ToString(callSuper = true)
-public class Answer extends AbstractEntity implements UrlGeneratable, DeleteHIstoryGenerator {
+public class Answer extends AbstractEntity implements UrlGeneratable, DeleteHistoryGenerator {
     public static final int MIN_CONTENTS_LENGTH = 6;
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
