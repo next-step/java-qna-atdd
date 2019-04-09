@@ -1,6 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.User;
+import nextstep.domain.entity.User;
 import nextstep.security.LoginUser;
 import nextstep.service.UserService;
 import org.springframework.http.HttpHeaders;

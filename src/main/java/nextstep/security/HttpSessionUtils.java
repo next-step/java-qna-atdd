@@ -1,6 +1,6 @@
 package nextstep.security;
 
-import nextstep.domain.User;
+import nextstep.domain.entity.User;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.WebRequest;
 

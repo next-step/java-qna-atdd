@@ -1,6 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.User;
+import nextstep.domain.entity.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

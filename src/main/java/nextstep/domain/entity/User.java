@@ -1,4 +1,4 @@
-package nextstep.domain;
+package nextstep.domain.entity;
 
 import nextstep.UnAuthorizedException;
 import com.fasterxml.jackson.annotation.JsonIgnore;

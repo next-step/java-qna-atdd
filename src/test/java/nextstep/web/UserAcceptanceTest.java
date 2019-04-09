@@ -1,7 +1,7 @@
 package nextstep.web;
 
-import nextstep.domain.User;
-import nextstep.domain.UserRepository;
+import nextstep.domain.entity.User;
+import nextstep.domain.repository.UserRepository;
 import nextstep.web.lib.HtmlFormDataBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -9,11 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
-
-import java.util.Arrays;
 
 public class UserAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);

@@ -1,29 +1,16 @@
 package nextstep.domain;
 
-import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.junit.After;
+import nextstep.domain.entity.Answer;
+import nextstep.domain.entity.Question;
+import nextstep.domain.entity.User;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@DataJpaTest
 public class QuestionTest {
-    private final Logger log = LoggerFactory.getLogger(QuestionTest.class);
-
-    @Autowired
-    private QuestionRepository questionRepository;
-
-    private Long questionId;
-
+    private Question question;
     private User user;
 
     @Before
@@ -31,38 +18,41 @@ public class QuestionTest {
         this.user = new User(1L, "test", "password", "jpaTestMan", "jap@gmail.com");
         Question question = new Question("JPA Test", "for jpa test");
         question.writeBy(user);
-        this.questionId = questionRepository.save(question).getId();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        questionRepository.deleteById(questionId);
+        this.question = question;
     }
 
     @Test
-    public void update_with_no_save() {
-        Question question = questionRepository.findById(questionId).get();
-        question.modify(user, new Question("title", "modify"));
-
-        log.debug("entityFromDB : {}", questionRepository.findById(questionId).get().getTitle());
-        log.debug("updatedEntity : {}", question.getTitle());
-        assertThat(question.getTitle()).isEqualTo(questionRepository.findById(questionId).get().getTitle());
-        assertThat(question).isEqualTo(questionRepository.findById(questionId).get());
+    public void update_with_owner() {
+        Question newQuestion = new Question("수정된제목", "내용도 수정");
+        this.question.modify(user, newQuestion);
+        assertThat(this.question.getTitle()).isEqualTo(newQuestion.getTitle());
     }
+
 
     @Test(expected = UnAuthorizedException.class)
     public void update_with_wrong_user() {
-        Question updatedQuestion = new Question("수정된제목", "내용도 수정");
+        Question newQuestion = new Question("수정된제목", "내용도 수정");
         User loginUser = new User(2L, "bubble", "tea", "GongCha", "jap@gmail.com");
-
-        Question question = questionRepository.findById(questionId).get();
-        question.modify(loginUser, updatedQuestion);
+        this.question.modify(loginUser, newQuestion);
+        assertThat(this.question.getTitle()).isEqualTo(newQuestion.getTitle());
+        assertThat(this.question.getContents()).isEqualTo(newQuestion.getContents());
     }
 
-    @Test(expected = CannotDeleteException.class)
-    public void delete_with_wrong_user() throws CannotDeleteException {
+    @Test
+    public void delete_with_owner() {
+        this.question.delete(user);
+        assertThat(this.question.isDeleted()).isEqualTo(Boolean.TRUE);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_with_wrong_user() {
         User loginUser = new User(2L, "bubble", "tea", "GongCha", "jap@gmail.com");
-        Question question = questionRepository.findById(questionId).get();
-        question.delete(loginUser);
+        this.question.delete(loginUser);
+    }
+
+    @Test
+    public void add_Answer() {
+        question.addAnswer(new Answer(user, "안녕하세요!"));
+        assertThat(question.getAnswers().size()).isEqualTo(1);
     }
 }

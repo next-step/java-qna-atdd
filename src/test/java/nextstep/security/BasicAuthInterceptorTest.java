@@ -1,6 +1,6 @@
 package nextstep.security;
 
-import nextstep.domain.User;
+import nextstep.domain.entity.User;
 import nextstep.service.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;

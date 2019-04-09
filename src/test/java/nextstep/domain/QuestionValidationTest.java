@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.domain.entity.Question;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import support.test.BaseTest;

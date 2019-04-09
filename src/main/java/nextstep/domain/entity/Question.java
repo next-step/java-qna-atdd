@@ -1,7 +1,5 @@
-package nextstep.domain;
+package nextstep.domain.entity;
 
-import nextstep.CannotDeleteException;
-import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -11,8 +9,6 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -69,9 +65,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
-    public void addAnswer(Answer answer) {
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public Question addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
+        return this;
     }
 
     public boolean isOwner(User loginUser) {
@@ -92,13 +93,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public Question delete(User loginUser) throws CannotDeleteException {
+    public Question delete(User loginUser) throws UnAuthorizedException {
         if (!isOwner(loginUser)) {
-            throw new CannotDeleteException("cannot delete, is not owner");
+            throw new UnAuthorizedException();
         }
 
         this.deleted = true;
         return this;
+    }
+
+    public String generateApiUrl() {
+        return String.format("/api/questions/%d", getId());
     }
 
     @Override

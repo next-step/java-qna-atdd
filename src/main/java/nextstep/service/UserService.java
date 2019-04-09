@@ -2,14 +2,13 @@ package nextstep.service;
 
 import nextstep.UnAuthenticationException;
 import nextstep.UnAuthorizedException;
-import nextstep.domain.User;
-import nextstep.domain.UserRepository;
+import nextstep.domain.entity.User;
+import nextstep.domain.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Optional;
 
 @Service("userService")
 public class UserService {

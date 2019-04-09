@@ -1,7 +1,7 @@
 package nextstep.service;
 
-import nextstep.domain.DeleteHistory;
-import nextstep.domain.DeleteHistoryRepository;
+import nextstep.domain.entity.DeleteHistory;
+import nextstep.domain.repository.DeleteHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;

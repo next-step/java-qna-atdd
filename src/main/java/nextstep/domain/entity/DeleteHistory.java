@@ -1,4 +1,6 @@
-package nextstep.domain;
+package nextstep.domain.entity;
+
+import nextstep.domain.ContentType;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

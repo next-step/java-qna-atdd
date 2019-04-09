@@ -1,7 +1,12 @@
 package nextstep.service;
 
-import nextstep.CannotDeleteException;
-import nextstep.domain.*;
+import nextstep.UnAuthorizedException;
+import nextstep.domain.dto.AnswerResponseDto;
+import nextstep.domain.entity.Answer;
+import nextstep.domain.entity.Question;
+import nextstep.domain.entity.User;
+import nextstep.domain.repository.AnswerRepository;
+import nextstep.domain.repository.QuestionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -32,27 +36,37 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
+    public Optional<Question> findQuestionById(long id) {
         return questionRepository.findById(id);
     }
 
+    public Optional<Answer> findAnswerById(long id) {
+        return answerRepository.findById(id);
+    }
+
+
+    public Question show(long id) {
+        return findQuestionById(id).orElseThrow(UnAuthorizedException::new);
+    }
+
     public Question findQuestion(long id, User loginUser) {
-        return findById(id).filter(question -> question
-                .isOwner(loginUser)).orElseThrow(NoSuchElementException::new);
+        return findQuestionById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question question = findById(id).orElseThrow(NoSuchElementException::new);
-        return question.modify(loginUser, updatedQuestion);
+        return findQuestionById(id)
+                .map(question -> question.modify(loginUser, updatedQuestion))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question question = findById(questionId)
-                .orElseThrow(() -> new CannotDeleteException("Cannot findById : {}" + questionId));
-
-        question.delete(loginUser);
+    public Question deleteQuestion(User loginUser, long id) {
+        return findQuestionById(id)
+                .map(question -> question.delete(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     public Iterable<Question> findAll() {
@@ -63,13 +77,31 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Answer answer = new Answer(loginUser, contents);
+        findQuestionById(questionId).orElseThrow(UnAuthorizedException::new)
+                .addAnswer(answer);
+
+        return answerRepository.save(answer);
     }
 
+    @Transactional(readOnly = true)
+    public Answer showAnswer(long answerId) {
+        return findAnswerById(answerId)
+                .orElseThrow(UnAuthorizedException::new);
+    }
+
+    @Transactional
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현
-        return null;
+        return findAnswerById(id).orElseThrow(UnAuthorizedException::new)
+                .delete(loginUser);
+    }
+
+    @Transactional
+    public Answer updateAnswer(User loginUser, long answerId, String contents) {
+        return findAnswerById(answerId)
+                .map(answer -> answer.update(loginUser, contents))
+                .orElseThrow(UnAuthorizedException::new);
     }
 }
