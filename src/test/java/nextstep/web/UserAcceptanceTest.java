@@ -11,6 +11,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
+import support.test.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
 
 public class UserAcceptanceTest extends AcceptanceTest {

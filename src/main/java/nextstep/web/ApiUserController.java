@@ -8,15 +8,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
 @RequestMapping("/api/users")
 public class ApiUserController {
-    @Resource(name = "userService")
-    private UserService userService;
+
+    private final UserService userService;
+
+    public ApiUserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("")
     public ResponseEntity<Void> create(@Valid @RequestBody User user) {

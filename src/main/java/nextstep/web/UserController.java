@@ -9,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Controller
@@ -17,8 +16,11 @@ import java.util.List;
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Resource(name = "userService")
-    private UserService userService;
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/form")
     public String form() {
@@ -50,5 +52,4 @@ public class UserController {
         userService.update(loginUser, id, target);
         return "redirect:/users";
     }
-
 }

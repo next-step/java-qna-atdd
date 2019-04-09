@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -64,6 +65,23 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
+    public Question update(User loginUser, Question updatedQuestion) {
+        if (isNotOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        this.title = updatedQuestion.title;
+        this.contents = updatedQuestion.contents;
+
+        return this;
+    }
+
+    public void delete(User loginUser) {
+        if (isNotOwner(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+        deleted = true;
+    }
+
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
@@ -71,6 +89,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public boolean isOwner(User loginUser) {
         return writer.equals(loginUser);
+    }
+
+    public boolean isNotOwner(User loginUser) {
+        return !writer.equals(loginUser);
     }
 
     public boolean isDeleted() {

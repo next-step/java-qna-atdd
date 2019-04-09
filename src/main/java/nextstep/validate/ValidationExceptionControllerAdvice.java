@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,8 +18,11 @@ import java.util.Optional;
 public class ValidationExceptionControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(ValidationExceptionControllerAdvice.class);
 
-    @Resource(name = "messageSourceAccessor")
-    private MessageSourceAccessor msa;
+    private final MessageSourceAccessor msa;
+
+    public ValidationExceptionControllerAdvice(MessageSourceAccessor msa) {
+        this.msa = msa;
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
