@@ -26,10 +26,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer() {
     }
 
-    public Answer(String contents) {
-        this.contents = contents;
-    }
-
     public Answer(User writer, String contents) {
         this.writer = writer;
         this.contents = contents;
@@ -50,10 +46,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public Answer writeBy(User writer) {
         this.writer = writer;
         return this;
-    }
-
-    public Question getQuestion() {
-        return question;
     }
 
     public String getContents() {
@@ -77,12 +69,12 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Answer update(User loginUser, Answer newAnswer) {
+    public Answer update(User loginUser, String contents) {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException();
         }
 
-        this.contents = newAnswer.contents;
+        this.contents = contents;
         return this;
     }
 

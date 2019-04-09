@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.domain.dto.AnswerResponseDto;
 import nextstep.domain.entity.Answer;
 import nextstep.domain.entity.User;
 import nextstep.security.LoginUser;
@@ -31,12 +30,17 @@ public class ApiAnswerController {
     }
 
     @GetMapping("{answerId}")
-    public AnswerResponseDto show(@PathVariable long questionId, @PathVariable long answerId) {
-        return qnaService.showAnswer(questionId, answerId);
+    public Answer show(@PathVariable long answerId) {
+        return qnaService.showAnswer(answerId);
     }
 
     @DeleteMapping("{answerId}")
-    public AnswerResponseDto delete(@LoginUser User loginUser, @PathVariable long answerId) {
+    public Answer delete(@LoginUser User loginUser, @PathVariable long answerId) {
         return qnaService.deleteAnswer(loginUser, answerId);
+    }
+
+    @PutMapping("{answerId}")
+    public Answer update(@LoginUser User loginUser, @PathVariable long answerId, @RequestBody String contents) {
+        return qnaService.updateAnswer(loginUser, answerId, contents);
     }
 }

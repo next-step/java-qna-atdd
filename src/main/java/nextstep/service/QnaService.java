@@ -46,14 +46,11 @@ public class QnaService {
 
 
     public Question show(long id) {
-        Question newQuestion = findQuestionById(id).orElseThrow(UnAuthorizedException::new);
-        return newQuestion;
-//        return findQuestionById(id).orElseThrow(UnAuthorizedException::new);
+        return findQuestionById(id).orElseThrow(UnAuthorizedException::new);
     }
 
     public Question findQuestion(long id, User loginUser) {
         return findQuestionById(id)
-                .filter(question -> question != null)
                 .filter(question -> question.isOwner(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
     }
@@ -61,7 +58,6 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
         return findQuestionById(id)
-                .filter(question -> question != null)
                 .map(question -> question.modify(loginUser, updatedQuestion))
                 .orElseThrow(UnAuthorizedException::new);
     }
@@ -69,7 +65,6 @@ public class QnaService {
     @Transactional
     public Question deleteQuestion(User loginUser, long id) {
         return findQuestionById(id)
-                .filter(question -> question != null)
                 .map(question -> question.delete(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
     }
@@ -82,6 +77,7 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
         findQuestionById(questionId).orElseThrow(UnAuthorizedException::new)
@@ -91,27 +87,21 @@ public class QnaService {
     }
 
     @Transactional(readOnly = true)
-    public AnswerResponseDto showAnswer(long questionId, long answerId) {
-        Answer answer = findAnswerById(answerId)
+    public Answer showAnswer(long answerId) {
+        return findAnswerById(answerId)
                 .orElseThrow(UnAuthorizedException::new);
-
-        return convertToResponseDto(answer);
     }
 
     @Transactional
-    public AnswerResponseDto deleteAnswer(User loginUser, long id) {
-        Answer answer = findAnswerById(id).orElseThrow(UnAuthorizedException::new)
+    public Answer deleteAnswer(User loginUser, long id) {
+        return findAnswerById(id).orElseThrow(UnAuthorizedException::new)
                 .delete(loginUser);
-
-        return convertToResponseDto(answer);
     }
 
-    private AnswerResponseDto convertToResponseDto(Answer answer) {
-        return new AnswerResponseDto()
-                .setId(answer.getId())
-                .setContents(answer.getContents())
-                .setQuestionId(answer.getQuestion().getId())
-                .setDeleted(answer.isDeleted())
-                .setWriter(answer.getWriter());
+    @Transactional
+    public Answer updateAnswer(User loginUser, long answerId, String contents) {
+        return findAnswerById(answerId)
+                .map(answer -> answer.update(loginUser, contents))
+                .orElseThrow(UnAuthorizedException::new);
     }
 }

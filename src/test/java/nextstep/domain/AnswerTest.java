@@ -46,18 +46,18 @@ public class AnswerTest {
     @Test
     public void update() {
         Answer answer = new Answer(1L, answerWriter, question, "답변");
-        Answer newAnswer = new Answer(answerWriter, "답변");
-        answer.update(answerWriter, newAnswer);
+        String contents = "수정한 답변";
+        answer.update(answerWriter, contents);
 
-        assertThat(answer.getContents()).isEqualTo(newAnswer.getContents());
+        assertThat(answer.getContents()).isEqualTo(contents);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_다른사용자() {
         Answer answer = new Answer(1L, answerWriter, question, "답변");
-        Answer newAnswer = new Answer(answerWriter, "답변");
+        String contents = "수정한 답변";
 
-        answer.update(questionWriter, newAnswer);
+        answer.update(questionWriter, contents);
     }
 
     //delete

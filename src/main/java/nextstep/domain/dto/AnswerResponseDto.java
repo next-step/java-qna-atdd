@@ -2,6 +2,7 @@ package nextstep.domain.dto;
 
 import nextstep.domain.entity.User;
 
+@Deprecated
 public class AnswerResponseDto {
 
     private long id;
