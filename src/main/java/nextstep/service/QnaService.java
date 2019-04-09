@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -39,7 +39,7 @@ public class QnaService {
 
     public Question findById(long id) {
         return findQuestionById(id)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
@@ -76,7 +76,7 @@ public class QnaService {
 
     public Answer findAnswerByIdAndQuestion(long answerId, long questionId) {
         return answerRepository.findByIdAndQuestionId(answerId, questionId)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
