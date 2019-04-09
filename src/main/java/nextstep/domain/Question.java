@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -31,6 +33,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     private boolean deleted = false;
 
     public Question() {
+    }
+
+    public Question(long id, String title, String contents, User writer, boolean deleted) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
+        this.deleted = deleted;
     }
 
     public Question(String title, String contents) {
@@ -77,18 +87,38 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void update(Question updatedQuestion) {
+    public void update(User user, Question updatedQuestion) {
+        if (!isOwner(user)) {
+            throw new UnAuthorizedException("The owner doesn't match");
+        }
+
+        if (isDeleted()) {
+            throw new IllegalStateException("It's deleted question");
+        }
+
         this.title = updatedQuestion.title;
         this.contents = updatedQuestion.contents;
     }
 
-    public void delete() {
+    public void delete(User user) throws CannotDeleteException {
+        if (!isOwner(user)) {
+            throw new UnAuthorizedException("The owner doesn't match");
+        }
+
+        if (this.isDeleted()) {
+            throw new CannotDeleteException("This question has already deleted");
+        }
+
         this.deleted = true;
     }
 
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
+    }
+
+    public String generateRestUrl() {
+        return String.format("/api/questions/%d", getId());
     }
 
     @Override

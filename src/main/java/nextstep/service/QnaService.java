@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -32,26 +33,33 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
+    private Optional<Question> findQuestionById(long id) {
         return questionRepository.findById(id);
     }
 
+    public Question findById(long id) {
+        return findQuestionById(id)
+                .orElseThrow(NoSuchElementException::new);
+    }
+
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        Question originalQuestion = findByIdAndOwner(id, loginUser);
-        originalQuestion.update(updatedQuestion);
-        return originalQuestion;
+    public Question update(User loginUser, long questionId, Question updatedQuestion) {
+        Question question = findById(questionId);
+        question.update(loginUser, updatedQuestion);
+
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question targetQuestion = findByIdAndOwner(questionId, loginUser);
+        Question targetQuestion = findById(questionId);
+        targetQuestion.delete(loginUser);
+    }
 
-        if (targetQuestion.isDeleted()) {
-            throw new CannotDeleteException("This question has already deleted");
-        }
-
-        targetQuestion.delete();
+    public Question findByIdAndOwner(long id, User loginUser) {
+        return findQuestionById(id)
+                .filter(question -> question.isOwner(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
     }
 
     public Iterable<Question> findAll() {
@@ -66,19 +74,32 @@ public class QnaService {
         return questionRepository.findAllByDeleted(false, pageable);
     }
 
+    public Answer findAnswerByIdAndQuestion(long answerId, long questionId) {
+        return answerRepository.findByIdAndQuestionId(answerId, questionId)
+                .orElseThrow(NoSuchElementException::new);
+    }
+
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+        Answer answer = new Answer(loginUser, contents);
+
+        Question question = findById(questionId);
+        question.addAnswer(answer);
+
+        return answer;
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public void deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException {
+        Answer answer = findAnswerByIdAndQuestion(answerId, questionId);
+        answer.delete(loginUser);
     }
 
-    public Question findByIdAndOwner(long id, User loginUser) {
-        return findById(id)
-                .filter(question -> question.isOwner(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
+    @Transactional
+    public Answer updateAnswer(User loginUser, long questionId, long answerId, Answer modifiedAnswer) {
+        Answer answer = findAnswerByIdAndQuestion(answerId, questionId);
+        answer.update(loginUser, modifiedAnswer);
+
+        return answer;
     }
 }

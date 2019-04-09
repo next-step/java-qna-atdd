@@ -14,81 +14,106 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
+        // given
         User newUser = newUser("testuser1");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
 
-        User dbUser = basicAuthTemplate(findByUserId(newUser.getUserId())).getForObject(location, User.class);
+        // when
+        String resourceLocation = createAndGetUserResource(newUser);
+
+        // then
+        ResponseEntity<User> response = getUserResource(newUser, resourceLocation);
+        User dbUser = response.getBody();
         softly.assertThat(dbUser).isNotNull();
     }
 
     @Test
     public void show_다른_사람() throws Exception {
+        // given
         User newUser = newUser("testuser2");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
+        String resourceLocation = createAndGetUserResource(newUser);
+        User otherUser = defaultUser();
 
-        response = basicAuthTemplate(defaultUser()).getForEntity(location, Void.class);
+        // when
+        ResponseEntity<User> response = getUserResource(otherUser, resourceLocation);
+
+        // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     public void update() throws Exception {
+        // given
         User newUser = newUser("testuser3");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+        String resourceLocation = createAndGetUserResource(newUser);
 
+        User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<User> responseEntity =
-                basicAuthTemplate(newUser).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), User.class);
+        // when
+        ResponseEntity<User> response = updateUserResource(newUser, resourceLocation, updateUser);
 
-        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(updateUser.equalsNameAndEmail(responseEntity.getBody())).isTrue();
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(updateUser.equalsNameAndEmail(response.getBody())).isTrue();
     }
 
     @Test
     public void update_no_login() throws Exception {
+        // given
         User newUser = newUser("testuser4");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        String location = response.getHeaders().getLocation().getPath();
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        User original = basicAuthTemplate(newUser).getForObject(location, User.class);
+        String resourceLocation = createAndGetUserResource(newUser);
 
+        User original = getUserResource(newUser, resourceLocation).getBody();
         User updateUser = new User
                 (original.getId(), original.getUserId(), original.getPassword(),
                         "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<String> responseEntity =
-                template().exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), String.class);
+        // when
+        ResponseEntity<String> responseEntity = updateResourceWithoutLogin(resourceLocation, updateUser, String.class);
 
+        // then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
         log.debug("error message : {}", responseEntity.getBody());
     }
 
     @Test
     public void update_다른_사람() throws Exception {
+        // given
         User newUser = newUser("testuser5");
-        ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        String location = response.getHeaders().getLocation().getPath();
+        String resourceLocation = createAndGetUserResource(newUser);
+        User otherUser = defaultUser();
 
-        User updateUser = new User(newUser.getUserId(), "password", "name2", "javajigi@slipp.net2");
+        User original = getUserResource(newUser, resourceLocation).getBody();
+        User updateUser = new User
+                (original.getId(), original.getUserId(), original.getPassword(),
+                        "javajigi2", "javajigi2@slipp.net");
 
-        ResponseEntity<Void> responseEntity =
-                basicAuthTemplate(defaultUser()).exchange(location, HttpMethod.PUT, createHttpEntity(updateUser), Void.class);
+        // when
+        ResponseEntity<User> responseEntity = updateUserResource(otherUser, resourceLocation, updateUser);
+
+        // then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    private HttpEntity createHttpEntity(Object body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
+    private String createAndGetUserResource(User resource) {
+        return createUserResource(resource).getHeaders().getLocation().getPath();
+    }
+
+    private ResponseEntity<String> createUserResource(User resource) {
+        ResponseEntity<String> response = createResourceWithoutLogin("/api/users", resource, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.CREATED);
+
+        return response;
+    }
+
+    private ResponseEntity<User> getUserResource(User loginUser, String location) {
+        return getResource(loginUser, location, User.class);
+    }
+
+    protected ResponseEntity<User> updateUserResource(User loginUser, String location, User updatedUser) {
+        return updateResource(loginUser, location, updatedUser, User.class);
     }
 }

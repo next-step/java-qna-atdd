@@ -20,7 +20,7 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) {
-        Question question = qnaService.findById(id).get();
+        Question question = qnaService.findById(id);
         model.addAttribute("question", question);
 
         return "/qna/show";

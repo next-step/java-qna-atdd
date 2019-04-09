@@ -17,12 +17,15 @@ import support.test.AcceptanceTest;
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
+    private static final String TITLE = "title";
+    private static final String CONTENTS = "contents";
+
     @Autowired
     private QuestionRepository questionRepository;
 
     @Test
     public void question_read_no_login() {
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d", question.getId()), String.class);
@@ -66,14 +69,16 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", title)
-                .addParameter("contents", contents)
+                .addParameter(TITLE, title)
+                .addParameter(CONTENTS, contents)
                 .build();
 
         ResponseEntity<String> response = template().postForEntity("/questions", request, String.class);
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
@@ -85,27 +90,33 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("title", title)
-                .addParameter("contents", contents)
+                .addParameter(TITLE, title)
+                .addParameter(CONTENTS, contents)
                 .build();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .postForEntity("/questions", request, String.class);
 
         // then
-        long idOfCreatedQuestion = questionRepository.findAll().stream().mapToLong(Question::getId).max().getAsLong();
-        Question createdQuestion = questionRepository.findById(idOfCreatedQuestion).get();
-
-        softly.assertThat(createdQuestion.getTitle()).isEqualTo(title);
-        softly.assertThat(createdQuestion.getContents()).isEqualTo(contents);
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FOUND);
+
+        String location = response.getHeaders().getLocation().getPath();
+        long idOfCreatedQuestion = getIdFromResourceLocation(location);
+
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/questions/" + idOfCreatedQuestion);
+
+        Question dbQuestion = questionRepository.findById(idOfCreatedQuestion).get();
+
+        softly.assertThat(dbQuestion.getTitle()).isEqualTo(title);
+        softly.assertThat(dbQuestion.getContents()).isEqualTo(contents);
+
+        log.debug("response body : {}", response.getBody());
     }
 
     @Test
     public void question_delete_no_login() {
         // given
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
@@ -125,7 +136,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void question_delete_login_작성자() {
         // given
         User loginUser = defaultUser();
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
@@ -138,28 +149,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
-        softly.assertThat(questionRepository.findById(question.getId()).get().isDeleted()).isTrue();
 
-        log.debug("response body : {}", response.getBody());
-    }
-
-    @Test
-    public void question_delete_login_작성자가_아닐_경우() {
-        // given
-        User loginUser = defaultUser();
-        Question otherQuestion = otherQuestion();
-
-        // when
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .delete()
-                .build();
-
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d", otherQuestion.getId()), request, String.class);
-
-        // then
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
-        softly.assertThat(questionRepository.findById(otherQuestion.getId()).get().isDeleted()).isFalse();
+        Question dbAnswer = questionRepository.findById(question.getId()).get();
+        softly.assertThat(dbAnswer.isDeleted()).isTrue();
 
         log.debug("response body : {}", response.getBody());
     }
@@ -167,7 +159,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void question_update_form_no_login() {
         // given
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         ResponseEntity<String> response = template()
@@ -183,7 +175,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void question_update_form_login_작성자() {
         // given
         User loginUser = defaultUser();
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
@@ -198,12 +190,12 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void question_update_form_login_작성자_아닐_경우() {
         // given
-        User loginUser = defaultUser();
-        Question otherQuestion = otherQuestion();
+        User loginUser = otherUser();
+        Question question = questionOfDefaultUser();
 
         // when
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .getForEntity(String.format("/questions/%d/form", otherQuestion.getId()), String.class);
+                .getForEntity(String.format("/questions/%d/form", question.getId()), String.class);
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
@@ -214,17 +206,15 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void question_update_no_login() {
         // given
-        Question question = defaultQuestion();
-        String originalTitle = question.getTitle();
-        String originalContents = question.getContents();
+        Question question = questionOfDefaultUser();
         String updatedTitle = "Hello";
         String updatedContents = "World";
 
         // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .put()
-                .addParameter("title", updatedTitle)
-                .addParameter("contents", updatedContents)
+                .addParameter(TITLE, updatedTitle)
+                .addParameter(CONTENTS, updatedContents)
                 .build();
 
         ResponseEntity<String> response = template()
@@ -232,8 +222,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
-        softly.assertThat(questionRepository.findById(question.getId()).get().getTitle()).isEqualTo(originalTitle);
-        softly.assertThat(questionRepository.findById(question.getId()).get().getContents()).isEqualTo(originalContents);
+
+
+        Question dbQuestion = questionRepository.findById(question.getId()).get();
+        softly.assertThat(dbQuestion.getTitle()).isNotEqualTo(updatedTitle);
+        softly.assertThat(dbQuestion.getContents()).isNotEqualTo(updatedContents);
 
         log.debug("response body : {}", response.getBody());
     }
@@ -242,15 +235,15 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void question_update_login_작성자() {
         // given
         User loginUser = defaultUser();
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
         String updatedTitle = "Hello";
         String updatedContents = "World";
 
         // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .put()
-                .addParameter("title", updatedTitle)
-                .addParameter("contents", updatedContents)
+                .addParameter(TITLE, updatedTitle)
+                .addParameter(CONTENTS, updatedContents)
                 .build();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
@@ -259,45 +252,32 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo(question.generateUrl());
-        softly.assertThat(questionRepository.findById(question.getId()).get().getTitle()).isEqualTo(updatedTitle);
-        softly.assertThat(questionRepository.findById(question.getId()).get().getContents()).isEqualTo(updatedContents);
+
+        Question dbQuestion = questionRepository.findById(question.getId()).get();
+        softly.assertThat(dbQuestion.getTitle()).isEqualTo(updatedTitle);
+        softly.assertThat(dbQuestion.getContents()).isEqualTo(updatedContents);
 
         log.debug("response body : {}", response.getBody());
     }
 
-    @Test
-    public void question_update_login_작성자_아닐_경우() {
-        // given
+    private Question questionOfDefaultUser() {
         User loginUser = defaultUser();
-        Question question = otherQuestion();
-        String originalTitle = question.getTitle();
-        String originalContents = question.getContents();
-        String updatedTitle = "Hello";
-        String updatedContents = "World";
 
-        // when
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .put()
-                .addParameter("title", updatedTitle)
-                .addParameter("contents", updatedContents)
+                .addParameter(TITLE, "Netty")
+                .addParameter(CONTENTS, "Socket")
                 .build();
 
-        ResponseEntity<String> response = basicAuthTemplate(loginUser)
-                .postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
+        ResponseEntity<String> response =
+                basicAuthTemplate(loginUser).postForEntity("/questions", request, String.class);
 
-        // then
-        softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.FORBIDDEN);
-        softly.assertThat(questionRepository.findById(question.getId()).get().getTitle()).isEqualTo(originalTitle);
-        softly.assertThat(questionRepository.findById(question.getId()).get().getContents()).isEqualTo(originalContents);
+        String createQuestionResourcelocation = response.getHeaders().getLocation().getPath();
+        long id = getIdFromResourceLocation(createQuestionResourcelocation);
 
-        log.debug("response body : {}", response.getBody());
+        return questionRepository.findById(id).get();
     }
 
-    private Question defaultQuestion() {
-        return questionRepository.findById(1L).get();
-    }
-
-    private Question otherQuestion() {
-        return questionRepository.findById(2L).get();
+    private long getIdFromResourceLocation(String createQuestionResourcelocation) {
+        return Long.parseLong(createQuestionResourcelocation.split("/questions/")[1]);
     }
 }
