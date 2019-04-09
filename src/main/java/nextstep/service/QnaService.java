@@ -39,24 +39,16 @@ public class QnaService {
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) throws CannotUpdateException {
         Question origin = questionRepository.getOne(id);
+        origin.update(loginUser, updatedQuestion);
 
-        if (!origin.isOwner(loginUser)) {
-            throw new CannotUpdateException("loginUser is not writer");
-        }
-
-        origin.update(updatedQuestion);
         return questionRepository.save(origin);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question origin = questionRepository.findById(questionId).get();
-
-        if (!origin.isOwner(loginUser)) {
-            throw new CannotDeleteException("loginUser is not writer");
-        }
-
-        origin.delete();
+        origin.delete(loginUser);
+        
         questionRepository.save(origin);
     }
 

@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.CannotUpdateException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -11,6 +13,8 @@ import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
+    private static final String MSG_NOT_OWNER = "writer is not owner";
+
     @Size(min = 3, max = 100)
     @Column(length = 100, nullable = false)
     private String title;
@@ -38,12 +42,20 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public void update(Question updatedQuestion) {
+    public void update(User writer, Question updatedQuestion) throws CannotUpdateException {
+        if (!isOwner(writer)) {
+            throw new CannotUpdateException(MSG_NOT_OWNER);
+        }
+
         this.title = updatedQuestion.title;
         this.contents = updatedQuestion.contents;
     }
 
-    public void delete() {
+    public void delete(User writer) throws CannotDeleteException {
+        if (!isOwner(writer)) {
+            throw new CannotDeleteException(MSG_NOT_OWNER);
+        }
+
         this.deleted = true;
     }
 
@@ -79,6 +91,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean isOwner(User loginUser) {
+        if (this.writer == null) {
+            return false;
+        }
+
         return writer.equals(loginUser);
     }
 

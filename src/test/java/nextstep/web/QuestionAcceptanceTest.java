@@ -151,7 +151,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .delete()
                 .build();
 
-        return template().postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
+        return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
     }
 
     private Question defaultQuestion() {
