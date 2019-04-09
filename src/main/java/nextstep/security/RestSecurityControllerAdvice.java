@@ -31,8 +31,8 @@ public class RestSecurityControllerAdvice {
 
     @ExceptionHandler(UnAuthenticationException.class)
     @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-    public void unAuthentication(UnAuthenticationException e) {
+    public ErrorMessage unAuthentication(UnAuthenticationException e) {
         log.debug("JSON API UnAuthenticationException is happened!");
-//        return new ErrorMessage(e.getMessage());
+        return new ErrorMessage(e.getMessage());
     }
 }
