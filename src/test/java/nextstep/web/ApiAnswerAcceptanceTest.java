@@ -1,34 +1,27 @@
 package nextstep.web;
 
 import nextstep.domain.Answer;
-import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
-import support.HtmlFormDataBuilder;
 import support.test.AcceptanceTest;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
-    
-    @Autowired
-    private AnswerRepository answerRepository;
 
     @Test
     public void answer_read_no_login() {
         // given
-        Answer answer = defaultAnswer();
+        Answer answer = answerOfDefaultUser();
 
         // when
         ResponseEntity<Answer> response = getAnswerResource(answer.generateUrl());
 
         // then
-        Answer dbAnswer = response.getBody();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        Answer dbAnswer = response.getBody();
         softly.assertThat(answer.getContents()).isEqualTo(dbAnswer.getContents());
     }
 
@@ -67,35 +60,38 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void answer_delete_no_login() {
         // given
-        Answer answer = defaultAnswer();
+        Answer answer = answerOfDefaultUser();
 
         // when
         ResponseEntity<String> response = deleteResourceWithoutLogin(answer.generateUrl(), String.class);
 
         // then
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
-        softly.assertThat(defaultAnswer().isDeleted()).isFalse();
+
+        Answer dbAnswer = getAnswerResource(answer.generateUrl()).getBody();
+        softly.assertThat(dbAnswer.isDeleted()).isFalse();
     }
 
     @Test
     public void answer_delete_login_작성자() {
         // given
         User loginUser = defaultUser();
-        Answer answer = defaultAnswer();
+        Answer answer = answerOfDefaultUser();
 
         // when
         ResponseEntity<String> response = deleteAnswerResource(loginUser, answer);
 
         // then
-        Answer deletedAnswer = answerRepository.findById(answer.getId()).get();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.NO_CONTENT);
+
+        Answer deletedAnswer = getAnswerResource(answer.generateUrl()).getBody();
         softly.assertThat(deletedAnswer.isDeleted()).isTrue();
     }
 
     @Test
     public void answer_update_no_login() {
         // given
-        Answer answer = defaultAnswer();
+        Answer answer = answerOfDefaultUser();
 
         // when
         String modifiedContents = "Hello World";
@@ -104,8 +100,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Answer> response = updateResourceWithoutLogin(answer.generateUrl(), modifiedContents, Answer.class);
 
         // then
-        Answer dbAnswer = answerRepository.findById(answer.getId()).get();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+
+        Answer dbAnswer = getAnswerResource(answer.generateUrl()).getBody();
         softly.assertThat(dbAnswer.getContents()).isNotEqualTo(modifiedContents);
     }
 
@@ -113,7 +110,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void answer_update_login() {
         // given
         User loginUser = defaultUser();
-        Answer answer = defaultAnswer();
+        Answer answer = answerOfDefaultUser();
 
         // when
         String modifiedContents = "Hello World";
@@ -122,13 +119,21 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Answer> response = updateAnswerResource(loginUser, answer.generateUrl(), answer);
 
         // then
-        Answer dbAnswer = answerRepository.findById(answer.getId()).get();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        Answer dbAnswer = getAnswerResource(answer.generateUrl()).getBody();
         softly.assertThat(dbAnswer.getContents()).isEqualTo(modifiedContents);
     }
 
-    private Answer otherAnswer() {
-        return answerRepository.findById(2L).get();
+    private Answer answerOfDefaultUser() {
+        User loginUser = defaultUser();
+        Question question = defaultQuestion();
+        String contents = "I'm happy";
+
+        String createdAnswerResourceLocation =
+                createAnswerResource(loginUser, contents, question.getId()).getHeaders().getLocation().getPath();
+
+        return getAnswerResource(createdAnswerResourceLocation).getBody();
     }
 
     private ResponseEntity<Answer> getAnswerResource(String location) {
@@ -138,21 +143,13 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     private ResponseEntity<String> createAnswerResourceWithoutLogin(String contents, long questionId) {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("contents", contents)
-                .addParameter("questionId", questionId)
-                .build();
-
-        return template().postForEntity(String.format("/api/questions/%d/answers", questionId), request, String.class);
+        Answer answer = new Answer().setContents(contents);
+        return createResourceWithoutLogin(String.format("/api/questions/%d/answers", questionId), answer, String.class);
     }
 
     private ResponseEntity<String> createAnswerResource(User loginUser, String contents, long questionId) {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("contents", contents)
-                .addParameter("questionId", questionId)
-                .build();
-
-        return basicAuthTemplate(loginUser).postForEntity(String.format("/api/questions/%d/answers", questionId), request, String.class);
+        Answer answer = new Answer().setContents(contents);
+        return createResource(loginUser, String.format("/api/questions/%d/answers", questionId), answer, String.class);
     }
 
     private ResponseEntity<String> deleteAnswerResource(User loginUser, Answer answer) {
