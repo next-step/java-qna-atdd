@@ -5,8 +5,6 @@ import nextstep.domain.AnswerRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
-import nextstep.exception.CannotDeleteException;
-import nextstep.exception.ObjectDeletedException;
 import nextstep.exception.UnAuthorizedException;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +50,7 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void 질문_조회() throws Exception {
         question.writeBy(loginUser);
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(question.getId())).thenReturn(Optional.of(question));
 
         Question findQuestion = qnaService.findQuestionById(loginUser, question.getId());
         softly.assertThat(findQuestion).isEqualTo(question);
@@ -62,7 +60,7 @@ public class QnaServiceTest extends BaseTest {
     public void 질문_조회_EntityNotFoundException() {
         question.writeBy(loginUser);
 
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.empty());
+        when(questionRepository.findByIdAndDeletedFalse(question.getId())).thenReturn(Optional.empty());
 
         qnaService.findQuestionById(loginUser, question.getId());
     }
@@ -75,7 +73,7 @@ public class QnaServiceTest extends BaseTest {
         Question question = new Question("제목입니다", "내용입니다");
         question.writeBy(writer);
 
-        when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(question.getId())).thenReturn(Optional.of(question));
 
         qnaService.findQuestionById(loginUser, question.getId());
     }
@@ -98,26 +96,16 @@ public class QnaServiceTest extends BaseTest {
 
         question.writeBy(writer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
 
         qnaService.updateQuestion(loginUser, ID_ONE, question);
-    }
-
-    @Test(expected = ObjectDeletedException.class)
-    public void 질문_업데이트_ObjectDeletedException() {
-        question.writeBy(loginUser);
-
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        qnaService.deleteQuestion(loginUser, ID_ONE);
-
-        qnaService.updateQuestion(loginUser, ID_ONE, new Question("제목 수정", "내용 수정"));
     }
 
     @Test
     public void 질문_업데이트_성공() {
         question.writeBy(loginUser);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
 
         qnaService.updateQuestion(loginUser, ID_ONE, new Question("제목 수정", "내용 수정"));
         softly.assertThat(question.getTitle()).isEqualTo("제목 수정");
@@ -139,29 +127,7 @@ public class QnaServiceTest extends BaseTest {
 
         question.writeBy(writer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-
-        qnaService.deleteQuestion(loginUser, ID_ONE);
-    }
-
-    @Test(expected = ObjectDeletedException.class)
-    public void 질문_삭제_ObjectDeletedException() {
-        question.writeBy(loginUser);
-
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        qnaService.deleteQuestion(loginUser, ID_ONE);
-
-        qnaService.deleteQuestion(loginUser, ID_ONE);
-    }
-
-    @Test(expected = CannotDeleteException.class)
-    public void 질문_삭제_CannotDeleteException() {
-        question.writeBy(loginUser);
-
-        //질문 존재 삭제 불가
-        question.addAnswer(answer);
-
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(loginUser, ID_ONE);
     }
@@ -169,8 +135,11 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void 질문_삭제_성공() {
         question.writeBy(loginUser);
+        Answer answer = new Answer(loginUser, "답변 내용");
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
+        question.addAnswer(answer);
 
         qnaService.deleteQuestion(loginUser, ID_ONE);
         assertTrue(question.isDeleted());
@@ -183,10 +152,10 @@ public class QnaServiceTest extends BaseTest {
         answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
 
-        Answer savedAnswer = qnaService.findAnswerById(ID_ONE, ID_ONE);
+        Answer savedAnswer = qnaService.findAnswerById(ID_ONE);
         softly.assertThat(savedAnswer).isEqualTo(answer);
     }
 
@@ -197,10 +166,10 @@ public class QnaServiceTest extends BaseTest {
         answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
 
-        Answer savedAnswer = qnaService.findAnswerById(ID_ONE, ID_TWO);
+        Answer savedAnswer = qnaService.findAnswerById(ID_TWO);
     }
 
     @Test
@@ -210,8 +179,8 @@ public class QnaServiceTest extends BaseTest {
         answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
 
         Answer newAnswer = new Answer(answer.getId(), answer.getWriter(), answer.getQuestion(), "답변 수정");
         Answer updatedAnswer = answer.update(writer, newAnswer);
@@ -228,26 +197,8 @@ public class QnaServiceTest extends BaseTest {
         answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
-
-        Answer newAnswer = new Answer(answer.getId(), answer.getWriter(), answer.getQuestion(), "답변 수정");
-        Answer updatedAnswer = answer.update(loginUser, newAnswer);
-    }
-
-    @Test(expected = ObjectDeletedException.class)
-    public void 답변_수정_ObjectDeletedException() {
-        loginUser.setId(ID_ONE);
-
-        question.writeBy(loginUser);
-
-        answer.setId(ID_ONE);
-        question.addAnswer(answer);
-
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
-
-        answer.delete(writer);
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
 
         Answer newAnswer = new Answer(answer.getId(), answer.getWriter(), answer.getQuestion(), "답변 수정");
         Answer updatedAnswer = answer.update(loginUser, newAnswer);
@@ -260,8 +211,8 @@ public class QnaServiceTest extends BaseTest {
         answer.setId(ID_ONE);
         question.addAnswer(answer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
 
         answer.delete(writer);
 
@@ -277,23 +228,9 @@ public class QnaServiceTest extends BaseTest {
         Answer answer = new Answer(writer, "답변 내용");
         question.addAnswer(answer);
 
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
+        when(questionRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(question));
+        when(answerRepository.findByIdAndDeletedFalse(ID_ONE)).thenReturn(Optional.of(answer));
 
         answer.delete(loginUser);
-    }
-
-    @Test(expected = ObjectDeletedException.class)
-    public void 답변_삭제_ObjectDeletedException() {
-        question.writeBy(loginUser);
-
-        answer.setId(ID_ONE);
-        question.addAnswer(answer);
-
-        when(questionRepository.findById(ID_ONE)).thenReturn(Optional.of(question));
-        when(answerRepository.findById(ID_ONE)).thenReturn(Optional.of(answer));
-
-        answer.delete(writer);
-        answer.delete(writer);
     }
 }

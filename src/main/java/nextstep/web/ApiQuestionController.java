@@ -1,10 +1,12 @@
 package nextstep.web;
 
 import lombok.RequiredArgsConstructor;
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
+import nextstep.web.dto.QuestionRequestDTO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,7 @@ import java.util.List;
 @RequestMapping("/api/questions")
 @RequiredArgsConstructor
 public class ApiQuestionController {
+    private static final String REST_BASE_URL = "/api";
 
     private final QnaService qnaService;
 
@@ -34,7 +37,7 @@ public class ApiQuestionController {
         Question savedQuestion = qnaService.createQuestion(loginUser, question);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("/api" + savedQuestion.generateUrl()));
+        headers.setLocation(URI.create(REST_BASE_URL + savedQuestion.generateUrl()));
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
@@ -50,7 +53,8 @@ public class ApiQuestionController {
     }
 
     @PutMapping("/{id}")
-    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question updatedQuestion) {
+    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody QuestionRequestDTO updatedQuestionDto) {
+        Question updatedQuestion = Question.of(updatedQuestionDto);
         return qnaService.updateQuestion(loginUser, id, updatedQuestion);
     }
 
@@ -58,5 +62,14 @@ public class ApiQuestionController {
     public ResponseEntity<Void> delete(@LoginUser User loginUser, @PathVariable long id) {
         qnaService.deleteQuestion(loginUser, id);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/{questionId}/answers")
+    public ResponseEntity<Answer> addAnswer(@PathVariable long questionId, @RequestBody String contents, @LoginUser User loginUser) {
+        Answer createdAnswer = qnaService.createAnswer(loginUser, questionId, contents);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(REST_BASE_URL + createdAnswer.generateUrl()));
+        return new ResponseEntity<>(createdAnswer, headers, HttpStatus.CREATED);
     }
 }

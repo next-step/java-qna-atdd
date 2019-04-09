@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import nextstep.exception.ObjectDeletedException;
 import nextstep.exception.UnAuthorizedException;
 import support.domain.AbstractEntity;
@@ -20,6 +22,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
+    @JsonBackReference
     private Question question;
 
     @Size(min = 5)
@@ -77,7 +80,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void delete(User loginUser) {
+    public DeleteHistory delete(User loginUser) {
         if (isDeleted()) {
             throw new ObjectDeletedException();
         }
@@ -86,6 +89,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         }
 
         deleted = true;
+
+        return DeleteHistory.generateAnswerHistory(this.getId(), loginUser);
     }
 
     public boolean isOwner(User loginUser) {
