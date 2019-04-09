@@ -102,6 +102,9 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = update(basicAuthTemplate(), defaultQuestion());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+        softly.assertThat(defaultQuestion().getTitle()).isEqualTo("updateTitle");
+        softly.assertThat(defaultQuestion().getContents()).isEqualTo("updateContents");
+
         log.debug("body : {}", response.getBody());
     }
 
