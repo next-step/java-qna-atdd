@@ -79,7 +79,7 @@ public class QnaService {
         Answer answer = new Answer(loginUser, contents);
         question.addAnswer(answer);
 
-        return answerRepository.save(answer);
+        return answer;
     }
 
     @Transactional
