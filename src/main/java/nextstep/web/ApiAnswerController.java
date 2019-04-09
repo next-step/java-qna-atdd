@@ -29,7 +29,7 @@ public class ApiAnswerController {
 
     @PostMapping
     public ResponseEntity<Void> createAnswer(@LoginUser User loginUser, @PathVariable long questionId,
-                                             @Valid Answer answer) {
+                                             @RequestBody @Valid Answer answer) {
         Answer savedAnswer = qnaService.addAnswer(loginUser, questionId, answer.getContents());
 
         HttpHeaders headers = new HttpHeaders();
