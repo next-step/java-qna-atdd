@@ -2,6 +2,7 @@ package nextstep.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
+import nextstep.CannotDeleteException;
 import nextstep.UnAuthenticationException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
@@ -11,12 +12,13 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @ToString(exclude = {"answers"})
-public class Question extends AbstractEntity implements UrlGeneratable {
+public class Question extends AbstractEntity implements UrlGeneratable, DeleteHistoryGenerator {
     public static final int MIN_DATA_LENGTH = 3;
     public static final int MAX_TITLE_LENGTH = 100;
     @Size(min = 3, max = 100)
@@ -27,7 +29,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Lob
     private String contents;
 
-    // FIXED : (cascade={CascadeType.ALL}) 얘와 관련이 되어 보입니다?
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
@@ -87,12 +88,32 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void deleteQuestion() {
+    public void deleteQuestion() throws CannotDeleteException { //throws CannotDeleteException
+        if(answers.size() == 0) {
+            this.deleted = true;
+        }
+        checkAnswerByWriter();
         this.deleted = true;
+    }
+
+    private void checkAnswerByWriter() throws CannotDeleteException {
+        long notOwnerCount = answers.stream().filter(answer -> answer.isNotOwner(writer)).count();
+        if(notOwnerCount > 0) {
+            throw new CannotDeleteException("다른 사람의 답변까지 지울 수 없어요!");
+        }
     }
 
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
+    }
+
+    @Override
+    public DeleteHistory toDeleteHistory() {
+        return DeleteHistory.builder()
+                .contentType(ContentType.QUESTION)
+                .contentId(this.getId())
+                .deletedBy(writer)
+                .build();
     }
 }

@@ -79,7 +79,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
                 .addParameter("_method", "put")
                 .addParameter("password", "test")
-                .addParameter("name", "자바지기2")
+                .addParameter("name", "자바지기")
                 .addParameter("email", "javajigi@slipp.net").build();
 
         return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);

@@ -2,12 +2,15 @@ package nextstep.web.api;
 
 import lombok.extern.slf4j.Slf4j;
 import nextstep.domain.*;
+import nextstep.service.DeleteHistoryService;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
+import static nextstep.domain.Fixture.MOCK_USER;
+import static nextstep.domain.Fixture.OTHER_USER;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @Slf4j
@@ -18,6 +21,15 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @Autowired
     private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryService deleteHistoryService;
+
+    @After
+    public void tearDown() {
+        answerRepository.deleteAll();
+        questionRepository.deleteAll();
+    }
 
     @Test
     public void 질문_생성() {
@@ -67,17 +79,31 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문_삭제() {
+    public void 답변0개이고_작성자와_삭제요청자가_같을때_성공() {
         String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
         basicAuthTemplate().delete(location);
 
         Question result = basicAuthTemplate().getForObject(location, Question.class);
         softly.assertThat(result).isNotNull();
         softly.assertThat(result.isDeleted()).isTrue();
+
+        DeleteHistory deleteResult = deleteHistoryService.findByContentId(result.getId());
+
+        softly.assertThat(deleteResult.getContentType()).isEqualTo(ContentType.QUESTION);
+        softly.assertThat(deleteResult.getContentId()).isEqualTo(result.getId());
+        softly.assertThat(deleteResult.getDeletedBy()).isEqualTo(MOCK_USER);
     }
 
     @Test
-    public void 없는_질문_아이디_삭제_실패() {
+    public void 질문_삭제_실패_답변있음() {
+        String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
+        basicAuthTemplate(OTHER_USER).postForEntity(location + "/answers", "답변이애오 히히", String.class);
+        ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.DELETE, createHttpEntity(null), Void.class);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    public void 질문_삭제_실패_없는_질문_지우려고함() {
         ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange("/api/questions/7", HttpMethod.DELETE, createHttpEntity(null), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -134,18 +160,18 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         Answer result = basicAuthTemplate().getForObject(location, Answer.class);
         softly.assertThat(result).isNotNull();
         softly.assertThat(result.isDeleted()).isTrue();
+
+        DeleteHistory deleteResult = deleteHistoryService.findByContentId(result.getId());
+        
+        softly.assertThat(deleteResult.getContentType()).isEqualTo(ContentType.ANSWER);
+        softly.assertThat(deleteResult.getContentId()).isEqualTo(result.getId());
+        softly.assertThat(deleteResult.getDeletedBy()).isEqualTo(MOCK_USER);
     }
 
     @Test
     public void 없는_답변_삭제_실패() {
         String questionLocation = createResource("/api/questions", Fixture.MOCK_QUESTION);
         basicAuthTemplate().exchange(questionLocation + "/answers/9", HttpMethod.DELETE, createHttpEntity(null), Void.class);
-    }
-
-    @After
-    public void tearDown() {
-        answerRepository.deleteAll();
-        questionRepository.deleteAll();
     }
 
     private HttpEntity createHttpEntity(Object body) {

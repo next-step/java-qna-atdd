@@ -47,6 +47,7 @@ public class QnaService {
             throw new CannotDeleteException("This Question is Not Yours!");
         }
         question.deleteQuestion();
+        deleteHistoryService.save(question.toDeleteHistory());
     }
 
     public Iterable<Question> findAll() {
@@ -69,6 +70,7 @@ public class QnaService {
     public void deleteAnswer(User loginUser, long id) throws Exception {
         Answer answer = findByAnswerId(id).orElseThrow(EntityNotFoundException::new);
         answer.delete(loginUser);
+        deleteHistoryService.save(answer.toDeleteHistory());
     }
 
     @Transactional
