@@ -25,6 +25,12 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     @Autowired
     private DeleteHistoryService deleteHistoryService;
 
+    @After
+    public void tearDown() {
+        answerRepository.deleteAll();
+        questionRepository.deleteAll();
+    }
+
     @Test
     public void 질문_생성() {
         String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
@@ -73,7 +79,7 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문_삭제_성공_테스트_답변0개() {
+    public void 답변0개이고_작성자와_삭제요청자가_같을때_성공() {
         String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
         basicAuthTemplate().delete(location);
 
@@ -89,7 +95,7 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문_삭제_실패_테스트_답변있음() {
+    public void 질문_삭제_실패_답변있음() {
         String location = createResource("/api/questions", Fixture.MOCK_QUESTION);
         basicAuthTemplate(OTHER_USER).postForEntity(location + "/answers", "답변이애오 히히", String.class);
         ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(location, HttpMethod.DELETE, createHttpEntity(null), Void.class);
@@ -97,7 +103,7 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 없는_질문_아이디_삭제_실패() {
+    public void 질문_삭제_실패_없는_질문_지우려고함() {
         ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange("/api/questions/7", HttpMethod.DELETE, createHttpEntity(null), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
@@ -166,12 +172,6 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     public void 없는_답변_삭제_실패() {
         String questionLocation = createResource("/api/questions", Fixture.MOCK_QUESTION);
         basicAuthTemplate().exchange(questionLocation + "/answers/9", HttpMethod.DELETE, createHttpEntity(null), Void.class);
-    }
-
-    @After
-    public void tearDown() {
-        answerRepository.deleteAll();
-        questionRepository.deleteAll();
     }
 
     private HttpEntity createHttpEntity(Object body) {

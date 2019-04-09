@@ -97,8 +97,8 @@ public class Question extends AbstractEntity implements UrlGeneratable, DeleteHi
     }
 
     private void checkAnswerByWriter() throws CannotDeleteException {
-        Optional<Answer> filteredAnser = answers.stream().filter(answer -> answer.isNotOwner(writer)).findAny();
-        if(filteredAnser.isPresent()) {
+        long notOwnerCount = answers.stream().filter(answer -> answer.isNotOwner(writer)).count();
+        if(notOwnerCount > 0) {
             throw new CannotDeleteException("다른 사람의 답변까지 지울 수 없어요!");
         }
     }

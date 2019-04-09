@@ -47,6 +47,13 @@ public class QnaServiceTest extends BaseTest {
         sanjigiUser = userRepository.findByUserId("sanjigi").orElseThrow(EntityNotFoundException::new);
     }
 
+    @After
+    public void tearDown() {
+        initQuestion = null;
+        answerRepository.deleteAll();
+        questionRepository.deleteAll();
+    }
+
     @Test
     public void 질문_생성테스트() {
         Question result = qnaService.create(javajigiUser, MOCK_QUESTION);
@@ -157,12 +164,5 @@ public class QnaServiceTest extends BaseTest {
     @Test(expected = EntityNotFoundException.class)
     public void 답변_삭제_실패_테스트() throws Exception {
         qnaService.deleteAnswer(MOCK_USER, 0);
-    }
-
-    @After
-    public void tearDown() {
-        initQuestion = null;
-        answerRepository.deleteAll();
-        questionRepository.deleteAll();
     }
 }
