@@ -43,10 +43,6 @@ public abstract class AcceptanceTest extends BaseTest {
         return questionRepository.findById(1L).get();
     }
 
-    protected Answer defaultAnswer() {
-        return answerRepository.findById(1L).get();
-    }
-
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
     }
