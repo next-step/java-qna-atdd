@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -32,29 +33,31 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
+    private Optional<Question> findQuestionById(long id) {
         return questionRepository.findById(id);
+    }
+
+    public Question findById(long id) {
+        return findQuestionById(id)
+                .orElseThrow(NoSuchElementException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long questionId, Question updatedQuestion) {
-        Question originalQuestion = findById(questionId)
-                .orElseThrow(IllegalArgumentException::new);
-        originalQuestion.update(loginUser, updatedQuestion);
+        Question question = findById(questionId);
+        question.update(loginUser, updatedQuestion);
 
-        return originalQuestion;
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question targetQuestion = findById(questionId)
-                .orElseThrow(IllegalArgumentException::new);
-
+        Question targetQuestion = findById(questionId);
         targetQuestion.delete(loginUser);
     }
 
     public Question findByIdAndOwner(long id, User loginUser) {
-        return findById(id)
+        return findQuestionById(id)
                 .filter(question -> question.isOwner(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
     }
@@ -71,12 +74,16 @@ public class QnaService {
         return questionRepository.findAllByDeleted(false, pageable);
     }
 
+    public Answer findAnswerByIdAndQuestion(long answerId, long questionId) {
+        return answerRepository.findByIdAndQuestionId(answerId, questionId)
+                .orElseThrow(NoSuchElementException::new);
+    }
+
     @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        Question question = findById(questionId)
-                .orElseThrow(IllegalArgumentException::new);
-
         Answer answer = new Answer(loginUser, contents);
+
+        Question question = findById(questionId);
         question.addAnswer(answer);
 
         return answer;
@@ -94,10 +101,5 @@ public class QnaService {
         answer.update(loginUser, modifiedAnswer);
 
         return answer;
-    }
-
-    public Answer findAnswerByIdAndQuestion(long answerId, long questionId) {
-        return answerRepository.findByIdAndQuestionId(answerId, questionId)
-                .orElseThrow(IllegalArgumentException::new);
     }
 }

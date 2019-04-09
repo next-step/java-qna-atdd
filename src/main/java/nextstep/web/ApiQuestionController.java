@@ -24,8 +24,7 @@ public class ApiQuestionController {
 
     @GetMapping("/{id}")
     public Question getQuestion(@PathVariable long id) {
-        return qnaService.findById(id)
-                .orElseThrow(IllegalArgumentException::new);
+        return qnaService.findById(id);
     }
 
     @PostMapping

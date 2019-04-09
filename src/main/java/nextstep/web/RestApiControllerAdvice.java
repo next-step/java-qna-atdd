@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.NoSuchElementException;
+
 @RestControllerAdvice(annotations = RestController.class)
 public class RestApiControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(RestApiControllerAdvice.class);
@@ -16,5 +18,11 @@ public class RestApiControllerAdvice {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public void illegalArgumentException(IllegalArgumentException e) {
         log.debug("JSON API IllegalArgumentException is happened!");
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    public void noSuchElementException(NoSuchElementException e) {
+        log.debug("JSON API NoSuchElementException is happened!");
     }
 }
