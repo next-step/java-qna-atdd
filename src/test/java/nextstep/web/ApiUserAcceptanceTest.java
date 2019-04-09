@@ -13,7 +13,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
 
     @Test
-    public void create() throws Exception {
+    public void create() {
         User newUser = newUser("testuser1");
         ResponseEntity<Void> response = template().postForEntity("/api/users", newUser, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);

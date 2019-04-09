@@ -1,9 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
@@ -24,6 +21,12 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     @Before
     public void setUp() {
         Question newQuestion = new Question("question title", "question contents");
@@ -36,8 +39,8 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @After
     public void tearDown() {
-        /*basicAuthTemplate().exchange(
-                createLocation, HttpMethod.DELETE, createHttpEntity(newQuestion), Void.class);*/
+        deleteHistoryRepository.deleteAll();
+        answerRepository.deleteAll();
         questionRepository.deleteAll();
     }
 

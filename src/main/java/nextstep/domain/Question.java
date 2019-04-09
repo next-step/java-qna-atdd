@@ -6,6 +6,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     private List<Answer> answers = new ArrayList<>();
 
     private boolean deleted = false;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
+    private List<DeleteHistory> deleteHistories = new ArrayList<>();
 
     public Question() {
     }
@@ -81,9 +85,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return answers;
     }
 
+    public List<DeleteHistory> getDeleteHistories() {
+        return deleteHistories;
+    }
+
     public void update(Question question, Question target) {
         this.title = target.title;
         this.contents = target.contents;
+    }
+
+    public void delete(User loginUser) {
+        answers.stream().forEach(a -> a.delete(loginUser));
+        this.deleted = true;
+
+        LocalDateTime createDate = LocalDateTime.now();
+        this.deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, createDate));
+
     }
 
     @Override

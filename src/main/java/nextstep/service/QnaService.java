@@ -54,18 +54,23 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public QuestionDTO update(User loginUser, long id, Question updatedQuestion) {
         checkQuestionOwner(id, loginUser);
         Question origin = findById(id);
         origin.update(origin, updatedQuestion);
-        return origin;
+        return new QuestionDTO(origin,
+                new UserDTO(origin.getWriter()),
+                origin.getAnswers().stream()
+                        .map(AnswerDTO::new)
+                        .collect(Collectors.toList()),
+                origin.isDeleted());
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) {
         checkQuestionOwner(questionId, loginUser);
         Question question = findById(questionId);
-        questionRepository.delete(question);
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -90,7 +95,8 @@ public class QnaService {
     public AnswerDTO deleteAnswer(User loginUser, long id) {
         checkAnswerOwner(id, loginUser);
         Answer answer = findAnswerById(id);
-        answerRepository.delete(answer);
+        answer.delete(loginUser);
+//        answerRepository.delete(answer);
         return new AnswerDTO(answer);
     }
 

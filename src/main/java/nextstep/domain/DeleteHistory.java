@@ -20,6 +20,14 @@ public class DeleteHistory {
 
     private LocalDateTime createDate = LocalDateTime.now();
 
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_question"))
+    private Question question;
+
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_answer"))
+    private Answer answer;
+
     public DeleteHistory() {
     }
 

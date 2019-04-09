@@ -35,7 +35,7 @@ public class ApiQnaController {
     }
 
     @PutMapping("{id}")
-    public Question questionUpdate(@PathVariable("id") long id, @Valid @RequestBody Question question, @LoginUser User loginUser) {
+    public QuestionDTO questionUpdate(@PathVariable("id") long id, @Valid @RequestBody Question question, @LoginUser User loginUser) {
         return qnaService.update(loginUser, id, question);
     }
 

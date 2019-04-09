@@ -1,9 +1,8 @@
 package nextstep.service;
 
 import nextstep.UnAuthenticationException;
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.User;
+import nextstep.UnAuthorizedException;
+import nextstep.domain.*;
 import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
@@ -28,8 +27,19 @@ public class QnaServiceTest extends BaseTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     private long testQuestionId;
     private long testAnswerId;
+    private long noAnswerQuestionId;
+    private long anotherUserAnswerId;
 
     @Before
     public void setUp() throws Exception {
@@ -42,13 +52,18 @@ public class QnaServiceTest extends BaseTest {
         user = userService.login(user.getUserId(), user.getPassword());
         AnswerDTO answer = qnaService.addAnswer(user, testQuestionId, "answer test");
         testAnswerId = answer.getId();
+
+        Question noAnswerQuestion = new Question("질문하기", "테스트");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Question noAnswer = qnaService.create(user, noAnswerQuestion);
+        noAnswerQuestionId = noAnswer.getId();
     }
 
     @After
-    public void tearDown() throws Exception {
-        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
-        user = userService.login(user.getUserId(), user.getPassword());
-        qnaService.deleteQuestion(user, testQuestionId);
+    public void tearDown() {
+        deleteHistoryRepository.deleteAll();
+        answerRepository.deleteAll();
+        questionRepository.deleteAll();
     }
 
     /*@Test
@@ -66,7 +81,7 @@ public class QnaServiceTest extends BaseTest {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         question.writeBy(user);
-        Question result = qnaService.update(user, testQuestionId, question);
+        QuestionDTO result = qnaService.update(user, testQuestionId, question);
         softly.assertThat(result.getContents()).isEqualTo(question.getContents());
     }
 
@@ -85,8 +100,8 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void findQuestionWithAnswer() {
-        QuestionDTO questionDTO = qnaService.findQuestionAndAnswerById(1);
-        softly.assertThat(questionDTO.getAnswerSize()).isEqualTo(2);
+        QuestionDTO questionDTO = qnaService.findQuestionAndAnswerById(testQuestionId);
+        softly.assertThat(questionDTO.getAnswerSize()).isEqualTo(1);
     }
 
     @Test
@@ -95,13 +110,34 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(result.getWriter().getUserId()).isEqualTo("sanjigi");
     }
 
-    /*@Test
-    public void deleteQuestion() throws UnAuthenticationException {
+    @Test
+    public void deleteQuestion() throws Exception {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         Question question = qnaService.findById(testQuestionId);
         qnaService.deleteQuestion(user, question.getId());
-    }*/
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void deleteQuestion_no_answer_owner() throws UnAuthenticationException {
+        User user = new User("javajigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        AnswerDTO answer = qnaService.addAnswer(user, testQuestionId, "answer test");
+        anotherUserAnswerId = answer.getId();
+
+        user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Question question = qnaService.findById(testQuestionId);
+        qnaService.deleteQuestion(user, question.getId());
+    }
+
+    @Test
+    public void deleteNoAnswerQuestion() throws UnAuthenticationException {
+        User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
+        user = userService.login(user.getUserId(), user.getPassword());
+        Question question = qnaService.findById(noAnswerQuestionId);
+        qnaService.deleteQuestion(user, question.getId());
+    }
 
     @Test
     public void addAnswer() throws UnAuthenticationException {

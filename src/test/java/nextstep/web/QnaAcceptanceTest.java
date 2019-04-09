@@ -1,9 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +21,12 @@ public class QnaAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     private String createLocation;
     private long questionId;
     private long answerId;
@@ -41,7 +44,9 @@ public class QnaAcceptanceTest extends AcceptanceTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
+        deleteHistoryRepository.deleteAll();
+        answerRepository.deleteAll();
         questionRepository.deleteAll();
     }
 
