@@ -1,32 +1,25 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
-    private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
-
-    @Autowired
-    private QuestionRepository questionRepository;
 
     @Test
     public void question_read_no_login() {
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
-        ResponseEntity<Question> response = getQuestionResourceWithoutLogin(question.generateRestUrl());
+        ResponseEntity<Question> response = getQuestionResource(question.generateRestUrl());
 
         // then
-        Question dbQuestion = response.getBody();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        Question dbQuestion = response.getBody();
         softly.assertThat(dbQuestion).isEqualTo(question);
     }
 
@@ -53,21 +46,21 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         Question question = new Question(title, contents);
 
         // when
-        ResponseEntity<Question> response = createQuestionResource(loginUser, question);
+        ResponseEntity<String> response = createQuestionResource(loginUser, question);
 
         // then
-        String location = response.getHeaders().getLocation().getPath();
-        Question dbQuestion = getQuestionResourceWithoutLogin(location).getBody();
-
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.CREATED);
+
+        Question dbQuestion = getQuestionResource(response.getHeaders().getLocation().getPath()).getBody();
         softly.assertThat(dbQuestion.getTitle()).isEqualTo(title);
         softly.assertThat(dbQuestion.getContents()).isEqualTo(contents);
+        softly.assertThat(dbQuestion.isOwner(loginUser));
     }
 
     @Test
     public void question_update_no_login() {
         // given
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         String updatedTitle = "Hello";
@@ -78,19 +71,18 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Question> response = updateResourceWithoutLogin(question.generateRestUrl(), question, Question.class);
 
         // then
-        Question dbQuestion = questionRepository.findById(question.getId()).get();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
+
+        Question dbQuestion = getQuestionResource(question.generateRestUrl()).getBody();
         softly.assertThat(dbQuestion.getTitle()).isNotEqualTo(updatedTitle);
         softly.assertThat(dbQuestion.getContents()).isNotEqualTo(updatedContents);
-
-        log.debug("response body : {}", response.getBody());
     }
 
     @Test
     public void question_update_login() {
         // given
         User loginUser = defaultUser();
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         String updatedTitle = "Hello";
@@ -98,61 +90,64 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         question.setTitle(updatedTitle);
         question.setContents(updatedContents);
 
-        ResponseEntity<Question> response = updateQuestionResource(loginUser, String.format("/api/questions/%d", question.getId()), question);
+        ResponseEntity<Question> response = updateQuestionResource(loginUser, question.generateRestUrl(), question);
 
         // then
-        Question dbQuestion = questionRepository.findById(question.getId()).get();
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+
+        Question dbQuestion = getQuestionResource(question.generateRestUrl()).getBody();
         softly.assertThat(dbQuestion.getTitle()).isEqualTo(updatedTitle);
         softly.assertThat(dbQuestion.getContents()).isEqualTo(updatedContents);
-
-        log.debug("response body : {}", response.getBody());
     }
 
     @Test
     public void question_delete_no_login() {
         // given
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         ResponseEntity<String> response = deleteResourceWithoutLogin(question.generateRestUrl(), String.class);
 
         // then
-        Question dbQuestion = getQuestionResourceWithoutLogin(question.generateRestUrl()).getBody();
-
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.UNAUTHORIZED);
-        softly.assertThat(dbQuestion.isDeleted()).isFalse();
 
-        log.debug("response body : {}", response.getBody());
+        Question dbQuestion = getQuestionResource(question.generateRestUrl()).getBody();
+        softly.assertThat(dbQuestion.isDeleted()).isFalse();
     }
 
     @Test
     public void question_delete_login() {
         // given
         User loginUser = defaultUser();
-        Question question = defaultQuestion();
+        Question question = questionOfDefaultUser();
 
         // when
         ResponseEntity<String> response = deleteQuestionResource(loginUser, question);
 
         // then
-        Question dbQuestion = getQuestionResourceWithoutLogin(question.generateRestUrl()).getBody();
-
         softly.assertThat(response.getStatusCode()).isEqualByComparingTo(HttpStatus.NO_CONTENT);
+
+        Question dbQuestion = getQuestionResource(question.generateRestUrl()).getBody();
         softly.assertThat(dbQuestion.isDeleted()).isTrue();
-
-        log.debug("response body : {}", response.getBody());
-
-        // tearDown
-        restoreDeletedQuestion(dbQuestion);
     }
 
-    private ResponseEntity<Question> getQuestionResourceWithoutLogin(String location) {
+    private Question questionOfDefaultUser() {
+        User loginUser = defaultUser();
+        Question question = new Question("Java", "SpringBoot");
+        question.writeBy(loginUser);
+
+        String createdQuestionResourceLocation =
+                createQuestionResource(loginUser, question).getHeaders().getLocation().getPath();
+
+        return getQuestionResource(createdQuestionResourceLocation).getBody();
+    }
+
+    private ResponseEntity<Question> getQuestionResource(String location) {
         return getResourceWithoutLogin(location, Question.class);
     }
 
-    private ResponseEntity<Question> createQuestionResource(User loginUser, Question question) {
-        return createResource(loginUser, "/api/questions", question, Question.class);
+    private ResponseEntity<String> createQuestionResource(User loginUser, Question question) {
+        return createResource(loginUser, "/api/questions", question, String.class);
     }
 
     private ResponseEntity<Question> updateQuestionResource(User loginUser, String location, Question updatedQuestion) {
@@ -161,12 +156,5 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     private ResponseEntity<String> deleteQuestionResource(User loginUser, Question question) {
         return deleteResource(loginUser, String.format("/api/questions/%d", question.getId()), String.class);
-    }
-
-    private void restoreDeletedQuestion(Question deletedQuestion) {
-        Question question = new Question(deletedQuestion.getId(), deletedQuestion.getTitle(),
-                deletedQuestion.getContents(), deletedQuestion.getWriter(), false);
-
-        questionRepository.save(question);
     }
 }
