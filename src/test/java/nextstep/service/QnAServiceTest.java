@@ -1,10 +1,8 @@
 package nextstep.service;
 
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
-import nextstep.web.exception.ForbiddenException;
-import nextstep.web.exception.NotFoundException;
+import nextstep.NotFoundException;
+import nextstep.domain.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -12,93 +10,112 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class QnAServiceTest extends BaseTest {
     @Mock
     private QuestionRepository questionRepository;
+    @Mock
+    private AnswerRepository answerRepository;
 
     @InjectMocks
-    private QnAService qnAService;
+    private QnAService qnaService;
 
-    @Test
-    public void 질문_목록을_조회한다() {
-        when(questionRepository.findAll()).thenReturn(Arrays.asList(
-            new Question("This is title1", "This is contents1"),
-            new Question("This is title2", "This is contents2"),
-            new Question("This is title3", "This is contents3")));
+    private User writer = UserTest.newUser(1L);
+    private List<Question> questions = new ArrayList<>();
+    private Question question = QuestionTest.newQuestion(1L);
+    private List<Answer> answers = new ArrayList<>();
+    private Answer answer = AnswerTest.newAnswer(1L);
 
-        List<Question> list = qnAService.findAll();
-        softly.assertThat(list).hasSize(3);
-    }
+    @Before
+    public void setUp() {
+        // question
+        when(questionRepository.save(any(Question.class))).thenReturn(question);
+        when(questionRepository.findByDeletedFalse()).thenReturn(questions);
+        when(questionRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(question));
 
-    @Test
-    public void 질문을_상세조회한다() {
-        when(questionRepository.findById(1L)).thenReturn(
-            Optional.of(new Question("This is title", "This is contents")));
-
-        Question question = qnAService.findById(1L);
-        softly.assertThat(question.getTitle()).isEqualTo("This is title");
-    }
-
-    @Test(expected = ForbiddenException.class)
-    public void 작성자가_아니면_질문을_조회할수없다() {
-        User user = new User("myId", "myPassword", "myName", "myEmail");
-        Question question = new Question("This is title", "This is contents");
-        question.writeBy(user);
-
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        qnAService.findByOwner(mock(User.class), 1);
-    }
-
-    @Test(expected = NotFoundException.class)
-    public void 없는_질문이면_예외가_발생한다() {
-        qnAService.findById(1L);
+        // answer
+        when(answerRepository.save(any(Answer.class))).thenReturn(answer);
+        when(answerRepository.findByQuestionAndDeletedFalse(question)).thenReturn(answers);
+        when(answerRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(answer));
     }
 
     @Test
     public void 질문을_등록한다() {
-        User user = new User("myId", "myPassword", "myName", "myEmail");
-        Question question = new Question("This is title", "This is contents");
+        QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
+        Question returned = qnaService.createQuestion(writer, questionBody);
 
-        qnAService.create(user, question);
+        softly.assertThat(returned).isEqualTo(question);
+    }
 
-        softly.assertThat(question.getWriter()).isEqualTo(user);
-        softly.assertThat(question.getTitle()).isEqualTo("This is title");
-        softly.assertThat(question.getContents()).isEqualTo("This is contents");
+    @Test
+    public void 질문_목록을_조회한다() {
+        List<Question> returned = qnaService.findQuestions();
+
+        softly.assertThat(returned).isEqualTo(questions);
+    }
+
+    @Test
+    public void 질문을_상세조회한다() {
+        Question returned = qnaService.findQuestionById(1L);
+
+        softly.assertThat(returned).isEqualTo(question);
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void 없는_질문이면_예외가_발생한다() {
+        qnaService.findQuestionById(100L);
     }
 
     @Test
     public void 질문을_수정한다() {
-        User user = new User("myId", "myPassword", "myName", "myEmail");
-        Question question = new Question("This is title", "This is contents");
-        question.writeBy(user);
+        QuestionBody newQuestionBody = new QuestionBody("This is updated title", "This is updated contents");
+        Question returned = qnaService.updateQuestion(1L, writer, newQuestionBody);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
-
-        Question beUpdatedQuestion = new Question("This is updated title", "This is updated contents");
-        question = qnAService.update(user, 1L, beUpdatedQuestion);
-
-        softly.assertThat(question.getWriter()).isEqualTo(user);
-        softly.assertThat(question.getTitle()).isEqualTo("This is updated title");
-        softly.assertThat(question.getContents()).isEqualTo("This is updated contents");
+        softly.assertThat(returned.getQuestionBody()).isEqualTo(newQuestionBody);
     }
 
     @Test
     public void 질문을_삭제한다() {
-        User user = new User("myId", "myPassword", "myName", "myEmail");
-        Question question = new Question("This is title", "This is contents");
-        question.writeBy(user);
+        qnaService.deleteQuestion(1L, writer);
 
-        when(questionRepository.findById(1L)).thenReturn(Optional.of(question));
+        softly.assertThat(question.isDeleted()).isTrue();
+    }
 
-        qnAService.deleteQuestion(user, 1L);
+    @Test
+    public void 답변을_등록한다() {
+        User user = UserTest.newUser(2L);
+        String contents = "This is fixtureAnswer";
+        Answer returned = qnaService.addAnswer(user, 1L, contents);
+
+        softly.assertThat(returned).isEqualTo(answer);
+    }
+
+    @Test
+    public void 답변목록을_조회한다() {
+        List<Answer> returned = qnaService.findAnswers(1L);
+
+        softly.assertThat(returned).isEqualTo(answers);
+    }
+
+    @Test
+    public void 답변을_조회한다() {
+        Answer returned = qnaService.findAnswer(1L);
+
+        softly.assertThat(returned).isEqualTo(answer);
+    }
+
+    @Test
+    public void 답변을_삭제한다() {
+        qnaService.deleteAnswer(writer, 1L);
+
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 }

@@ -1,31 +1,23 @@
 package nextstep.domain;
 
-import nextstep.web.exception.ForbiddenException;
-import org.hibernate.annotations.SQLDelete;
+import nextstep.UnAuthorizedException;
+import nextstep.ForbiddenException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@SQLDelete(sql = "UPDATE Question SET deleted = true WHERE id = ?")
-@Where(clause = "deleted = false")
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @Size(min = 3, max = 100)
-    @Column(length = 100, nullable = false)
-    private String title;
-
-    @Size(min = 3)
-    @Lob
-    private String contents;
-
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
+
+    @Embedded
+    private QuestionBody questionBody;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     @Where(clause = "deleted = false")
@@ -37,55 +29,46 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question() {
     }
 
-    public Question(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
+    public Question(User writer, QuestionBody questionBody) {
+        this(null, writer, questionBody);
     }
 
-    public void update(User user, Question updatedQuestion) {
-        if(!isOwner(user)) {
+    public Question(Long id, User writer, QuestionBody questionBody) {
+        super(id);
+
+        if(writer == null) {
+            throw new UnAuthorizedException();
+        }
+        this.writer = writer;
+        this.questionBody = questionBody;
+    }
+
+    public void update(User writer, QuestionBody newQuestionBody) {
+        if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
-        title = updatedQuestion.getTitle();
-        contents = updatedQuestion.getContents();
+        questionBody = newQuestionBody;
     }
 
-    public void delete(User user) {
-        if(!isOwner(user)) {
+    public void delete(User writer) {
+        if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
         deleted = true;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setContents(String contents) {
-        this.contents = contents;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getContents() {
-        return contents;
-    }
-
     public User getWriter() {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
-        this.writer = loginUser;
+    public QuestionBody getQuestionBody() {
+        return questionBody;
     }
 
-    public void addAnswer(Answer answer) {
-        answer.toQuestion(this);
-        answers.add(answer);
+    public List<Answer> getAnswers() {
+        return answers;
     }
 
     public boolean isOwner(User loginUser) {
@@ -102,7 +85,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     @Override
-    public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+    public boolean equals(Object obj) {
+        return super.equals(obj);
     }
 }

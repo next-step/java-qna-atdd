@@ -4,7 +4,9 @@ import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import support.RestApiTestCaller;
 import support.test.AcceptanceTest;
 
 import static nextstep.domain.UserTest.newUser;
@@ -86,9 +88,9 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
-    private HttpEntity createHttpEntity(Object body) {
+    private <P> HttpEntity createHttpEntity(P body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return new HttpEntity(body, headers);
+        return new HttpEntity<>(body, headers);
     }
 }
