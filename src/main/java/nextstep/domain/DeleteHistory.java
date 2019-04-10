@@ -36,10 +36,10 @@ public class DeleteHistory {
         this.createDate = createDate;
     }
 
-    boolean isContentTypeAndContentIdAndDeletedByEqualTo(DeleteHistory target) {
+    public boolean equalsContentTypeAndContentIdAndDeletedBy(DeleteHistory target) {
         return (this.contentType == target.contentType) &&
                 (this.contentId == target.contentId) &&
-                (this.deletedBy == target.deletedBy);
+                (this.deletedBy.equalsNameAndEmail(target.deletedBy));
     }
 
     @Override
