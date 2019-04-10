@@ -113,8 +113,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("There's other user's question.");
         }
 
-        deleteAnswers();
-        deleteQuestion();
+       return deleteAnswersAndQuestion();
     }
 
     public String generateRestUrl() {
