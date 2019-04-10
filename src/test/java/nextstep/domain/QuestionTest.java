@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 public class QuestionTest extends BaseTest {
     public static final Question JAVA_QUESTION = new Question(1L, "자바 제목", "자바 내용", UserTest.JAVAJIGI, false);
-    public static final Question SAN_QUESTION = new Question(2L, "산 제목", "산 내용", UserTest.SANJIGI, true);
+    public static final Question DELETED_QUESTION = new Question(2L, "삭제된 질문", "삭제됨", UserTest.JAVAJIGI, true);
 
     @Test
     public void 업데이트_작성자() {
