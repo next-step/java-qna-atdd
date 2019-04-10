@@ -36,6 +36,12 @@ public class DeleteHistory {
         this.createDate = createDate;
     }
 
+    boolean isContentTypeAndContentIdAndDeletedByEqualTo(DeleteHistory target) {
+        return (this.contentType == target.contentType) &&
+                (this.contentId == target.contentId) &&
+                (this.deletedBy == target.deletedBy);
+    }
+
     @Override
     public String toString() {
         return "DeleteHistory [id=" + id + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="

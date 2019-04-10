@@ -5,8 +5,7 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.*;
 
 public class AnswerTest extends BaseTest {
 
@@ -108,6 +107,20 @@ public class AnswerTest extends BaseTest {
         // when
         // then
         assertThatExceptionOfType(CannotDeleteException.class).isThrownBy(() -> deletedAnswer.delete(loginUser));
+    }
+
+    @Test
+    public void 삭제_후_DeleteHistory_확인() throws CannotDeleteException {
+        // given
+        User loginUser = UserTest.JAVAJIGI;
+        Answer answer = notDeletedAnswer();
+
+        // when
+        DeleteHistory deleteHistory = answer.delete(loginUser);
+
+        // then
+        DeleteHistory shouldBeSame = new DeleteHistory(ContentType.ANSWER, answer.getId(), loginUser);
+        softly.assertThat(deleteHistory.isContentTypeAndContentIdAndDeletedByEqualTo(shouldBeSame)).isTrue();
     }
 
     private Answer notDeletedAnswer() {

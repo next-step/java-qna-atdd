@@ -93,7 +93,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedAnswer.contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("The owner doesn't match");
         }
@@ -106,7 +106,8 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("This answer has already deleted");
         }
 
-        this.deleted = true;
+        deleteAnswer();
+        return getDeleteHistory();
     }
 
     @Override
@@ -117,6 +118,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
+    }
+
+    private void deleteAnswer() {
+        this.deleted = true;
+    }
+
+    private DeleteHistory getDeleteHistory() {
+        return new DeleteHistory(ContentType.ANSWER, getId(), this.writer);
     }
 }
 

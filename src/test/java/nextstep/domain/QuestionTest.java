@@ -3,12 +3,17 @@ package nextstep.domain;
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import support.test.BaseTest;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 public class QuestionTest extends BaseTest {
+    private static final Logger log = LoggerFactory.getLogger(QuestionTest.class);
     public static final Question JAVA_QUESTION = new Question(1L, "자바 제목", "자바 내용", UserTest.JAVAJIGI, false);
     public static final Question DELETED_QUESTION = new Question(2L, "삭제된 질문", "삭제됨", UserTest.JAVAJIGI, true);
 
@@ -127,6 +132,23 @@ public class QuestionTest extends BaseTest {
         // then
         softly.assertThat(questionWithDeletedOtherUserAnswer.isDeleted()).isTrue();
         softly.assertThat(questionWithDeletedOtherUserAnswer.getUsedAnswers()).isEmpty();
+    }
+
+    @Test
+    public void 삭제_후_DeleteHistory_확인() throws CannotDeleteException {
+        // given
+        User loginUser = UserTest.JAVAJIGI;
+        Question question = questionWithDeletedOtherUserAnswer();
+
+        int numberOfQuestionAndAnswers = 1 + question.getUsedAnswers().size(); // 질문 + 답변
+
+        // when
+        List<DeleteHistory> deleteHistories = question.delete(loginUser);
+
+        // then
+        softly.assertThat(deleteHistories).hasSize(numberOfQuestionAndAnswers);
+
+        deleteHistories.forEach(deleteHistory -> log.debug("{}", deleteHistory));
     }
 
     private Question noAnswerQuestion() {

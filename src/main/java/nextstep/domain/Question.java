@@ -97,11 +97,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new IllegalStateException("It's deleted question");
         }
 
-        this.title = updatedQuestion.title;
-        this.contents = updatedQuestion.contents;
+        updateQuestion(updatedQuestion);
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("The owner doesn't match");
         }
@@ -118,12 +117,18 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         deleteQuestion();
     }
 
-    private boolean hasUsedAnswerOfOtherUser() {
-        long countOfAnswersOfOtherUser = getUsedAnswers().stream()
-                .filter(answer -> !answer.isOwner(this.writer))
-                .count();
+    public String generateRestUrl() {
+        return String.format("/api/questions/%d", getId());
+    }
 
-        return 0 < countOfAnswersOfOtherUser;
+    @Override
+    public String generateUrl() {
+        return String.format("/questions/%d", getId());
+    }
+
+    @Override
+    public String toString() {
+        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 
     List<Answer> getUsedAnswers() {
@@ -132,29 +137,44 @@ public class Question extends AbstractEntity implements UrlGeneratable {
                 .collect(Collectors.toList());
     }
 
-    private void deleteQuestion() {
-        this.deleted = true;
+    private void updateQuestion(Question updatedQuestion) {
+        this.title = updatedQuestion.title;
+        this.contents = updatedQuestion.contents;
     }
 
-    private void deleteAnswers() throws CannotDeleteException {
+    private boolean hasUsedAnswerOfOtherUser() {
+        long countOfAnswersOfOtherUser = getUsedAnswers().stream()
+                .filter(answer -> !answer.isOwner(this.writer))
+                .count();
+
+        return 0 < countOfAnswersOfOtherUser;
+    }
+
+    private List<DeleteHistory> deleteAnswersAndQuestion() throws CannotDeleteException {
+        List<DeleteHistory> deleteHistories = deleteAnswers();
+
+        DeleteHistory questionDeleteHistory = deleteQuestion();
+        deleteHistories.add(questionDeleteHistory);
+
+        return deleteHistories;
+    }
+
+    private List<DeleteHistory> deleteAnswers() throws CannotDeleteException {
         List<Answer> usedAnswers = getUsedAnswers();
+        List<DeleteHistory> answerDeleteHistories = new ArrayList(usedAnswers.size());
 
         for (Answer answer : usedAnswers) {
-            answer.delete(this.writer);
+            DeleteHistory answerDeleteHistory = answer.delete(this.writer);
+            answerDeleteHistories.add(answerDeleteHistory);
         }
+
+        return answerDeleteHistories;
     }
 
-    @Override
-    public String generateUrl() {
-        return String.format("/questions/%d", getId());
+    private DeleteHistory deleteQuestion() {
+        this.deleted = true;
+
+        return new DeleteHistory(ContentType.QUESTION, getId(), this.writer);
     }
 
-    public String generateRestUrl() {
-        return String.format("/api/questions/%d", getId());
-    }
-
-    @Override
-    public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
-    }
 }
