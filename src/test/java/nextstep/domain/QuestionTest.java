@@ -2,6 +2,7 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
+import nextstep.dto.QuestionDto;
 import org.junit.*;
 import support.test.BaseTest;
 
@@ -34,17 +35,17 @@ public class QuestionTest extends BaseTest {
 
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
-        selfQuestion.update(another, anotherQuestion);
+        selfQuestion.update(another, new QuestionDto());
     }
 
     @Test
     public void update_self() throws Exception {
-        Question updateQuestion = newQuestion("updateTitle", "updateContents");
+        QuestionDto updateQuestionDto = new QuestionDto("updateTitle", "updateContents");
 
-        selfQuestion.update(self, updateQuestion);
+        selfQuestion.update(self, updateQuestionDto);
 
-        softly.assertThat(selfQuestion.getTitle()).isEqualTo(updateQuestion.getTitle());
-        softly.assertThat(selfQuestion.getContents()).isEqualTo(updateQuestion.getContents());
+        softly.assertThat(selfQuestion.getTitle()).isEqualTo(updateQuestionDto.getTitle());
+        softly.assertThat(selfQuestion.getContents()).isEqualTo(updateQuestionDto.getContents());
         softly.assertThat(selfQuestion.getWriter()).isEqualTo(self);
     }
 
@@ -57,5 +58,14 @@ public class QuestionTest extends BaseTest {
     public void delete_self() throws Exception {
         selfQuestion.delete(self);
         softly.assertThat(selfQuestion.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void add_answer() {
+        Answer answer = new Answer(self, "answer");
+        selfQuestion.addAnswer(answer);
+
+        softly.assertThat(selfQuestion.getAnswers())
+                .contains(answer);
     }
 }

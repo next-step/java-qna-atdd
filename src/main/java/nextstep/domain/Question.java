@@ -2,6 +2,7 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
+import nextstep.dto.QuestionDto;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
@@ -42,13 +43,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public void update(User writer, Question updatedQuestion) throws CannotUpdateException {
+    public void update(User writer, QuestionDto updatedQuestionDto) throws CannotUpdateException {
         if (!isOwner(writer)) {
             throw new CannotUpdateException(MSG_NOT_OWNER);
         }
 
-        this.title = updatedQuestion.title;
-        this.contents = updatedQuestion.contents;
+        this.title = updatedQuestionDto.getTitle();
+        this.contents = updatedQuestionDto.getContents();
     }
 
     public void delete(User writer) throws CannotDeleteException {
@@ -110,5 +111,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + ", deleted=" + deleted +"]";
+    }
+
+    public List<Answer> getAnswers() {
+        return answers;
     }
 }

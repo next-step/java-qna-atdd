@@ -4,6 +4,7 @@ import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.dto.QuestionDto;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.slf4j.Logger;
@@ -25,25 +26,24 @@ public class ApiQuestionController {
     private QnaService qnaService;
 
     @PostMapping("")
-    public ResponseEntity<Question> create(@LoginUser User loginUser, @Valid @RequestBody  Question question) throws Exception {
+    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody  Question question) throws Exception {
         Question savedQuestion = qnaService.create(loginUser, question);
-        URI location = URI.create("/api/questions/" + savedQuestion.getId());
-        return ResponseEntity.created(location).body(savedQuestion);
+        return ResponseEntity.created(URI.create("/api/" + savedQuestion.generateUrl())).build();
     }
 
     @GetMapping("")
     public ResponseEntity<List<Question>> showAll() {
-        return ResponseEntity.ok(qnaService.findAll());
+        return ResponseEntity.ok(qnaService.findQuestions());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Question> showOne(@PathVariable long id) {
-        return ResponseEntity.of(qnaService.findById(id));
+        return ResponseEntity.ok(qnaService.findQuestion(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Question> update(@LoginUser User loginUser, @PathVariable long id, @RequestBody Question updatedQuestion) throws CannotUpdateException {
-        Question updated = qnaService.update(loginUser, id, updatedQuestion);
+    public ResponseEntity<Question> update(@LoginUser User loginUser, @PathVariable long id, @RequestBody QuestionDto updatedQuestionDto) throws CannotUpdateException {
+        Question updated = qnaService.updateQuestion(loginUser, id, updatedQuestionDto);
         return ResponseEntity.ok(updated);
     }
 

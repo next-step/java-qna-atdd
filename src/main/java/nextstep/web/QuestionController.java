@@ -4,18 +4,15 @@ import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
 import nextstep.domain.Question;
 import nextstep.domain.User;
+import nextstep.dto.QuestionDto;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 @RequestMapping("/questions")
@@ -28,7 +25,7 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String show(@PathVariable long id, Model model) {
-        Question question = qnaService.findById(id).get();
+        Question question = qnaService.findQuestion(id);
         model.addAttribute("question", question);
         return "/qna/show";
     }
@@ -46,14 +43,14 @@ public class QuestionController {
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        Question question = qnaService.findById(id).get();
+        Question question = qnaService.findQuestion(id);
         model.addAttribute("question", question);
         return "/qna/updateForm";
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question target) throws CannotUpdateException {
-        qnaService.update(loginUser, id, target);
+    public String update(@LoginUser User loginUser, @PathVariable long id, QuestionDto updateQuestionDto) throws CannotUpdateException {
+        qnaService.updateQuestion(loginUser, id, updateQuestionDto);
         return "redirect:/";
     }
 

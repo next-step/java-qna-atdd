@@ -1,7 +1,7 @@
 package support.test;
 
-import nextstep.domain.User;
-import nextstep.domain.UserRepository;
+import nextstep.domain.*;
+import nextstep.service.QnaService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,13 +12,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
-    private static final String DEFAULT_LOGIN_USER = "javajigi";
 
     @Autowired
     private TestRestTemplate template;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     public TestRestTemplate template() {
         return template;
@@ -38,5 +43,21 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
+    }
+
+    protected Question selfQuestion() {
+        return questionRepository.findById(DEFAULT_QUESTION_ID).get();
+    }
+
+    protected Question anotherQuestion() {
+        return questionRepository.findById(ANOTHER_QUESTION_ID).get();
+    }
+
+    protected Answer selfAnswer() {
+        return answerRepository.findById(DEFAULT_ANSWER_ID).get();
+    }
+
+    protected Answer anotherAnswer() {
+        return answerRepository.findById(ANOTHER_ANSWER_ID).get();
     }
 }
