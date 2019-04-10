@@ -10,6 +10,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -100,8 +101,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedQuestion.contents;
     }
 
-    public void delete(User user) throws CannotDeleteException {
-        if (!isOwner(user)) {
+    public void delete(User loginUser) throws CannotDeleteException {
+        if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("The owner doesn't match");
         }
 
@@ -109,7 +110,38 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("This question has already deleted");
         }
 
+        if (this.hasUsedAnswerOfOtherUser()) {
+            throw new CannotDeleteException("There's other user's question.");
+        }
+
+        deleteAnswers();
+        deleteQuestion();
+    }
+
+    private boolean hasUsedAnswerOfOtherUser() {
+        long countOfAnswersOfOtherUser = getUsedAnswers().stream()
+                .filter(answer -> !answer.isOwner(this.writer))
+                .count();
+
+        return 0 < countOfAnswersOfOtherUser;
+    }
+
+    List<Answer> getUsedAnswers() {
+        return this.answers.stream()
+                .filter(answer -> !answer.isDeleted())
+                .collect(Collectors.toList());
+    }
+
+    private void deleteQuestion() {
         this.deleted = true;
+    }
+
+    private void deleteAnswers() throws CannotDeleteException {
+        List<Answer> usedAnswers = getUsedAnswers();
+
+        for (Answer answer : usedAnswers) {
+            answer.delete(this.writer);
+        }
     }
 
     @Override
