@@ -48,8 +48,8 @@ public class QnaService {
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question origin = questionRepository.findById(questionId).get();
+    public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
+        Question origin = questionRepository.findById(id).get();
         origin.delete(loginUser);
     }
 
@@ -64,8 +64,8 @@ public class QnaService {
     }
 
     @Transactional(readOnly = true)
-    public List<Answer> findAnswers(long id) {
-        Question question = questionRepository.findById(id).get();
+    public List<Answer> findAnswers(long questionId) {
+        Question question = questionRepository.findById(questionId).get();
 
         return answerRepository.findAllByQuestion(question);
     }
