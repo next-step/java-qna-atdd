@@ -7,18 +7,26 @@ import support.test.BaseTest;
 
 public class QuestionTest extends BaseTest {
 
-    User self;
-    User another;
+    private User self;
+    private User another;
 
-    Question selfQuestion;
-    Question anotherQuestion;
+    private Question selfQuestion;
+    private Question anotherQuestion;
+
+    public static Question newQuestion() {
+        return new Question("title", "contents");
+    }
+
+    public static Question newQuestion(String title, String contents) {
+        return new Question(title, contents);
+    }
 
     @Before
     public void setup() {
         self = new User(1, "self", "pass", "self", "email@email.com");
         another = new User(2, "another", "pass", "another", "email2@email.com");
-        selfQuestion = new Question("selfTitle", "selfContent");
-        anotherQuestion = new Question("anotherTitle", "anotherContent");
+        selfQuestion = newQuestion("selfTitle", "selfContent");
+        anotherQuestion = newQuestion("anotherTitle", "anotherContent");
 
         selfQuestion.writeBy(self);
         anotherQuestion.writeBy(another);
@@ -31,7 +39,7 @@ public class QuestionTest extends BaseTest {
 
     @Test
     public void update_self() throws Exception {
-        Question updateQuestion = new Question("updateTitle", "updateContents");
+        Question updateQuestion = newQuestion("updateTitle", "updateContents");
 
         selfQuestion.update(self, updateQuestion);
 
