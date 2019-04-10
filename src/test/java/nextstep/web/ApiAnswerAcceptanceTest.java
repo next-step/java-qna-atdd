@@ -1,8 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +84,21 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         Answer deletedAnswer = getAnswerResource(answer.generateUrl()).getBody();
         softly.assertThat(deletedAnswer.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void answer_delete_login_DeleteHistory_저장_확인() {
+        // given
+        User loginUser = defaultUser();
+        Answer answer = answerOfDefaultUser();
+
+        // when
+        deleteAnswerResource(loginUser, answer);
+
+        // then
+        DeleteHistory questionDeleteHistory = findDeleteHistoryByContentTypeAndContentId(ContentType.ANSWER, answer.getId());
+        DeleteHistory shouldBeSame = new DeleteHistory(ContentType.ANSWER, answer.getId(), loginUser);
+        softly.assertThat(questionDeleteHistory.equalsContentTypeAndContentIdAndDeletedBy(shouldBeSame)).isTrue();
     }
 
     @Test

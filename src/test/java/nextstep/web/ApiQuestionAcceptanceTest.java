@@ -1,5 +1,7 @@
 package nextstep.web;
 
+import nextstep.domain.ContentType;
+import nextstep.domain.DeleteHistory;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import org.junit.Test;
@@ -129,6 +131,21 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         Question dbQuestion = getQuestionResource(question.generateRestUrl()).getBody();
         softly.assertThat(dbQuestion.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void question_delete_login_DeleteHistory_저장_확인() {
+        // given
+        User loginUser = defaultUser();
+        Question question = questionOfDefaultUser();
+
+        // when
+        deleteQuestionResource(loginUser, question);
+
+        // then
+        DeleteHistory questionDeleteHistory = findDeleteHistoryByContentTypeAndContentId(ContentType.QUESTION, question.getId());
+        DeleteHistory shouldBeSame = new DeleteHistory(ContentType.QUESTION, question.getId(), loginUser);
+        softly.assertThat(questionDeleteHistory.equalsContentTypeAndContentIdAndDeletedBy(shouldBeSame)).isTrue();
     }
 
     private Question questionOfDefaultUser() {

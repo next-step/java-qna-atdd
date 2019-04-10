@@ -53,7 +53,9 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question targetQuestion = findById(questionId);
-        targetQuestion.delete(loginUser);
+        List<DeleteHistory> deleteHistories = targetQuestion.delete(loginUser);
+
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Question findByIdAndOwner(long id, User loginUser) {
@@ -92,7 +94,9 @@ public class QnaService {
     @Transactional
     public void deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException {
         Answer answer = findAnswerByIdAndQuestion(answerId, questionId);
-        answer.delete(loginUser);
+        DeleteHistory answerDeleteHistory = answer.delete(loginUser);
+
+        deleteHistoryService.save(answerDeleteHistory);
     }
 
     @Transactional

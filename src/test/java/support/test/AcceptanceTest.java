@@ -9,8 +9,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public abstract class AcceptanceTest extends BaseTest {
@@ -23,6 +21,7 @@ public abstract class AcceptanceTest extends BaseTest {
     @Autowired private UserRepository userRepository;
     @Autowired private QuestionRepository questionRepository;
     @Autowired private AnswerRepository answerRepository;
+    @Autowired private DeleteHistoryRepository deleteHistoryRepository;
 
     public TestRestTemplate template() {
         return template;
@@ -51,6 +50,10 @@ public abstract class AcceptanceTest extends BaseTest {
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
     }
+
+    protected DeleteHistory findDeleteHistoryByContentTypeAndContentId(ContentType contentType, long contentId) {
+        return deleteHistoryRepository.findByContentTypeAndContentId(contentType, contentId).get();
+    };
 
     protected <T> ResponseEntity<T> createResource(User loginUser, String url, Object resource, Class<T> type) {
         return basicAuthTemplate(loginUser).postForEntity(url, resource, type);
