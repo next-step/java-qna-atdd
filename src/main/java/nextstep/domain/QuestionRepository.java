@@ -7,6 +7,6 @@ import java.util.List;
 
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-    Iterable<Question> findByDeleted(boolean deleted);
+    List<Question> findAllByDeleted(boolean deleted);
     List<Question> findAllByDeleted(boolean deleted, Pageable pageable);
 }

@@ -49,8 +49,8 @@ public class QnaService {
         origin.delete(loginUser);
     }
 
-    public Iterable<Question> findAll() {
-        return questionRepository.findByDeleted(false);
+    public List<Question> findAll() {
+        return questionRepository.findAllByDeleted(false);
     }
 
     public List<Question> findAll(Pageable pageable) {
