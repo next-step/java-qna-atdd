@@ -135,11 +135,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_login_self() {
         ResponseEntity<String> response = delete(basicAuthTemplate(), defaultQuestion());
+        log.debug("body : {}", response.getBody());
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
         softly.assertThat(defaultQuestion().isDeleted()).isTrue();
 
-        log.debug("body : {}", response.getBody());
     }
 
     @Test
@@ -157,11 +157,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
     }
 
-    private Question defaultQuestion() {
+    public Question defaultQuestion() {
         return questionRepository.findById(DEFAULT_QUESTION_ID).get();
     }
 
-    private Question anotherQuestion() {
+    public Question anotherQuestion() {
         return questionRepository.findById(ANOTHER_QUESTION_ID).get();
     }
 }
