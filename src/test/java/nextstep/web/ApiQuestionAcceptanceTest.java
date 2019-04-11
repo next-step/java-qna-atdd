@@ -1,13 +1,11 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import nextstep.dto.QuestionDto;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
@@ -20,9 +18,6 @@ import static nextstep.domain.QuestionTest.newQuestion;
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     private static final String BASE_URL = "/api/questions";
-
-    @Autowired
-    private QuestionRepository questionRepository;
 
     @Test
     public void create_no_login() {
@@ -76,8 +71,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(response.getBody().size())
-                .isEqualTo(questionRepository.findAllByDeleted(false).size());
+//        softly.assertThat(response.getBody().size())
+//                .isEqualTo(questionRepository.findAllByDeleted(false).size());
     }
 
     @Test
@@ -141,7 +136,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_no_login() {
+    public void delete_no_login() throws Exception {
         // Given
         Question question = selfQuestion();
 
@@ -154,24 +149,38 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_another() {
+    public void delete_login_another() throws Exception {
         // Given
         User loginUser = selfUser();
         Question question = anotherQuestion();
 
         // When
-        ResponseEntity<Void> response =
-                RestApiCallUtils.deleteResource(basicAuthTemplate(loginUser), getUrl(question));
+        ResponseEntity<Void> response = RestApiCallUtils.deleteResource(
+                basicAuthTemplate(loginUser), getUrl(question));
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
-    public void delete_login_self() {
+    public void delete_login_self_contains_another_answers() throws Exception {
         // Given
         User loginUser = selfUser();
         Question question = selfQuestion();
+
+        // When
+        ResponseEntity<Void> response = RestApiCallUtils.deleteResource(
+                basicAuthTemplate(loginUser), getUrl(question));
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_login_self_only_self_answers() {
+        // Given
+        User loginUser = anotherUser();
+        Question question = anotherQuestion();
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.deleteResource(

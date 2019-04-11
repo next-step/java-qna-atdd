@@ -11,6 +11,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -44,20 +45,30 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void update(User writer, QuestionDto updatedQuestionDto) throws CannotUpdateException {
-        if (!isOwner(writer)) {
-            throw new CannotUpdateException(MSG_NOT_OWNER);
-        }
+        isOwner(writer).orElseThrow(() -> new CannotUpdateException(MSG_NOT_OWNER));
 
         this.title = updatedQuestionDto.getTitle();
         this.contents = updatedQuestionDto.getContents();
     }
 
     public void delete(User writer) throws CannotDeleteException {
-        if (!isOwner(writer)) {
-            throw new CannotDeleteException(MSG_NOT_OWNER);
+        isOwner(writer).orElseThrow(() -> new CannotDeleteException(MSG_NOT_OWNER));
+
+        if (!containsOnlySelfAnswers()) {
+            throw new CannotDeleteException("Answers should contain only answer wrote by owner of question or empty.");
         }
 
         this.deleted = true;
+    }
+
+    private Optional<User> isOwner(User writer) {
+        return Optional.of(writer)
+                .filter(user -> this.writer.equals(writer));
+    }
+
+    private boolean containsOnlySelfAnswers() {
+        return answers.stream()
+                .allMatch(answer -> answer.isOwner(writer));
     }
 
     public String getTitle() {
@@ -89,14 +100,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
-    }
-
-    public boolean isOwner(User loginUser) {
-        if (loginUser == null) {
-            return false;
-        }
-
-        return writer.equals(loginUser);
     }
 
     public boolean isDeleted() {
