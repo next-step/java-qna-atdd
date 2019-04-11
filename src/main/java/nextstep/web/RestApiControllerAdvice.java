@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.NoSuchElementException;
+import javax.persistence.EntityNotFoundException;
 
 @RestControllerAdvice(annotations = RestController.class)
 public class RestApiControllerAdvice {
@@ -20,9 +20,9 @@ public class RestApiControllerAdvice {
         log.debug("JSON API IllegalArgumentException is happened!");
     }
 
-    @ExceptionHandler(NoSuchElementException.class)
+    @ExceptionHandler(EntityNotFoundException .class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public void noSuchElementException(NoSuchElementException e) {
-        log.debug("JSON API NoSuchElementException is happened!");
+    public void entityNotFoundException(EntityNotFoundException e) {
+        log.debug("JSON API EntityNotFoundException is happened!");
     }
 }

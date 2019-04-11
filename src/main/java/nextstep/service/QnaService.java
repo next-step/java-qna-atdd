@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service("qnaService")
@@ -39,7 +39,7 @@ public class QnaService {
 
     public Question findById(long id) {
         return findQuestionById(id)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
@@ -53,7 +53,9 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question targetQuestion = findById(questionId);
-        targetQuestion.delete(loginUser);
+        List<DeleteHistory> deleteHistories = targetQuestion.delete(loginUser);
+
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Question findByIdAndOwner(long id, User loginUser) {
@@ -76,7 +78,7 @@ public class QnaService {
 
     public Answer findAnswerByIdAndQuestion(long answerId, long questionId) {
         return answerRepository.findByIdAndQuestionId(answerId, questionId)
-                .orElseThrow(NoSuchElementException::new);
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     @Transactional
@@ -92,7 +94,9 @@ public class QnaService {
     @Transactional
     public void deleteAnswer(User loginUser, long questionId, long answerId) throws CannotDeleteException {
         Answer answer = findAnswerByIdAndQuestion(answerId, questionId);
-        answer.delete(loginUser);
+        DeleteHistory answerDeleteHistory = answer.delete(loginUser);
+
+        deleteHistoryService.save(answerDeleteHistory);
     }
 
     @Transactional
