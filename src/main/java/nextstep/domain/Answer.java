@@ -106,8 +106,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("This answer has already deleted");
         }
 
-        deleteAnswer();
-        return getDeleteHistory();
+        return deleteAnswer(loginUser);
     }
 
     @Override
@@ -120,12 +119,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
 
-    private void deleteAnswer() {
+    private DeleteHistory deleteAnswer(User loginUser) {
         this.deleted = true;
-    }
 
-    private DeleteHistory getDeleteHistory() {
-        return new DeleteHistory(ContentType.ANSWER, getId(), this.writer);
+        return new DeleteHistory(ContentType.ANSWER, getId(), loginUser);
     }
 }
 

@@ -113,7 +113,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new CannotDeleteException("There's other user's question.");
         }
 
-       return deleteAnswersAndQuestion();
+       return deleteAnswersAndQuestion(loginUser);
     }
 
     public String generateRestUrl() {
@@ -149,31 +149,31 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return 0 < countOfAnswersOfOtherUser;
     }
 
-    private List<DeleteHistory> deleteAnswersAndQuestion() throws CannotDeleteException {
-        List<DeleteHistory> deleteHistories = deleteAnswers();
+    private List<DeleteHistory> deleteAnswersAndQuestion(User loginUser) throws CannotDeleteException {
+        List<DeleteHistory> deleteHistories = deleteAnswers(loginUser);
 
-        DeleteHistory questionDeleteHistory = deleteQuestion();
+        DeleteHistory questionDeleteHistory = deleteQuestion(loginUser);
         deleteHistories.add(questionDeleteHistory);
 
         return deleteHistories;
     }
 
-    private List<DeleteHistory> deleteAnswers() throws CannotDeleteException {
+    private List<DeleteHistory> deleteAnswers(User loginUser) throws CannotDeleteException {
         List<Answer> usedAnswers = getUsedAnswers();
-        List<DeleteHistory> answerDeleteHistories = new ArrayList(usedAnswers.size());
+        List<DeleteHistory> answerDeleteHistories = new ArrayList<>();
 
         for (Answer answer : usedAnswers) {
-            DeleteHistory answerDeleteHistory = answer.delete(this.writer);
+            DeleteHistory answerDeleteHistory = answer.delete(loginUser);
             answerDeleteHistories.add(answerDeleteHistory);
         }
 
         return answerDeleteHistories;
     }
 
-    private DeleteHistory deleteQuestion() {
+    private DeleteHistory deleteQuestion(User loginUser) {
         this.deleted = true;
 
-        return new DeleteHistory(ContentType.QUESTION, getId(), this.writer);
+        return new DeleteHistory(ContentType.QUESTION, getId(), loginUser);
     }
 
 }
