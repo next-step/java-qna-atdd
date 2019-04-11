@@ -1,5 +1,7 @@
 package nextstep.domain;
 
+import nextstep.CannotDeleteException;
+import nextstep.CannotUpdateException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
@@ -8,11 +10,13 @@ import javax.validation.constraints.Size;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
-    @ManyToOne
+    private static final String MSG_NOT_OWNER = "writer is not owner";
+
+    @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
     private User writer;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_to_question"))
     private Question question;
 
@@ -40,10 +44,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public User getWriter() {
         return writer;
-    }
-
-    public Question getQuestion() {
-        return question;
     }
 
     public String getContents() {
@@ -75,5 +75,25 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     @Override
     public String toString() {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
+    }
+
+    public boolean isOf(Question question) {
+        return this.question.equals(question);
+    }
+
+    public void update(User loginUser, String contents) throws CannotUpdateException {
+        if (!isOwner(loginUser)) {
+            throw new CannotUpdateException(MSG_NOT_OWNER);
+        }
+
+        this.contents = contents;
+    }
+
+    public void delete(User loginUser) throws CannotDeleteException {
+        if (!isOwner(loginUser)) {
+            throw new CannotDeleteException(MSG_NOT_OWNER);
+        }
+
+        this.deleted = true;
     }
 }

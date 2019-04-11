@@ -18,8 +18,8 @@ public class HomeController {
     private QnaService qnaService;
 
     @GetMapping("/")
-    public String index(Model model, @PageableDefault Pageable pageable) {
-        List<Question> questions = qnaService.findAll(pageable);
+    public String index(Model model) {
+        List<Question> questions = qnaService.findQuestions();
         model.addAttribute("questions", questions);
 
         return "home";

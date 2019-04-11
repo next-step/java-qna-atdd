@@ -3,6 +3,7 @@ package nextstep.service;
 import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
 import nextstep.domain.*;
+import nextstep.dto.QuestionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -28,53 +29,61 @@ public class QnaService {
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
-        log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public List<Question> findQuestions() {
+        return questionRepository.findAllByDeleted(false);
+    }
+
+    public Question findQuestion(long id) {
+        return questionRepository.findById(id).get();
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) throws CannotUpdateException {
-        Question origin = questionRepository.getOne(id);
-
-        if (!origin.isOwner(loginUser)) {
-            throw new CannotUpdateException("loginUser is not writer");
-        }
-
-        origin.update(updatedQuestion);
-        return questionRepository.save(origin);
+    public Question updateQuestion(User loginUser, long id, QuestionDto updatedQuestionDto) throws CannotUpdateException {
+        Question origin = questionRepository.findById(id).get();
+        origin.update(loginUser, updatedQuestionDto);
+        return origin;
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Question origin = questionRepository.findById(questionId).get();
-
-        if (!origin.isOwner(loginUser)) {
-            throw new CannotDeleteException("loginUser is not writer");
-        }
-
-        origin.delete();
-        questionRepository.save(origin);
+    public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
+        Question origin = questionRepository.findById(id).get();
+        origin.delete(loginUser);
     }
 
-    public Iterable<Question> findAll() {
-        return questionRepository.findByDeleted(false);
+    @Transactional
+    public Answer createAnswer(User loginUser, long questionId, String contents) {
+        Question question = questionRepository.findById(questionId).get();
+        Answer answer = new Answer(loginUser, contents);
+
+        question.addAnswer(answer);
+
+        return answer;
     }
 
-    public List<Question> findAll(Pageable pageable) {
-        return questionRepository.findAllByDeleted(false, pageable);
+    @Transactional(readOnly = true)
+    public List<Answer> findAnswers(long questionId) {
+        Question question = questionRepository.findById(questionId).get();
+
+        return question.getAnswers();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer findAnswer(long id) {
+        return answerRepository.findById(id).get();
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer updateAnswer(User loginUser, long id, String contents) throws CannotUpdateException {
+        Answer answer = answerRepository.findById(id).get();
+        answer.update(loginUser, contents);
+        return answer;
+    }
+
+    @Transactional
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = answerRepository.findById(id).get();
+        answer.delete(loginUser);
     }
 }
