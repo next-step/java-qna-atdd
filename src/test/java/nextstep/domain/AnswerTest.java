@@ -5,47 +5,47 @@ import nextstep.CannotUpdateException;
 import org.junit.*;
 import support.test.BaseTest;
 
-import static nextstep.domain.QuestionTest.newQuestion;
+import static nextstep.domain.QuestionTest.SELF_QUESTION;
+import static nextstep.domain.UserTest.ANOTHER_USER;
+import static nextstep.domain.UserTest.SELF_USER;
 
 public class AnswerTest extends BaseTest {
-    private Question question;
 
-    private Answer selfAnswer;
-    private Answer anotherAnswer;
+    public static final Answer SELF_ANSWER_OF_DEFAULT_QUESTION = new Answer(SELF_USER, "selfAnswer");
+    public static final Answer ANOTHER_ANSWER_OF_DEFAULT_QUESTION = new Answer(ANOTHER_USER, "anotherAnswer");
 
-    @Before
-    public void setup() {
-        question = newQuestion("selfTitle", "selfContent");
-        question.writeBy(selfUser());
+    public static final long SELF_ANSWER_ID = 1;
+    public static final long ANOTHER_ANSWER_ID = 2;
 
-        selfAnswer = new Answer(selfUser(), "selfAnswer");
-        anotherAnswer = new Answer(anotherUser(), "anotherAnswer");
+    static {
+        SELF_ANSWER_OF_DEFAULT_QUESTION.setId(SELF_ANSWER_ID);
+        SELF_ANSWER_OF_DEFAULT_QUESTION.toQuestion(SELF_QUESTION);
 
-        selfAnswer.toQuestion(question);
-        anotherAnswer.toQuestion(question);
+        ANOTHER_ANSWER_OF_DEFAULT_QUESTION.setId(ANOTHER_ANSWER_ID);
+        ANOTHER_ANSWER_OF_DEFAULT_QUESTION.toQuestion(SELF_QUESTION);
     }
 
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
-        selfAnswer.update(anotherUser(), "contents");
+        SELF_ANSWER_OF_DEFAULT_QUESTION.update(ANOTHER_USER, "contents");
     }
 
     @Test
     public void update_self() throws Exception {
         String contents = "update contents";
-        selfAnswer.update(selfUser(), contents);
+        SELF_ANSWER_OF_DEFAULT_QUESTION.update(SELF_USER, contents);
 
-        softly.assertThat(selfAnswer.getContents()).isEqualTo(contents);
+        softly.assertThat(SELF_ANSWER_OF_DEFAULT_QUESTION.getContents()).isEqualTo(contents);
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_another() throws Exception {
-        selfAnswer.delete(anotherUser());
+        SELF_ANSWER_OF_DEFAULT_QUESTION.delete(ANOTHER_USER);
     }
 
     @Test
     public void delete_self() throws Exception {
-        selfAnswer.delete(selfUser());
-        softly.assertThat(selfAnswer.isDeleted()).isTrue();
+        SELF_ANSWER_OF_DEFAULT_QUESTION.delete(SELF_USER);
+        softly.assertThat(SELF_ANSWER_OF_DEFAULT_QUESTION.isDeleted()).isTrue();
     }
 }

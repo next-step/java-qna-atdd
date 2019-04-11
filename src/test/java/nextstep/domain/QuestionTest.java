@@ -6,61 +6,71 @@ import nextstep.dto.QuestionDto;
 import org.junit.*;
 import support.test.BaseTest;
 
+import static nextstep.domain.AnswerTest.ANOTHER_ANSWER_OF_DEFAULT_QUESTION;
+import static nextstep.domain.AnswerTest.SELF_ANSWER_OF_DEFAULT_QUESTION;
+import static nextstep.domain.UserTest.ANOTHER_USER;
+import static nextstep.domain.UserTest.SELF_USER;
+
 public class QuestionTest extends BaseTest {
 
-    private Question selfQuestion;
-    private Question anotherQuestion;
+    public static final Question SELF_QUESTION = new Question("selfTitle", "selfContent");
+    public static final Question ANOTHER_QUESTION = new Question("anotherTitle", "anotherContent");
+
+    public static final long SELF_QUESTION_ID = 1;
+    public static final long ANOTHER_QUESTION_ID = 2;
+
+    static {
+        SELF_QUESTION.setId(SELF_QUESTION_ID);
+        SELF_QUESTION.writeBy(SELF_USER);
+        SELF_QUESTION.addAnswer(SELF_ANSWER_OF_DEFAULT_QUESTION);
+        SELF_QUESTION.addAnswer(ANOTHER_ANSWER_OF_DEFAULT_QUESTION);
+
+        ANOTHER_QUESTION.setId(ANOTHER_QUESTION_ID);
+        ANOTHER_QUESTION.writeBy(ANOTHER_USER);
+    }
 
     public static Question newQuestion() {
         return new Question("title", "contents");
     }
 
     public static Question newQuestion(String title, String contents) {
-        return new Question(title, contents);
+        return new Question("selfTitle", "selfContent");
     }
 
-    @Before
-    public void setup() {
-        selfQuestion = newQuestion("selfTitle", "selfContent");
-        anotherQuestion = newQuestion("anotherTitle", "anotherContent");
-
-        selfQuestion.writeBy(selfUser());
-        anotherQuestion.writeBy(anotherUser());
-    }
 
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
-        selfQuestion.update(anotherUser(), new QuestionDto());
+        SELF_QUESTION.update(ANOTHER_USER, new QuestionDto());
     }
 
     @Test
     public void update_self() throws Exception {
         QuestionDto updateQuestionDto = new QuestionDto("updateTitle", "updateContents");
 
-        selfQuestion.update(selfUser(), updateQuestionDto);
+        SELF_QUESTION.update(SELF_USER, updateQuestionDto);
 
-        softly.assertThat(selfQuestion.getTitle()).isEqualTo(updateQuestionDto.getTitle());
-        softly.assertThat(selfQuestion.getContents()).isEqualTo(updateQuestionDto.getContents());
-        softly.assertThat(selfQuestion.getWriter()).isEqualTo(selfUser());
+        softly.assertThat(SELF_QUESTION.getTitle()).isEqualTo(updateQuestionDto.getTitle());
+        softly.assertThat(SELF_QUESTION.getContents()).isEqualTo(updateQuestionDto.getContents());
+        softly.assertThat(SELF_QUESTION.getWriter()).isEqualTo(SELF_USER);
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_another() throws Exception {
-        selfQuestion.delete(anotherUser());
+        SELF_QUESTION.delete(ANOTHER_USER);
     }
 
     @Test
     public void delete_self() throws Exception {
-        selfQuestion.delete(selfUser());
-        softly.assertThat(selfQuestion.isDeleted()).isTrue();
+        SELF_QUESTION.delete(SELF_USER);
+        softly.assertThat(SELF_QUESTION.isDeleted()).isTrue();
     }
 
     @Test
     public void add_answer() {
-        Answer answer = new Answer(selfUser(), "answer");
-        selfQuestion.addAnswer(answer);
+        Answer answer = new Answer(SELF_USER, "answer");
+        SELF_QUESTION.addAnswer(answer);
 
-        softly.assertThat(selfQuestion.getAnswers())
+        softly.assertThat(SELF_QUESTION.getAnswers())
                 .contains(answer);
     }
 }

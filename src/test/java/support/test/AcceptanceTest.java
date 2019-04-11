@@ -1,12 +1,19 @@
 package support.test;
 
 import nextstep.domain.*;
-import org.junit.runner.RunWith;
+import org.junit.runner.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static nextstep.domain.AnswerTest.ANOTHER_ANSWER_ID;
+import static nextstep.domain.AnswerTest.SELF_ANSWER_ID;
+import static nextstep.domain.QuestionTest.ANOTHER_QUESTION_ID;
+import static nextstep.domain.QuestionTest.SELF_QUESTION_ID;
+import static nextstep.domain.UserTest.ANOTHER_USER;
+import static nextstep.domain.UserTest.SELF_USER;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -37,11 +44,11 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected User selfUser() {
-        return findByUserId(super.selfUser().getUserId());
+        return findByUserId(SELF_USER.getUserId());
     }
 
     protected User anotherUser() {
-        return findByUserId(super.anotherUser().getUserId());
+        return findByUserId(ANOTHER_USER.getUserId());
     }
 
     protected User findByUserId(String userId) {
@@ -49,7 +56,7 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected Question selfQuestion() {
-        return questionRepository.findById(DEFAULT_QUESTION_ID).get();
+        return questionRepository.findById(SELF_QUESTION_ID).get();
     }
 
     protected Question anotherQuestion() {
@@ -57,7 +64,7 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     protected Answer selfAnswer() {
-        return answerRepository.findById(DEFAULT_ANSWER_ID).get();
+        return answerRepository.findById(SELF_ANSWER_ID).get();
     }
 
     protected Answer anotherAnswer() {

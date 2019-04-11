@@ -5,8 +5,8 @@ import org.junit.Test;
 import support.test.BaseTest;
 
 public class UserTest extends BaseTest {
-    public static final User JAVAJIGI = new User(1L, "javajigi", "password", "name", "javajigi@slipp.net");
-    public static final User SANJIGI = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
+    public static final User SELF_USER = new User(1L, "javajigi", "password", "name", "javajigi@slipp.net");
+    public static final User ANOTHER_USER = new User(2L, "sanjigi", "password", "name", "sanjigi@slipp.net");
 
     public static User newUser(Long id) {
         return new User(id, "userId", "pass", "name", "javajigi@slipp.net");
@@ -56,9 +56,9 @@ public class UserTest extends BaseTest {
 
     @Test
     public void equals() {
-        softly.assertThat(JAVAJIGI)
-                .isEqualTo(JAVAJIGI)
-                .hasSameHashCodeAs(JAVAJIGI)
+        softly.assertThat(SELF_USER)
+                .isEqualTo(SELF_USER)
+                .hasSameHashCodeAs(SELF_USER)
                 .isNotEqualTo(newUser("another"));
     }
 }

@@ -14,9 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import support.test.BaseTest;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static nextstep.domain.AnswerTest.*;
+import static nextstep.domain.QuestionTest.*;
+import static nextstep.domain.UserTest.SELF_USER;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -32,72 +36,56 @@ public class QnaServiceTest extends BaseTest {
     @InjectMocks
     QnaService qnaService;
 
-    @Before
-    public void setup() {
-        Question defaultQuestion = new Question("defaultTitle", "defaultContent");
-        defaultQuestion.setId(DEFAULT_ANSWER_ID);
-        defaultQuestion.writeBy(selfUser());
-        when(questionRepository.findById(DEFAULT_QUESTION_ID)).thenReturn(Optional.of(defaultQuestion));
-
-        Question anotherQuestion = new Question("anotherTitle", "anotherContent");
-        anotherQuestion.setId(ANOTHER_QUESTION_ID);
-        anotherQuestion.writeBy(anotherUser());
-        when(questionRepository.findById(ANOTHER_QUESTION_ID)).thenReturn(Optional.of(anotherQuestion));
-
-        Answer defaultAnswer = new Answer(selfUser(), "selfAnswer");
-        defaultAnswer.toQuestion(defaultQuestion);
-        defaultAnswer.setId(DEFAULT_ANSWER_ID);
-        Answer anotherAnswer = new Answer(anotherUser(), "anotherAnswer");
-        anotherAnswer.toQuestion(defaultQuestion);
-        anotherAnswer.setId(ANOTHER_ANSWER_ID);
-
-        defaultQuestion.addAnswer(defaultAnswer);
-        defaultQuestion.addAnswer(anotherAnswer);
-        when(answerRepository.findById(DEFAULT_ANSWER_ID))
-                .thenReturn(Optional.of(defaultAnswer));
-        when(answerRepository.findById(ANOTHER_ANSWER_ID))
-                .thenReturn(Optional.of(anotherAnswer));
-    }
-
     @Test(expected = CannotUpdateException.class)
     public void update_question_another() throws Exception {
-        qnaService.updateQuestion(selfUser(), ANOTHER_QUESTION_ID, new QuestionDto());
+        when(questionRepository.findById(ANOTHER_QUESTION_ID)).thenReturn(Optional.of(ANOTHER_QUESTION));
+
+        qnaService.updateQuestion(SELF_USER, ANOTHER_QUESTION_ID, new QuestionDto());
     }
 
     @Test
     public void update_question_self() throws Exception {
+        when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(SELF_QUESTION));
+
         String title = "updateTitle";
         String contents = "updateContents";
 
-        Question updatedQuestion = defaultQuestion();
+        Question updatedQuestion = SELF_QUESTION;
         updatedQuestion.setTitle(title);
         updatedQuestion.setContents(contents);
 
-        Question result = qnaService.updateQuestion(selfUser(), DEFAULT_QUESTION_ID, new QuestionDto(title, contents));
+        Question result = qnaService.updateQuestion(
+                SELF_USER, updatedQuestion.getId(), new QuestionDto(title, contents));
 
         softly.assertThat(result.getTitle()).isEqualTo(title);
         softly.assertThat(result.getContents()).isEqualTo(contents);
 
-        softly.assertThat(defaultQuestion().getTitle()).isEqualTo(title);
-        softly.assertThat(defaultQuestion().getContents()).isEqualTo(contents);
+        softly.assertThat(SELF_QUESTION.getTitle()).isEqualTo(title);
+        softly.assertThat(SELF_QUESTION.getContents()).isEqualTo(contents);
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_question_another() throws Exception {
-        qnaService.deleteQuestion(selfUser(), ANOTHER_QUESTION_ID);
+        when(questionRepository.findById(ANOTHER_QUESTION_ID)).thenReturn(Optional.of(ANOTHER_QUESTION));
+
+        qnaService.deleteQuestion(SELF_USER, ANOTHER_QUESTION_ID);
     }
 
     @Test
     public void delete_question_self() throws Exception {
-        qnaService.deleteQuestion(selfUser(), DEFAULT_QUESTION_ID);
+        when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(SELF_QUESTION));
 
-        softly.assertThat(defaultQuestion().isDeleted()).isTrue();
+        qnaService.deleteQuestion(SELF_USER, SELF_QUESTION_ID);
+
+        softly.assertThat(SELF_QUESTION.isDeleted()).isTrue();
     }
 
     @Test
     public void create_answer() {
-        User loginUser = selfUser();
-        Question question = defaultQuestion();
+        when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(SELF_QUESTION));
+
+        User loginUser = SELF_USER;
+        Question question = SELF_QUESTION;
         Answer created = qnaService.createAnswer(loginUser, question.getId(), "answer");
 
         softly.assertThat(created.isOwner(loginUser)).isTrue();
@@ -106,53 +94,58 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void find_answers_by_question_id() {
-        Question question = defaultQuestion();
-        List<Answer> answers = qnaService.findAnswers(defaultQuestion().getId());
+        when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(SELF_QUESTION));
+
+        Question question = SELF_QUESTION;
+        List<Answer> answers = qnaService.findAnswers(SELF_QUESTION_ID);
 
         softly.assertThat(answers).isNotNull();
         softly.assertThat(answers)
-                .allMatch(answer -> answer.isOf(question));
+                .allMatch(answer -> answer.isOf(question))
+                .containsAll(Arrays.asList(SELF_ANSWER_OF_DEFAULT_QUESTION, ANOTHER_ANSWER_OF_DEFAULT_QUESTION));
     }
 
     @Test
     public void find_answer_by_id() {
-        Answer answer = defaultAnswer();
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(SELF_ANSWER_OF_DEFAULT_QUESTION));
+
+        Answer answer = answerRepository.findById(SELF_ANSWER_ID).get();
 
         softly.assertThat(answer).isNotNull();
-        softly.assertThat(answer.getId()).isEqualTo(DEFAULT_ANSWER_ID);
+        softly.assertThat(answer.getId()).isEqualTo(SELF_ANSWER_ID);
     }
 
     @Test(expected = CannotUpdateException.class)
     public void update_answer_another() throws Exception {
-        qnaService.updateAnswer(selfUser(), ANOTHER_ANSWER_ID, "updateQuestion");
+        when(answerRepository.findById(ANOTHER_ANSWER_ID)).thenReturn(Optional.of(ANOTHER_ANSWER_OF_DEFAULT_QUESTION));
+
+        qnaService.updateAnswer(SELF_USER, ANOTHER_ANSWER_ID, "updateQuestion");
     }
 
     @Test
     public void update_answer_self() throws Exception {
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(SELF_ANSWER_OF_DEFAULT_QUESTION));
+
         String contents = "updateQuestion";
-        Answer answer = qnaService.updateAnswer(selfUser(), DEFAULT_ANSWER_ID, contents);
+        Answer answer = qnaService.updateAnswer(SELF_USER, SELF_ANSWER_ID, contents);
 
         softly.assertThat(answer.getContents()).isEqualTo(contents);
-        softly.assertThat(defaultAnswer().getContents()).isEqualTo(contents);
+        softly.assertThat(SELF_ANSWER_OF_DEFAULT_QUESTION.getContents()).isEqualTo(contents);
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_answer_another() throws Exception {
-        qnaService.deleteAnswer(selfUser(), ANOTHER_QUESTION_ID);
+        when(answerRepository.findById(ANOTHER_QUESTION_ID)).thenReturn(Optional.of(ANOTHER_ANSWER_OF_DEFAULT_QUESTION));
+
+        qnaService.deleteAnswer(SELF_USER, ANOTHER_QUESTION_ID);
     }
 
     @Test
     public void delete_answer_self() throws Exception {
-        qnaService.deleteAnswer(selfUser(), DEFAULT_ANSWER_ID);
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(SELF_ANSWER_OF_DEFAULT_QUESTION));
 
-        softly.assertThat(defaultAnswer().isDeleted()).isTrue();
-    }
+        qnaService.deleteAnswer(SELF_USER, SELF_ANSWER_ID);
 
-    private Question defaultQuestion() {
-        return questionRepository.findById(DEFAULT_QUESTION_ID).get();
-    }
-
-    private Answer defaultAnswer() {
-        return qnaService.findAnswer(DEFAULT_ANSWER_ID);
+        softly.assertThat(SELF_ANSWER_OF_DEFAULT_QUESTION.isDeleted()).isTrue();
     }
 }
