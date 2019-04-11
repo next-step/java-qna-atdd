@@ -1,9 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +21,12 @@ public class QnaAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     private String createLocation;
     private long questionId;
     private long answerId;
@@ -38,6 +41,13 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         String answerLocation = createResourceWithUser(String.format("/api/questions/%d/answer/add", questionId), new Answer(defaultUser(), "answer test"), loginUser);
         questionDTO = getResource(location, QuestionDTO.class, defaultUser());
         answerId = questionDTO.getAnswers().get(0).getId();
+    }
+
+    @After
+    public void tearDown() {
+        deleteHistoryRepository.deleteAll();
+        answerRepository.deleteAll();
+        questionRepository.deleteAll();
     }
 
     @Test
@@ -150,8 +160,5 @@ public class QnaAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/questions");
     }
 
-    @After
-    public void tearDown() throws Exception {
-        questionRepository.deleteAll();
-    }
+
 }

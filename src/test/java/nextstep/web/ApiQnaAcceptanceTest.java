@@ -1,9 +1,6 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.Question;
-import nextstep.domain.QuestionRepository;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
 import org.junit.After;
@@ -24,6 +21,12 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     @Autowired
     private QuestionRepository questionRepository;
 
+    @Autowired
+    private AnswerRepository answerRepository;
+
+    @Autowired
+    private DeleteHistoryRepository deleteHistoryRepository;
+
     @Before
     public void setUp() {
         Question newQuestion = new Question("question title", "question contents");
@@ -32,6 +35,13 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         createLocation = response.getHeaders().getLocation().getPath();
 
         this.newQuestion = newQuestion;
+    }
+
+    @After
+    public void tearDown() {
+        deleteHistoryRepository.deleteAll();
+        answerRepository.deleteAll();
+        questionRepository.deleteAll();
     }
 
     @Test
@@ -151,13 +161,6 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
         ResponseEntity<Void> responseEntity = basicAuthTemplate().exchange(url, HttpMethod.DELETE, createHttpEntity(answer), Void.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @After
-    public void tearDown() {
-        /*basicAuthTemplate().exchange(
-                createLocation, HttpMethod.DELETE, createHttpEntity(newQuestion), Void.class);*/
-        questionRepository.deleteAll();
     }
 
     private HttpEntity createHttpEntity(Object body) {

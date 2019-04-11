@@ -20,6 +20,14 @@ public class DeleteHistory {
 
     private LocalDateTime createDate = LocalDateTime.now();
 
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_question"))
+    private Question question;
+
+    @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_answer"))
+    private Answer answer;
+
     public DeleteHistory() {
     }
 
@@ -28,6 +36,26 @@ public class DeleteHistory {
         this.contentId = contentId;
         this.deletedBy = deletedBy;
         this.createDate = createDate;
+    }
+
+    public ContentType getContentType() {
+        return contentType;
+    }
+
+    public void setCreateDate(LocalDateTime createDate) {
+        this.createDate = createDate;
+    }
+
+    public LocalDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public void toQuestion(Question question) {
+        this.question = question;
+    }
+
+    public void toAnswer(Answer answer) {
+        this.answer = answer;
     }
 
     @Override

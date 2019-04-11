@@ -1,10 +1,14 @@
 package nextstep.domain;
 
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -21,6 +25,9 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     private String contents;
 
     private boolean deleted = false;
+
+    @OneToMany(mappedBy = "answer", cascade = CascadeType.ALL)
+    private List<DeleteHistory> deleteHistories = new ArrayList<>();
 
     public Answer() {
     }
@@ -55,6 +62,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public void setDeleteHistories(List<DeleteHistory> deleteHistories) {
+        this.deleteHistories = deleteHistories;
+    }
+
+    public List<DeleteHistory> getDeleteHistories() {
+        return deleteHistories;
+    }
+
     public void toQuestion(Question question) {
         this.question = question;
     }
@@ -65,6 +80,22 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public void delete(User loginUser, LocalDateTime createDate) {
+        validOwner(loginUser);
+        this.deleted = true;
+        DeleteHistory deleteHistory = new DeleteHistory(ContentType.ANSWER, getId(), loginUser, createDate);
+        deleteHistory.toAnswer(this);
+        this.deleteHistories.add(deleteHistory);
+        this.setDeleteHistories(deleteHistories);
+
+    }
+
+    private void validOwner(User loginUser) {
+        if(!isOwner(loginUser)) {
+            throw new UnAuthorizedException("해당 사용자가 작성한 답변이 아닙니다.");
+        }
     }
 
     @Override

@@ -1,6 +1,10 @@
 package nextstep.dto;
 
 import nextstep.domain.Answer;
+import nextstep.domain.DeleteHistory;
+import nextstep.domain.Question;
+
+import java.util.List;
 
 public class AnswerDTO {
     private long id;
@@ -9,6 +13,14 @@ public class AnswerDTO {
 
     private boolean deleted = false;
 
+    private Question question;
+
+    private List<DeleteHistory> histories;
+
+    private String createAt;
+
+    private String updateAt;
+
     public AnswerDTO() {
     }
 
@@ -16,6 +28,10 @@ public class AnswerDTO {
         this.id = answer.getId();
         this.contents = answer.getContents();
         this.deleted = answer.isDeleted();
+        this.histories = answer.getDeleteHistories();
+        histories.size();
+        this.createAt = answer.getFormattedCreateDate();
+        this.updateAt = answer.getFormattedModifiedDate();
     }
 
     public AnswerDTO(long id, String contents, boolean deleted) {
@@ -34,5 +50,21 @@ public class AnswerDTO {
 
     public boolean isDeleted() {
         return deleted;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
+
+    public List<DeleteHistory> getHistories() {
+        return histories;
+    }
+
+    public String getCreateAt() {
+        return createAt;
+    }
+
+    public String getUpdateAt() {
+        return updateAt;
     }
 }

@@ -4,7 +4,6 @@ import nextstep.UnAuthorizedException;
 import nextstep.domain.*;
 import nextstep.dto.AnswerDTO;
 import nextstep.dto.QuestionDTO;
-import nextstep.dto.UserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -13,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service("qnaService")
 public class QnaService {
@@ -48,24 +47,24 @@ public class QnaService {
     }
 
     @Query("select a from question join fetch a.anwers")
-    public Question findQuestionWithAnswer(long id) {
+    private Question findQuestionWithAnswer(long id) {
         return questionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("해당 질문글을 찾을 수 없습니다."));
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public QuestionDTO update(User loginUser, long id, Question updatedQuestion) {
         checkQuestionOwner(id, loginUser);
         Question origin = findById(id);
         origin.update(origin, updatedQuestion);
-        return origin;
+        return new QuestionDTO(origin);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) {
+    public QuestionDTO deleteQuestion(User loginUser, long questionId, LocalDateTime createDate) {
         checkQuestionOwner(questionId, loginUser);
         Question question = findById(questionId);
-        questionRepository.delete(question);
+        return new QuestionDTO(question.delete(loginUser, createDate));
     }
 
     public Iterable<Question> findAll() {
@@ -87,24 +86,17 @@ public class QnaService {
     }
 
     @Transactional
-    public AnswerDTO deleteAnswer(User loginUser, long id) {
+    public AnswerDTO deleteAnswer(User loginUser, long id, LocalDateTime createDate) {
         checkAnswerOwner(id, loginUser);
         Answer answer = findAnswerById(id);
-        answerRepository.delete(answer);
+        answer.delete(loginUser, createDate);
         return new AnswerDTO(answer);
     }
 
     @Transactional
     public QuestionDTO findQuestionAndAnswerById(long questionId) {
         Question question = findQuestionWithAnswer(questionId);
-        return new QuestionDTO(question.getId(),
-                question.getTitle(),
-                question.getContents(),
-                new UserDTO(question.getWriter()),
-                question.getAnswers().stream()
-                .map(AnswerDTO::new)
-                .collect(Collectors.toList()),
-                question.isDeleted());
+        return new QuestionDTO(question);
     }
 
     private void checkQuestionOwner(long questionId, User loginUser) {
