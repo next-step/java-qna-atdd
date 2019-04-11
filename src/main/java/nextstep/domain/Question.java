@@ -142,11 +142,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     private boolean hasUsedAnswerOfOtherUser() {
-        long countOfAnswersOfOtherUser = getUsedAnswers().stream()
-                .filter(answer -> !answer.isOwner(this.writer))
-                .count();
-
-        return 0 < countOfAnswersOfOtherUser;
+        return getUsedAnswers().stream()
+                .anyMatch(answer -> !answer.isOwner(this.writer));
     }
 
     private List<DeleteHistory> deleteAnswersAndQuestion(User loginUser) throws CannotDeleteException {
