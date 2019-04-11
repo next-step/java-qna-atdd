@@ -7,7 +7,7 @@ public class QuestionDto {
     private String contents;
 
     public QuestionDto() {
-        this("", "");
+
     }
 
     public QuestionDto(String title, String contents) {
