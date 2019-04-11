@@ -1,15 +1,13 @@
 package nextstep.domain.entity;
 
 import nextstep.domain.ContentType;
+import support.domain.AbstractEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-public class DeleteHistory {
-    @Id
-    @GeneratedValue
-    private Long id;
+public class DeleteHistory extends AbstractEntity {
 
     @Enumerated(EnumType.STRING)
     private ContentType contentType;
@@ -20,21 +18,37 @@ public class DeleteHistory {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_user"))
     private User deletedBy;
 
-    private LocalDateTime createDate = LocalDateTime.now();
-
     public DeleteHistory() {
     }
 
-    public DeleteHistory(ContentType contentType, Long contentId, User deletedBy, LocalDateTime createDate) {
+    public DeleteHistory(ContentType contentType, Long contentId, User deletedBy) {
         this.contentType = contentType;
         this.contentId = contentId;
         this.deletedBy = deletedBy;
-        this.createDate = createDate;
+    }
+
+    public DeleteHistory(Long id, ContentType contentType, Long contentId, User deletedBy) {
+        super(id);
+        this.contentType = contentType;
+        this.contentId = contentId;
+        this.deletedBy = deletedBy;
+    }
+
+    public ContentType getContentType() {
+        return contentType;
+    }
+
+    public Long getContentId() {
+        return contentId;
+    }
+
+    public User getDeletedBy() {
+        return deletedBy;
     }
 
     @Override
     public String toString() {
-        return "DeleteHistory [id=" + id + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="
-                + deletedBy + ", createDate=" + createDate + "]";
+        return "DeleteHistory [id=" + super.getId() + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="
+                + deletedBy + ", createDate=" + super.getFormattedCreateDate() + "]";
     }
 }

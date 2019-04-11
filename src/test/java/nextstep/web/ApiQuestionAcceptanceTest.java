@@ -107,6 +107,22 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
+    @Test
+    public void delete_실패_다른사용자댓글() {
+        User newUser = new User("admin", "password", "spring", "spring@gmail.com");
+        ResponseEntity<Void> userApiResponse = template().postForEntity("/api/users", newUser, Void.class);
+
+        String content = "댓글입니다.";
+
+        String questionLocation = createResourceWithLogin(CREATE_PATH, testQuestion, defaultUser());
+        createResourceWithLogin(questionLocation + "/answers", content, newUser);
+
+        ResponseEntity<Question> questionApiResponse = basicAuthTemplate()
+        .exchange(questionLocation, HttpMethod.DELETE, createHttpEntity(null), Question.class);
+
+        softly.assertThat(questionApiResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
     private HttpEntity createHttpEntity(Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

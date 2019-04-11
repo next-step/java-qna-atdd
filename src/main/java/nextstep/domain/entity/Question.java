@@ -105,8 +105,34 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
 
+        if (answers.isEmpty()) {
+            this.deleted = true;
+            return this;
+        }
+
+        if (findDifferentUser(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        deleteAnswers(loginUser);
+
         this.deleted = true;
         return this;
+    }
+
+    private void deleteAnswers(User loginUser) {
+        for (Answer answer : answers) {
+            answer.delete(loginUser);
+        }
+    }
+
+    private boolean findDifferentUser(User loginUser) {
+        for (Answer answer : answers) {
+            if (!answer.isOwner(loginUser)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String generateApiUrl() {
