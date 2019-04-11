@@ -43,6 +43,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.questionBody = questionBody;
     }
 
+    public void addAnswer(Answer answer) {
+        this.answers.add(answer);
+    }
+
     public void update(User writer, QuestionBody newQuestionBody) {
         if(!isOwner(writer)) {
             throw new ForbiddenException();

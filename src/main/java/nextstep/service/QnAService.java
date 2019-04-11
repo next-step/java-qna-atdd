@@ -53,6 +53,13 @@ public class QnAService {
     @Transactional
     public Question deleteQuestion(Long id, User writer) {
         Question question = findQuestionById(id);
+
+        question.getAnswers().forEach(a -> {
+            if(!a.isOwner(question.getWriter())) {
+                throw new ForbiddenException();
+            }
+        });
+
         question.delete(writer);
 
         return question;
@@ -61,16 +68,18 @@ public class QnAService {
     @Transactional
     public Answer addAnswer(User writer, Long questionId, String contents) {
         Question question = findQuestionById(questionId);
-        Answer answer = new Answer(writer, question, contents);
 
-        return answerRepository.save(answer);
+        Answer answer = new Answer(writer, question, contents);
+        question.addAnswer(answer);
+
+        return answer;
     }
 
     @Transactional(readOnly = true)
     public List<Answer> findAnswers(Long questionId) {
         Question question = findQuestionById(questionId);
 
-        return answerRepository.findByQuestionAndDeletedFalse(question);
+        return question.getAnswers();
     }
 
     @Transactional(readOnly = true)
