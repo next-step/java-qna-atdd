@@ -52,6 +52,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public void writeBy(User loginUser) {
+        this.writer = loginUser;
+    }
+
     public void toQuestion(Question question) {
         this.question = question;
     }
