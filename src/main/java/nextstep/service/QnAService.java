@@ -1,6 +1,5 @@
 package nextstep.service;
 
-import nextstep.ForbiddenException;
 import nextstep.NotFoundException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
@@ -51,11 +50,12 @@ public class QnAService {
     }
 
     @Transactional
-    public Question deleteQuestion(Long id, User writer) {
+    public List<DeleteHistory> deleteQuestion(Long id, User writer) {
         Question question = findQuestionById(id);
-        question.delete(writer);
+        List<DeleteHistory> histories = question.delete(writer);
 
-        return question;
+        deleteHistoryService.saveAll(histories);
+        return histories;
     }
 
     @Transactional
@@ -82,10 +82,9 @@ public class QnAService {
     }
 
     @Transactional
-    public Answer deleteAnswer(User writer, Long id) {
+    public DeleteHistory deleteAnswer(User writer, Long id) {
         Answer answer = findAnswer(id);
-        answer.delete(writer);
 
-        return answer;
+        return answer.delete(writer);
     }
 }

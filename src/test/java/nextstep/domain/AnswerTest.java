@@ -11,7 +11,7 @@ public class AnswerTest extends BaseTest {
     private Question question = QuestionTest.newQuestion(1L);
 
     public static Answer newAnswer(Long id) {
-        return new Answer(id, new User(), new Question(), "answer");
+        return new Answer(id, UserTest.newUser(1L), QuestionTest.newQuestion(1L), "answer");
     }
 
     @Test

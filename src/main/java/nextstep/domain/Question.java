@@ -7,6 +7,7 @@ import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,14 +56,21 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         questionBody = newQuestionBody;
     }
 
-    public void delete(User writer) {
+    public List<DeleteHistory> delete(User writer) {
+        List<DeleteHistory> histories = new ArrayList<>();
+
         if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
         deleted = true;
+        histories.add(new DeleteHistory(ContentType.QUESTION, getId(), writer, LocalDateTime.now()));
 
-        getAnswers().forEach(a -> a.delete(writer));
+        getAnswers().stream()
+            .map(a -> a.delete(writer))
+            .forEach(histories::add);
+
+        return histories;
     }
 
     public User getWriter() {

@@ -23,6 +23,8 @@ public class QnAServiceTest extends BaseTest {
     private QuestionRepository questionRepository;
     @Mock
     private AnswerRepository answerRepository;
+    @Mock
+    private DeleteHistoryService deleteHistoryService;
 
     @InjectMocks
     private QnAService qnaService;
@@ -74,10 +76,10 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 질문을_삭제한다() {
-        질문_1건을_조회_가능하게함(1L);
+        답변이_포함된_질문_1건을_조회_가능하게함(1L);
 
-        Question question = qnaService.deleteQuestion(1L, writer);
-        softly.assertThat(question.isDeleted()).isTrue();
+        List<DeleteHistory> histories = qnaService.deleteQuestion(1L, writer);
+        softly.assertThat(histories).hasSize(2);
     }
 
     @Test
@@ -112,9 +114,8 @@ public class QnAServiceTest extends BaseTest {
     public void 답변을_삭제한다() {
         답변_1건을_조회_가능하게함(1L, 1L);
 
-        Answer answer = qnaService.deleteAnswer(writer, 1L);
-
-        softly.assertThat(answer.isDeleted()).isTrue();
+        DeleteHistory deleteHistory = qnaService.deleteAnswer(writer, 1L);
+        softly.assertThat(deleteHistory).isNotNull();
     }
 
     private void 질문_1건을_저장_가능하게함(QuestionBody questionBody) {
