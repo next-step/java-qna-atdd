@@ -31,8 +31,9 @@ public class AnswerTest {
     @Test
     public void mapping_question() {
         Answer answer = new Answer(answerWriter, "답변");
-        answer.toQuestion(question);
-        assertThat(answer).isNotNull();
+        Question testQuestion = new Question(5L, "title", "content", questionWriter);
+        answer.toQuestion(testQuestion);
+        assertThat(answer.questionId()).isEqualTo(5L);
     }
 
     //onwer check
