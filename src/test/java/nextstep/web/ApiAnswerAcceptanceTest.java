@@ -27,7 +27,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     public void create_no_login() {
         // Given
         Question question = selfQuestion();
-        String contents = "answer contents";
+        String contents = "answer";
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.createResource(
@@ -50,9 +50,14 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
 
+    @Test
+    public void show_one_after_create() {
         // Given
-        String location = response.getHeaders().getLocation().getPath();
+        ResponseEntity<Void> createResponse = RestApiCallUtils.createResource(
+                basicAuthTemplate(selfUser()), getUrl(selfQuestion()), "answer");
+        String location = createResponse.getHeaders().getLocation().getPath();
 
         // When
         Answer createdAnswer = RestApiCallUtils.getResource(
@@ -99,7 +104,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         // Given
         Question question = selfQuestion();
         Answer answer = selfAnswer();
-        String updateContents = "updateQuestion answer";
+        String updateContents = "update answer";
 
         // When
         ResponseEntity<Answer> response = RestApiCallUtils.updateResource(
@@ -115,7 +120,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         User loginUser = selfUser();
         Question question = selfQuestion();
         Answer answer = anotherAnswer();
-        String updateContents = "updateQuestion answer";
+        String updateContents = "update answer";
 
         // When
         ResponseEntity<Answer> response = RestApiCallUtils.updateResource(
@@ -131,7 +136,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         User loginUser = selfUser();
         Question question = selfQuestion();
         Answer answer = selfAnswer();
-        String updateContents = "updateQuestion answer";
+        String updateContents = "update answer";
 
         // When
         ResponseEntity<Answer> response = RestApiCallUtils.updateResource(

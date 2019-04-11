@@ -49,9 +49,16 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    }
 
+    @Test
+    public void show_one_after_create() {
         // Given
-        String location = response.getHeaders().getLocation().getPath();
+        User loginUser = selfUser();
+
+        ResponseEntity<Void> createResponse = RestApiCallUtils.createResource(
+                basicAuthTemplate(loginUser), BASE_URL, newQuestion());
+        String location = createResponse.getHeaders().getLocation().getPath();
 
         // When
         Question createdQuestion = RestApiCallUtils.getResource(

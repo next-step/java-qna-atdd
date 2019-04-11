@@ -33,11 +33,6 @@ public class QuestionTest extends BaseTest {
         return new Question("title", "contents");
     }
 
-    public static Question newQuestion(String title, String contents) {
-        return new Question("selfTitle", "selfContent");
-    }
-
-
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
         SELF_QUESTION.update(ANOTHER_USER, new QuestionDto());
