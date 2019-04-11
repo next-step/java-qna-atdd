@@ -176,7 +176,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_self_only_self_answers() {
+    public void delete_login_self_contains_only_self_answers() {
         ResponseEntity<String> response = delete(basicAuthTemplate(anotherUser()), anotherQuestion());
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);

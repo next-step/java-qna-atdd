@@ -177,7 +177,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_self_only_self_answers() {
+    public void delete_login_self_contains_only_self_answers() {
         // Given
         User loginUser = anotherUser();
         Question question = anotherQuestion();

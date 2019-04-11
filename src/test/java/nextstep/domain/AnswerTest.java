@@ -5,6 +5,8 @@ import nextstep.CannotUpdateException;
 import org.junit.*;
 import support.test.BaseTest;
 
+import static nextstep.domain.QuestionTest.anotherQuestion;
+import static nextstep.domain.QuestionTest.selfQuestion;
 import static nextstep.domain.UserTest.ANOTHER_USER;
 import static nextstep.domain.UserTest.SELF_USER;
 
@@ -16,9 +18,16 @@ public class AnswerTest extends BaseTest {
     public static final long SELF_ANSWER_ID = 1;
     public static final long ANOTHER_ANSWER_ID = 2;
 
+
     static {
         SELF_ANSWER.setId(SELF_ANSWER_ID);
         ANOTHER_ANSWER.setId(ANOTHER_ANSWER_ID);
+    }
+
+    public static Answer selfAnswer() {
+        Answer answer = new Answer(SELF_USER, "selfAnswer");
+        answer.setId(SELF_ANSWER_ID);
+        return answer;
     }
 
     public static Answer anotherAnswer() {
@@ -42,12 +51,26 @@ public class AnswerTest extends BaseTest {
 
     @Test(expected = CannotDeleteException.class)
     public void delete_another() throws Exception {
-        SELF_ANSWER.delete(ANOTHER_USER);
+        Answer answer = selfAnswer();
+        answer.delete(ANOTHER_USER);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_self_different_owner_from_question() throws Exception {
+        Question question = anotherQuestion();
+        Answer answer = selfAnswer();
+        question.addAnswer(answer);
+
+        answer.delete(SELF_USER);
     }
 
     @Test
-    public void delete_self() throws Exception {
-        SELF_ANSWER.delete(SELF_USER);
-        softly.assertThat(SELF_ANSWER.isDeleted()).isTrue();
+    public void delete_self_same_owner_from_question() throws Exception {
+        Question question = selfQuestion();
+        Answer answer = selfAnswer();
+        question.addAnswer(answer);
+
+        answer.delete(SELF_USER);
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 }

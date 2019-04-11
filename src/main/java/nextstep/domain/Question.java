@@ -68,7 +68,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
     }
 
-    private Optional<User> isOwner(User writer) {
+    public Optional<User> isOwner(User writer) {
         return Optional.of(writer)
                 .filter(user -> this.writer.equals(writer));
     }

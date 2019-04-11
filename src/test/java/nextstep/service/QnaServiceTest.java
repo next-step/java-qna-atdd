@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import static nextstep.domain.AnswerTest.*;
 import static nextstep.domain.QuestionTest.*;
+import static nextstep.domain.UserTest.ANOTHER_USER;
 import static nextstep.domain.UserTest.SELF_USER;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +81,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void delete_question_self_only_self_answers() throws Exception {
+    public void delete_question_self_contains_only_self_answers() throws Exception {
         Question question = selfQuestion();
         question.addAnswer(SELF_ANSWER);
         when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(question));
@@ -149,19 +150,34 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(SELF_ANSWER.getContents()).isEqualTo(contents);
     }
 
+
     @Test(expected = CannotDeleteException.class)
     public void delete_answer_another() throws Exception {
-        when(answerRepository.findById(ANOTHER_QUESTION_ID)).thenReturn(Optional.of(ANOTHER_ANSWER));
+        Answer answer = anotherAnswer();
+        when(answerRepository.findById(ANOTHER_ANSWER_ID)).thenReturn(Optional.of(answer));
 
-        qnaService.deleteAnswer(SELF_USER, ANOTHER_QUESTION_ID);
+        qnaService.deleteAnswer(SELF_USER, ANOTHER_ANSWER_ID);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_answer_self_different_owner_from_question() throws Exception {
+        Question question = anotherQuestion();
+        Answer answer = selfAnswer();
+        question.addAnswer(answer);
+        when(answerRepository.findById(ANOTHER_ANSWER_ID)).thenReturn(Optional.of(answer));
+
+        qnaService.deleteAnswer(SELF_USER, ANOTHER_ANSWER_ID);
     }
 
     @Test
-    public void delete_answer_self() throws Exception {
-        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(SELF_ANSWER));
+    public void delete_self_same_owner_from_question() throws Exception {
+        Question question = selfQuestion();
+        Answer answer = selfAnswer();
+        question.addAnswer(answer);
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(answer));
 
         qnaService.deleteAnswer(SELF_USER, SELF_ANSWER_ID);
 
-        softly.assertThat(SELF_ANSWER.isDeleted()).isTrue();
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 }

@@ -65,7 +65,7 @@ public class QuestionTest extends BaseTest {
     }
 
     @Test
-    public void delete_self_only_self_answers() throws Exception {
+    public void delete_self_contains_only_self_answers() throws Exception {
         Question question = selfQuestion();
         question.addAnswer(SELF_ANSWER);
 
