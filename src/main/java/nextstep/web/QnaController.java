@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @Controller
 @RequestMapping("/questions")
 public class QnaController {
@@ -54,7 +56,8 @@ public class QnaController {
 
     @DeleteMapping("/delete/{id}")
     public String deleteQuestion(@PathVariable("id") long questionId, @LoginUser User loginUser) {
-        qnaService.deleteQuestion(loginUser, questionId);
+        LocalDateTime createDate = LocalDateTime.now();
+        qnaService.deleteQuestion(loginUser, questionId, createDate);
         return "redirect:/";
     }
 
@@ -66,7 +69,8 @@ public class QnaController {
 
     @DeleteMapping("/{id}/answer/delete/{answerId}")
     public String deleteAnswer(@PathVariable("id") long questionId, @LoginUser User loginUser, @PathVariable("answerId") long answerId) {
-        qnaService.deleteAnswer(loginUser, answerId);
+        LocalDateTime createDate = LocalDateTime.now();
+        qnaService.deleteAnswer(loginUser, answerId, createDate);
         return "redirect:/questions/show/" + questionId;
     }
 }

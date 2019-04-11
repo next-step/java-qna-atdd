@@ -38,6 +38,26 @@ public class DeleteHistory {
         this.createDate = createDate;
     }
 
+    public ContentType getContentType() {
+        return contentType;
+    }
+
+    public void setCreateDate(LocalDateTime createDate) {
+        this.createDate = createDate;
+    }
+
+    public LocalDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public void toQuestion(Question question) {
+        this.question = question;
+    }
+
+    public void toAnswer(Answer answer) {
+        this.answer = answer;
+    }
+
     @Override
     public String toString() {
         return "DeleteHistory [id=" + id + ", contentType=" + contentType + ", contentId=" + contentId + ", deletedBy="

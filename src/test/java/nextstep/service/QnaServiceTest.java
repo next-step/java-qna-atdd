@@ -15,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import support.test.BaseTest;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -114,8 +116,13 @@ public class QnaServiceTest extends BaseTest {
     public void deleteQuestion() throws Exception {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
-        Question question = qnaService.findById(testQuestionId);
-        qnaService.deleteQuestion(user, question.getId());
+        LocalDateTime createDate = LocalDateTime.now();
+        QuestionDTO question = qnaService.deleteQuestion(user, testQuestionId, createDate);
+
+        String updateAt = question.getUpdateAt();
+        String createAt = question.getDeleteHistories().get(0).getCreateDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+
+        softly.assertThat(updateAt).isEqualTo(createAt);
     }
 
     @Test(expected = UnAuthorizedException.class)
@@ -128,7 +135,8 @@ public class QnaServiceTest extends BaseTest {
         user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         Question question = qnaService.findById(testQuestionId);
-        qnaService.deleteQuestion(user, question.getId());
+        LocalDateTime createDate = LocalDateTime.now();
+        qnaService.deleteQuestion(user, question.getId(), createDate);
     }
 
     @Test
@@ -136,7 +144,8 @@ public class QnaServiceTest extends BaseTest {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         Question question = qnaService.findById(noAnswerQuestionId);
-        qnaService.deleteQuestion(user, question.getId());
+        LocalDateTime createDate = LocalDateTime.now();
+        qnaService.deleteQuestion(user, question.getId(), createDate);
     }
 
     @Test
@@ -153,6 +162,12 @@ public class QnaServiceTest extends BaseTest {
         User user = new User("sanjigi", "test", "name", "javajigi@slipp.net");
         user = userService.login(user.getUserId(), user.getPassword());
         Answer answer = qnaService.findAnswerById(testAnswerId);
-        qnaService.deleteAnswer(user, answer.getId());
+        LocalDateTime createDate = LocalDateTime.now();
+        AnswerDTO answerDTO = qnaService.deleteAnswer(user, answer.getId(), createDate);
+
+        String updateAt = answerDTO.getUpdateAt();
+        String createAt = answerDTO.getHistories().get(0).getCreateDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+
+        softly.assertThat(updateAt).isEqualTo(createAt);
     }
 }

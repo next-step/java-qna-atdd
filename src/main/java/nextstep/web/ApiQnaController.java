@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.time.LocalDateTime;
 
 @RequestMapping("/api/questions")
 @RestController
@@ -41,7 +42,8 @@ public class ApiQnaController {
 
     @DeleteMapping("{id}")
     public ResponseEntity<Void> questionDelete(@PathVariable("id") long id, @LoginUser User loginUser) {
-        qnaService.deleteQuestion(loginUser, id);
+        LocalDateTime createDate = LocalDateTime.now();
+        qnaService.deleteQuestion(loginUser, id, createDate);
 
         HttpHeaders headers = new HttpHeaders();
         return new ResponseEntity<>(headers, HttpStatus.OK);
@@ -66,7 +68,8 @@ public class ApiQnaController {
 
     @DeleteMapping("{id}/answer/delete")
     public ResponseEntity<Answer> answerDelete(@LoginUser User loginUser, @PathVariable long id, @RequestBody Answer answer) {
-        qnaService.deleteAnswer(loginUser, answer.getId());
+        LocalDateTime createDate = LocalDateTime.now();
+        qnaService.deleteAnswer(loginUser, answer.getId(), createDate);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/questions/" + id));

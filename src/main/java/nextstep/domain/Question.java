@@ -85,6 +85,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return answers;
     }
 
+    public void setDeleteHistories(List<DeleteHistory> deleteHistories) {
+        this.deleteHistories = deleteHistories;
+    }
+
     public List<DeleteHistory> getDeleteHistories() {
         return deleteHistories;
     }
@@ -94,13 +98,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = target.contents;
     }
 
-    public void delete(User loginUser) {
-        answers.stream().forEach(a -> a.delete(loginUser));
+    public Question delete(User loginUser, LocalDateTime createDate) {
+        answers.forEach(a -> a.delete(loginUser, createDate));
         this.deleted = true;
 
-        LocalDateTime createDate = LocalDateTime.now();
-        this.deleteHistories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, createDate));
+        DeleteHistory deleteHistory = new DeleteHistory(ContentType.QUESTION, this.getId(), loginUser, createDate);
+        deleteHistory.toQuestion(this);
+        this.deleteHistories.add(deleteHistory);
+        this.setDeleteHistories(deleteHistories);
 
+        return this;
     }
 
     @Override
