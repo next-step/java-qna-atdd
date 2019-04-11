@@ -72,6 +72,8 @@ public class QuestionTest extends BaseTest {
         question.delete(SELF_USER);
 
         softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(question.getAnswers())
+                .allMatch(answer -> answer.isDeleted());
     }
 
     @Test

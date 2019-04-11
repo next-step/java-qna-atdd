@@ -181,7 +181,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
-        softly.assertThat(anotherQuestion().isDeleted()).isTrue();
 
         log.debug("body : {}", response.getBody());
     }

@@ -59,6 +59,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         this.deleted = true;
+        deleteAnswers(writer);
+    }
+
+    private void deleteAnswers(User writer) throws CannotDeleteException {
+        for (Answer answer : this.answers) {
+            answer.delete(writer);
+        }
     }
 
     private Optional<User> isOwner(User writer) {

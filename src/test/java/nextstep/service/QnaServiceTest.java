@@ -88,6 +88,8 @@ public class QnaServiceTest extends BaseTest {
         qnaService.deleteQuestion(SELF_USER, SELF_QUESTION_ID);
 
         softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(question.getAnswers())
+                .allMatch(answer -> answer.isDeleted());
     }
 
     @Test
