@@ -92,7 +92,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean isOwner(User loginUser) {
-        if (this.writer == null) {
+        if (loginUser == null) {
             return false;
         }
 
