@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.ContentType;
 import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.dto.QuestionDto;
@@ -13,8 +14,6 @@ import support.test.RestApiCallUtils;
 
 import java.util.List;
 
-import static nextstep.domain.QuestionTest.newQuestion;
-
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     private static final String BASE_URL = "/api/questions";
@@ -22,7 +21,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void create_no_login() {
         // Given
-        Question question = newQuestion();
+        Question question = new Question();
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.createResource(
@@ -36,7 +35,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void create_login() throws Exception {
         // Given
         User loginUser = selfUser();
-        Question question = newQuestion();
+        Question question = new Question("title", "contents");
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.createResource(
@@ -52,7 +51,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         User loginUser = selfUser();
 
         ResponseEntity<Void> createResponse = RestApiCallUtils.createResource(
-                basicAuthTemplate(loginUser), BASE_URL, newQuestion());
+                basicAuthTemplate(loginUser), BASE_URL, new Question("title", "contents"));
         String location = createResponse.getHeaders().getLocation().getPath();
 
         // When
@@ -71,8 +70,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-//        softly.assertThat(response.getBody().size())
-//                .isEqualTo(questionRepository.findAllByDeleted(false).size());
+        softly.assertThat(response.getBody().size())
+                .isEqualTo(questionRepository.findAllByDeleted(false).size());
     }
 
     @Test
@@ -188,6 +187,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(deleteHistoryRepository.findAllByContentType(ContentType.QUESTION)).hasSize(1);
     }
 
     private String getUrl(Question question) {

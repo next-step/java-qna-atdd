@@ -12,41 +12,38 @@ import static nextstep.domain.UserTest.SELF_USER;
 
 public class AnswerTest extends BaseTest {
 
-    public static final Answer SELF_ANSWER = new Answer(SELF_USER, "selfAnswer");
-    public static final Answer ANOTHER_ANSWER = new Answer(ANOTHER_USER, "anotherAnswer");
-
     public static final long SELF_ANSWER_ID = 1;
     public static final long ANOTHER_ANSWER_ID = 2;
 
-
-    static {
-        SELF_ANSWER.setId(SELF_ANSWER_ID);
-        ANOTHER_ANSWER.setId(ANOTHER_ANSWER_ID);
-    }
-
     public static Answer selfAnswer() {
-        Answer answer = new Answer(SELF_USER, "selfAnswer");
-        answer.setId(SELF_ANSWER_ID);
-        return answer;
+        return newAnswer(SELF_ANSWER_ID, SELF_USER, "selfAnswer");
     }
 
     public static Answer anotherAnswer() {
-        Answer answer = new Answer(ANOTHER_USER, "anotherAnswer");
-        answer.setId(ANOTHER_ANSWER_ID);
+        return newAnswer(ANOTHER_ANSWER_ID, ANOTHER_USER, "anotherAnswer");
+    }
+
+    private static Answer newAnswer(long id, User writer, String contents) {
+        Answer answer = new Answer(writer, contents);
+        answer.setId(id);
         return answer;
     }
 
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
-        SELF_ANSWER.update(ANOTHER_USER, "contents");
+        Answer answer = selfAnswer();
+
+        answer.update(ANOTHER_USER, "contents");
     }
 
     @Test
     public void update_self() throws Exception {
         String contents = "update contents";
-        SELF_ANSWER.update(SELF_USER, contents);
+        Answer answer = selfAnswer();
 
-        softly.assertThat(SELF_ANSWER.getContents()).isEqualTo(contents);
+        answer.update(SELF_USER, contents);
+
+        softly.assertThat(answer.getContents()).isEqualTo(contents);
     }
 
     @Test(expected = CannotDeleteException.class)
@@ -70,7 +67,8 @@ public class AnswerTest extends BaseTest {
         Answer answer = selfAnswer();
         question.addAnswer(answer);
 
-        answer.delete(SELF_USER);
+        DeleteHistory deleteHistory = answer.delete(SELF_USER);
         softly.assertThat(answer.isDeleted()).isTrue();
+        softly.assertThat(deleteHistory).isNotNull();
     }
 }

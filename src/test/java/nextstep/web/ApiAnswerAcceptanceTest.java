@@ -1,11 +1,12 @@
 package nextstep.web;
 
-import nextstep.CannotDeleteException;
-import nextstep.domain.*;
+import nextstep.domain.Answer;
+import nextstep.domain.ContentType;
+import nextstep.domain.Question;
+import nextstep.domain.User;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,24 +14,10 @@ import support.test.AcceptanceTest;
 import support.test.RestApiCallUtils;
 
 import java.util.List;
-import java.util.Optional;
-
-import static nextstep.domain.AnswerTest.*;
-import static nextstep.domain.AnswerTest.SELF_ANSWER_ID;
-import static nextstep.domain.QuestionTest.anotherQuestion;
-import static nextstep.domain.QuestionTest.selfQuestion;
-import static nextstep.domain.UserTest.SELF_USER;
-import static org.mockito.Mockito.when;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     public static final String BASE_URL = "/api/questions/%d/answers";
-
-    @Autowired
-    private QuestionRepository questionRepository;
-
-    @Autowired
-    private AnswerRepository answerRepository;
 
     @Test
     public void create_no_login() {
@@ -197,7 +184,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_self_and_same_owner_from_question() {
+    public void delete_login_self_and_same_owner_from_question() throws Exception {
         // Given
         User loginUser = selfUser();
         Question question = selfQuestion();
@@ -210,6 +197,8 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(selfAnswer().isDeleted()).isTrue();
+        softly.assertThat(deleteHistoryRepository.findAllByContentType(ContentType.ANSWER))
+                .hasSize(1);
     }
 
     private String getUrl(Question question, Answer defaultAnswer) {

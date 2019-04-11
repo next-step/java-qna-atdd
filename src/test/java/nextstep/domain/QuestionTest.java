@@ -6,8 +6,10 @@ import nextstep.dto.QuestionDto;
 import org.junit.*;
 import support.test.BaseTest;
 
-import static nextstep.domain.AnswerTest.ANOTHER_ANSWER;
-import static nextstep.domain.AnswerTest.SELF_ANSWER;
+import java.util.List;
+
+import static nextstep.domain.AnswerTest.anotherAnswer;
+import static nextstep.domain.AnswerTest.selfAnswer;
 import static nextstep.domain.UserTest.ANOTHER_USER;
 import static nextstep.domain.UserTest.SELF_USER;
 
@@ -17,21 +19,18 @@ public class QuestionTest extends BaseTest {
     public static final long ANOTHER_QUESTION_ID = 2;
 
     public static Question selfQuestion() {
-        Question question = new Question("selfTitle", "selfContent");
-        question.setId(SELF_QUESTION_ID);
-        question.writeBy(SELF_USER);
-        return question;
+        return newQuestion(SELF_QUESTION_ID, SELF_USER, "selfTitle", "selfContents");
     }
 
     public static Question anotherQuestion() {
-        Question question = new Question("selfTitle", "selfContent");
-        question.setId(ANOTHER_QUESTION_ID);
-        question.writeBy(ANOTHER_USER);
-        return question;
+        return newQuestion(ANOTHER_QUESTION_ID, ANOTHER_USER, "anotherTitle", "anotherContents");
     }
 
-    public static Question newQuestion() {
-        return new Question("title", "contents");
+    private static Question newQuestion(long id, User writer, String title, String content) {
+        Question question = new Question(title, content);
+        question.setId(id);
+        question.writeBy(writer);
+        return question;
     }
 
     @Test(expected = CannotUpdateException.class)
@@ -59,7 +58,7 @@ public class QuestionTest extends BaseTest {
     @Test(expected = CannotDeleteException.class)
     public void delete_self_contains_another_answers() throws Exception {
         Question question = selfQuestion();
-        question.addAnswer(ANOTHER_ANSWER);
+        question.addAnswer(anotherAnswer());
 
         question.delete(SELF_USER);
     }
@@ -67,13 +66,15 @@ public class QuestionTest extends BaseTest {
     @Test
     public void delete_self_contains_only_self_answers() throws Exception {
         Question question = selfQuestion();
-        question.addAnswer(SELF_ANSWER);
+        question.addAnswer(selfAnswer());
 
-        question.delete(SELF_USER);
+        List<DeleteHistory> deleteHistories = question.delete(SELF_USER);
 
         softly.assertThat(question.isDeleted()).isTrue();
         softly.assertThat(question.getAnswers())
                 .allMatch(answer -> answer.isDeleted());
+        softly.assertThat(deleteHistories)
+                .hasSize(2);
     }
 
     @Test
@@ -81,9 +82,11 @@ public class QuestionTest extends BaseTest {
         Question question = new Question("title", "contents");
         question.writeBy(SELF_USER);
 
-        question.delete(SELF_USER);
+        List<DeleteHistory> deleteHistories = question.delete(SELF_USER);
 
         softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories)
+                .hasSize(1);
     }
 
     @Test

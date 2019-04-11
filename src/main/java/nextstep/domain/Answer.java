@@ -88,12 +88,17 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser) || !sameOwnerFromQuestion(loginUser)) {
             throw new CannotDeleteException("writer should be owner and same writer from question");
         }
 
         this.deleted = true;
+        return createDeleteHistory();
+    }
+
+    private DeleteHistory createDeleteHistory() {
+        return new DeleteHistory(ContentType.ANSWER, getId(), writer);
     }
 
     private boolean sameOwnerFromQuestion(User loginUser) {

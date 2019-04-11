@@ -51,21 +51,33 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.contents = updatedQuestionDto.getContents();
     }
 
-    public void delete(User writer) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User writer) throws CannotDeleteException {
         isOwner(writer).orElseThrow(() -> new CannotDeleteException(MSG_NOT_OWNER));
 
         if (!containsOnlySelfAnswers()) {
             throw new CannotDeleteException("Answers should contain only answer wrote by owner of question or empty.");
         }
 
+        List<DeleteHistory> deleteHistories = deleteAnswers(writer);
+
         this.deleted = true;
-        deleteAnswers(writer);
+        deleteHistories.add(createDeleteHistory());
+
+        return deleteHistories;
     }
 
-    private void deleteAnswers(User writer) throws CannotDeleteException {
+    private DeleteHistory createDeleteHistory() {
+        return new DeleteHistory(ContentType.QUESTION, getId(), writer);
+    }
+
+    private List<DeleteHistory> deleteAnswers(User writer) throws CannotDeleteException {
+        List<DeleteHistory> deleteHistories = new ArrayList<>();
+
         for (Answer answer : this.answers) {
-            answer.delete(writer);
+            deleteHistories.add(answer.delete(writer));
         }
+
+        return deleteHistories;
     }
 
     public Optional<User> isOwner(User writer) {

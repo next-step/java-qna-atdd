@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 import support.test.HtmlFormDataBuilder;
-import support.test.RestApiCallUtils;
 
 import static nextstep.domain.QuestionTest.ANOTHER_QUESTION_ID;
 import static nextstep.domain.QuestionTest.SELF_QUESTION_ID;

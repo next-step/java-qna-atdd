@@ -1,6 +1,5 @@
 package support.test;
 
-import nextstep.domain.Question;
 import org.assertj.core.api.JUnitSoftAssertions;
 import org.junit.*;
 

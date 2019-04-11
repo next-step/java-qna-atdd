@@ -9,6 +9,7 @@ import org.junit.*;
 import org.junit.runner.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,6 @@ import java.util.Optional;
 
 import static nextstep.domain.AnswerTest.*;
 import static nextstep.domain.QuestionTest.*;
-import static nextstep.domain.UserTest.ANOTHER_USER;
 import static nextstep.domain.UserTest.SELF_USER;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +33,13 @@ public class QnaServiceTest extends BaseTest {
 
     @Mock
     AnswerRepository answerRepository;
+
+    @Spy
+    DeleteHistoryRepository deleteHistoryRepository;
+
+    @Spy
+    @InjectMocks
+    DeleteHistoryService deleteHistoryService;
 
     @InjectMocks
     QnaService qnaService;
@@ -74,7 +81,7 @@ public class QnaServiceTest extends BaseTest {
     @Test(expected = CannotDeleteException.class)
     public void delete_question_self_contains_another_answers() throws Exception {
         Question question = selfQuestion();
-        question.addAnswer(ANOTHER_ANSWER);
+        question.addAnswer(anotherAnswer());
         when(questionRepository.findById(ANOTHER_QUESTION_ID)).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(SELF_USER, ANOTHER_QUESTION_ID);
@@ -83,7 +90,7 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void delete_question_self_contains_only_self_answers() throws Exception {
         Question question = selfQuestion();
-        question.addAnswer(SELF_ANSWER);
+        question.addAnswer(selfAnswer());
         when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(question));
 
         qnaService.deleteQuestion(SELF_USER, SELF_QUESTION_ID);
@@ -91,6 +98,19 @@ public class QnaServiceTest extends BaseTest {
         softly.assertThat(question.isDeleted()).isTrue();
         softly.assertThat(question.getAnswers())
                 .allMatch(answer -> answer.isDeleted());
+    }
+
+    @Test
+    public void delete_question_stack_history() throws Exception {
+        Question question = selfQuestion();
+        question.addAnswer(selfAnswer());
+
+        when(questionRepository.findById(SELF_QUESTION_ID)).thenReturn(Optional.of(question));
+        when(deleteHistoryRepository.findAll()).thenReturn(question.delete(SELF_USER));
+
+        qnaService.deleteQuestion(SELF_USER, SELF_QUESTION_ID);
+        softly.assertThat(deleteHistoryService.findAll())
+            .hasSize(2);
     }
 
     @Test
@@ -110,44 +130,46 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void find_answers_by_question_id() {
         Question question = selfQuestion();
-        question.addAnswer(SELF_ANSWER);
-        question.addAnswer(ANOTHER_ANSWER);
+        question.addAnswer(selfAnswer());
+        question.addAnswer(anotherAnswer());
         when(questionRepository.findById(question.getId())).thenReturn(Optional.of(question));
 
         List<Answer> answers = qnaService.findAnswers(question.getId());
 
         softly.assertThat(answers)
                 .isNotNull()
-                .allMatch(answer -> answer.isOf(question))
-                .containsAll(Arrays.asList(SELF_ANSWER, ANOTHER_ANSWER));
+                .allMatch(answer -> answer.isOf(question));
     }
 
     @Test
     public void find_answer_by_id() {
-        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(SELF_ANSWER));
+        Answer answer = selfAnswer();
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(answer));
 
-        Answer answer = answerRepository.findById(SELF_ANSWER_ID).get();
+        Answer searched = answerRepository.findById(SELF_ANSWER_ID).get();
 
-        softly.assertThat(answer).isNotNull();
-        softly.assertThat(answer.getId()).isEqualTo(SELF_ANSWER_ID);
+        softly.assertThat(searched).isNotNull();
+        softly.assertThat(searched.getId()).isEqualTo(answer.getId());
     }
 
     @Test(expected = CannotUpdateException.class)
     public void update_answer_another() throws Exception {
-        when(answerRepository.findById(ANOTHER_ANSWER_ID)).thenReturn(Optional.of(ANOTHER_ANSWER));
+        Answer answer = anotherAnswer();
+        when(answerRepository.findById(ANOTHER_ANSWER_ID)).thenReturn(Optional.of(answer));
 
         qnaService.updateAnswer(SELF_USER, ANOTHER_ANSWER_ID, "updateQuestion");
     }
 
     @Test
     public void update_answer_self() throws Exception {
-        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(SELF_ANSWER));
+        Answer answer = selfAnswer();
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(answer));
 
         String contents = "updateQuestion";
-        Answer answer = qnaService.updateAnswer(SELF_USER, SELF_ANSWER_ID, contents);
+        Answer updated = qnaService.updateAnswer(SELF_USER, SELF_ANSWER_ID, contents);
 
         softly.assertThat(answer.getContents()).isEqualTo(contents);
-        softly.assertThat(SELF_ANSWER.getContents()).isEqualTo(contents);
+        softly.assertThat(updated.getContents()).isEqualTo(contents);
     }
 
 
@@ -170,7 +192,7 @@ public class QnaServiceTest extends BaseTest {
     }
 
     @Test
-    public void delete_self_same_owner_from_question() throws Exception {
+    public void delete_answer_self_same_owner_from_question() throws Exception {
         Question question = selfQuestion();
         Answer answer = selfAnswer();
         question.addAnswer(answer);
@@ -179,5 +201,19 @@ public class QnaServiceTest extends BaseTest {
         qnaService.deleteAnswer(SELF_USER, SELF_ANSWER_ID);
 
         softly.assertThat(answer.isDeleted()).isTrue();
+    }
+
+    @Test
+    public void delete_answer_stack_history() throws Exception {
+        Question question = selfQuestion();
+        Answer answer = selfAnswer();
+        question.addAnswer(answer);
+
+        when(answerRepository.findById(SELF_ANSWER_ID)).thenReturn(Optional.of(answer));
+        when(deleteHistoryRepository.findAll()).thenReturn(Arrays.asList(answer.delete(SELF_USER)));
+
+        qnaService.deleteAnswer(SELF_USER, SELF_ANSWER_ID);
+        softly.assertThat(deleteHistoryService.findAll())
+                .hasSize(1);
     }
 }

@@ -20,16 +20,19 @@ import static nextstep.domain.UserTest.SELF_USER;
 public abstract class AcceptanceTest extends BaseTest {
 
     @Autowired
-    private TestRestTemplate template;
+    protected TestRestTemplate template;
 
     @Autowired
-    private UserRepository userRepository;
+    protected UserRepository userRepository;
 
     @Autowired
-    private QuestionRepository questionRepository;
+    protected QuestionRepository questionRepository;
 
     @Autowired
-    private AnswerRepository answerRepository;
+    protected AnswerRepository answerRepository;
+
+    @Autowired
+    protected DeleteHistoryRepository deleteHistoryRepository;
 
     public TestRestTemplate template() {
         return template;
