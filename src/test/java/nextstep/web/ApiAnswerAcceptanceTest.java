@@ -58,8 +58,18 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void update() {
         String location = createResourceWithLogin(DEFAULT_ANSWER_PATH, "원래답변은 이래", defaultUser());
+        Answer answer = getResourceWithLogin(location, Answer.class, defaultUser());
         ResponseEntity<Answer> response = basicAuthTemplate()
                 .exchange(location, HttpMethod.PUT, createHttpEntity("수정한 답변"), Answer.class);
+        softly.assertThat(response.getBody().getContents()).isEqualTo("수정한 답변");
+    }
+
+    @Test //TODO : 형구님 이 CASE에서 answer 객체 내부에 있는 question객체가 null 입니다.
+    public void question객체가_null() {
+        String location = createResourceWithLogin(DEFAULT_ANSWER_PATH, "원래답변은 이래", defaultUser());
+        Answer answer = getResourceWithLogin(location, Answer.class, defaultUser());
+        ResponseEntity<Answer> response = basicAuthTemplate()
+                .exchange(answer.generateApiUrl(), HttpMethod.PUT, createHttpEntity("수정한 답변"), Answer.class);
         softly.assertThat(response.getBody().getContents()).isEqualTo("수정한 답변");
     }
 
