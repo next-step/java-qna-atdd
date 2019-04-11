@@ -5,7 +5,6 @@ import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import nextstep.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +22,6 @@ public class QuestionController {
 
     @Resource(name = "qnaService")
     private QnaService qnaService;
-
-    @Resource(name = "userService")
-    private UserService userService;
 
     @GetMapping("/form")
     public String form() {
