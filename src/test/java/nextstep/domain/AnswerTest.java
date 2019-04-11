@@ -120,7 +120,7 @@ public class AnswerTest extends BaseTest {
 
         // then
         DeleteHistory shouldBeSame = new DeleteHistory(ContentType.ANSWER, answer.getId(), loginUser);
-        softly.assertThat(deleteHistory.equalsContentTypeAndContentIdAndDeletedBy(shouldBeSame)).isTrue();
+        softly.assertThat(deleteHistory).isEqualTo(shouldBeSame);
     }
 
     private Answer notDeletedAnswer() {

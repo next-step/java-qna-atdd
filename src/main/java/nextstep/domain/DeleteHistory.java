@@ -2,6 +2,7 @@ package nextstep.domain;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 public class DeleteHistory {
@@ -18,7 +19,7 @@ public class DeleteHistory {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_user"))
     private User deletedBy;
 
-    private LocalDateTime createDate = LocalDateTime.now();
+    private LocalDateTime createDate;
 
     public DeleteHistory() {
     }
@@ -27,19 +28,22 @@ public class DeleteHistory {
         this.contentType = contentType;
         this.contentId = contentId;
         this.deletedBy = deletedBy;
+        this.createDate = LocalDateTime.now();
     }
 
-    public DeleteHistory(ContentType contentType, Long contentId, User deletedBy, LocalDateTime createDate) {
-        this.contentType = contentType;
-        this.contentId = contentId;
-        this.deletedBy = deletedBy;
-        this.createDate = createDate;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DeleteHistory that = (DeleteHistory) o;
+        return contentType == that.contentType &&
+                Objects.equals(contentId, that.contentId) &&
+                Objects.equals(deletedBy, that.deletedBy);
     }
 
-    public boolean equalsContentTypeAndContentIdAndDeletedBy(DeleteHistory target) {
-        return (this.contentType == target.contentType) &&
-                (this.contentId == target.contentId) &&
-                (this.deletedBy.equalsNameAndEmail(target.deletedBy));
+    @Override
+    public int hashCode() {
+        return Objects.hash(contentType, contentId, deletedBy);
     }
 
     @Override

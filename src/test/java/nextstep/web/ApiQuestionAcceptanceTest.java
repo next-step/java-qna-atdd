@@ -145,7 +145,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         // then
         DeleteHistory questionDeleteHistory = findDeleteHistoryByContentTypeAndContentId(ContentType.QUESTION, question.getId());
         DeleteHistory shouldBeSame = new DeleteHistory(ContentType.QUESTION, question.getId(), loginUser);
-        softly.assertThat(questionDeleteHistory.equalsContentTypeAndContentIdAndDeletedBy(shouldBeSame)).isTrue();
+        softly.assertThat(questionDeleteHistory).isEqualTo(shouldBeSame);
     }
 
     private Question questionOfDefaultUser() {
