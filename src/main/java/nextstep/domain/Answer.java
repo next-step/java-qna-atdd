@@ -78,7 +78,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean isOf(Question question) {
-        return this.question.getId() == question.getId();
+        return this.question.equals(question);
     }
 
     public void update(User loginUser, String contents) throws CannotUpdateException {
