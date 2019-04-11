@@ -1,6 +1,5 @@
 package nextstep.service;
 
-import nextstep.ForbiddenException;
 import nextstep.NotFoundException;
 import nextstep.domain.*;
 import org.junit.Test;
@@ -73,11 +72,12 @@ public class QnAServiceTest extends BaseTest {
         softly.assertThat(returned.getQuestionBody()).isEqualTo(newQuestionBody);
     }
 
-    @Test(expected = ForbiddenException.class)
-    public void 다른_사용자가_등록한_답변이_있을경우_질문삭제가_불가능하다() {
-        답변이_포함된_질문_1건을_조회_가능하게함_$질문자와_답변자가_다름$(1L);
+    @Test
+    public void 질문을_삭제한다() {
+        질문_1건을_조회_가능하게함(1L);
 
-        qnaService.deleteQuestion(1L, writer);
+        Question question = qnaService.deleteQuestion(1L, writer);
+        softly.assertThat(question.isDeleted()).isTrue();
     }
 
     @Test
@@ -92,7 +92,7 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 답변목록을_조회한다() {
-        답변이_포함된_질문_1건을_조회_가능하게함_$질문자와_답변자가_같음$(1L);
+        답변이_포함된_질문_1건을_조회_가능하게함(1L);
 
         List<Answer> returned = qnaService.findAnswers(1L);
 
@@ -101,7 +101,7 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 답변을_조회한다() {
-        답변_1건_조회를_가능하게함(1L, 1L);
+        답변_1건을_조회_가능하게함(1L, 1L);
 
         Answer returned = qnaService.findAnswer(1L);
 
@@ -110,7 +110,7 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 답변을_삭제한다() {
-        답변_1건_조회를_가능하게함(1L, 1L);
+        답변_1건을_조회_가능하게함(1L, 1L);
 
         Answer answer = qnaService.deleteAnswer(writer, 1L);
 
@@ -132,20 +132,14 @@ public class QnAServiceTest extends BaseTest {
         when(questionRepository.findByIdAndDeletedFalse(questionId)).thenReturn(Optional.of(question));
     }
 
-    private void 답변이_포함된_질문_1건을_조회_가능하게함_$질문자와_답변자가_같음$(Long questionId) {
+    private void 답변이_포함된_질문_1건을_조회_가능하게함(Long questionId) {
         Question question = QuestionTest.newQuestion(questionId);
         question.addAnswer(new Answer(writer, QuestionTest.newQuestion(questionId), "answer"));
         when(questionRepository.findByIdAndDeletedFalse(questionId)).thenReturn(Optional.of(question));
     }
 
-    private void 답변이_포함된_질문_1건을_조회_가능하게함_$질문자와_답변자가_다름$(Long questionId) {
-        Question question = QuestionTest.newQuestion(questionId);
-        question.addAnswer(new Answer(UserTest.newUser(2L), QuestionTest.newQuestion(questionId), "answer"));
-        when(questionRepository.findByIdAndDeletedFalse(questionId)).thenReturn(Optional.of(question));
-    }
-
-    private void 답변_1건_조회를_가능하게함(Long questionId, Long answerId) {
-        답변이_포함된_질문_1건을_조회_가능하게함_$질문자와_답변자가_같음$(questionId);
+    private void 답변_1건을_조회_가능하게함(Long questionId, Long answerId) {
+        답변이_포함된_질문_1건을_조회_가능하게함(questionId);
 
         Answer answer = AnswerTest.newAnswer(answerId);
         when(answerRepository.findByIdAndDeletedFalse(answerId)).thenReturn(Optional.of(answer));

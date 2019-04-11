@@ -61,6 +61,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         }
 
         deleted = true;
+
+        getAnswers().forEach(a -> a.delete(writer));
     }
 
     public User getWriter() {

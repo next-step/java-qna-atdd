@@ -12,10 +12,6 @@ public class QuestionTest extends BaseTest {
         return new Question(id, UserTest.newUser(1L), new QuestionBody("This is title", "This is contents"));
     }
 
-    public static Question newQuestion(Long id, User user) {
-        return new Question(id, user, new QuestionBody("This is title", "This is contents"));
-    }
-
     @Test
     public void 질문을_생성한다() {
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
@@ -77,5 +73,23 @@ public class QuestionTest extends BaseTest {
 
         User anotherWriter = UserTest.newUser(2L);
         question.delete(anotherWriter);
+    }
+
+    @Test
+    public void 질문을_삭제하면_답변도_모두_삭제된다() {
+        Question question = new Question(writer, new QuestionBody("This is title", "This is contents"));
+        question.addAnswer(new Answer(writer, question, "answer"));
+
+        question.delete(writer);
+
+        softly.assertThat(question.getAnswers().get(0).isDeleted()).isTrue();
+    }
+
+    @Test(expected = ForbiddenException.class)
+    public void 다른_사용자가_등록한_답변이_있을경우_질문삭제가_불가능하다() {
+        Question question = new Question(writer, new QuestionBody("This is title", "This is contents"));
+        question.addAnswer(new Answer(UserTest.newUser(2L), question, "answer"));
+
+        question.delete(writer);
     }
 }

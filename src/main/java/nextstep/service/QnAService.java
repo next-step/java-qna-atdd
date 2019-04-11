@@ -53,13 +53,6 @@ public class QnAService {
     @Transactional
     public Question deleteQuestion(Long id, User writer) {
         Question question = findQuestionById(id);
-
-        question.getAnswers().forEach(a -> {
-            if(!a.isOwner(question.getWriter())) {
-                throw new ForbiddenException();
-            }
-        });
-
         question.delete(writer);
 
         return question;
@@ -91,20 +84,8 @@ public class QnAService {
     @Transactional
     public Answer deleteAnswer(User writer, Long id) {
         Answer answer = findAnswer(id);
-        answer.delete();
+        answer.delete(writer);
 
         return answer;
-    }
-
-    @Deprecated
-    @Transactional(readOnly = true)
-    public Question findByOwner(User loginUser, Long id) {
-        Question question = findQuestionById(id);
-
-        if (!question.isOwner(loginUser)) {
-            throw new ForbiddenException();
-        }
-
-        return question;
     }
 }
