@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import support.test.AcceptanceTest;
 import support.test.RestApiCallUtils;
 
@@ -62,6 +63,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
+    @Transactional
     public void show_all() throws Exception {
         // Given
         Question question = selfQuestion();
@@ -71,7 +73,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
                 template(), getUrl(question), Answer.class);
 
         // Then
-        int size = answerRepository.findAllByQuestion(question).size();
+        int size = question.getAnswers().size();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).hasSize(size);
     }

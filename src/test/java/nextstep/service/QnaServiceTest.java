@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import support.test.BaseTest;
 
 import java.util.Arrays;
@@ -59,8 +60,8 @@ public class QnaServiceTest extends BaseTest {
         anotherAnswer.toQuestion(defaultQuestion);
         anotherAnswer.setId(ANOTHER_ANSWER_ID);
 
-        when(answerRepository.findAllByQuestion(defaultQuestion))
-                .thenReturn(Arrays.asList(defaultAnswer, anotherAnswer));
+        defaultQuestion.addAnswer(defaultAnswer);
+        defaultQuestion.addAnswer(anotherAnswer);
         when(answerRepository.findById(DEFAULT_ANSWER_ID))
                 .thenReturn(Optional.of(defaultAnswer));
         when(answerRepository.findById(ANOTHER_ANSWER_ID))
@@ -98,6 +99,7 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void delete_question_self() throws Exception {
         qnaService.deleteQuestion(defaultUser(), DEFAULT_QUESTION_ID);
+
         softly.assertThat(defaultQuestion().isDeleted()).isTrue();
     }
 
@@ -114,16 +116,17 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void find_answers_by_question_id() {
         Question question = defaultQuestion();
-        log.debug("question : {}", question);
-        List<Answer> answersByQuestionId = qnaService.findAnswers(question.getId());
-        softly.assertThat(answersByQuestionId).isNotNull();
-        softly.assertThat(answersByQuestionId)
+        List<Answer> answers = qnaService.findAnswers(defaultQuestion().getId());
+
+        softly.assertThat(answers).isNotNull();
+        softly.assertThat(answers)
                 .allMatch(answer -> answer.isOf(question));
     }
 
     @Test
     public void find_answer_by_id() {
         Answer answer = defaultAnswer();
+
         softly.assertThat(answer).isNotNull();
         softly.assertThat(answer.getId()).isEqualTo(DEFAULT_ANSWER_ID);
     }
@@ -137,6 +140,7 @@ public class QnaServiceTest extends BaseTest {
     public void update_answer_self() throws Exception {
         String contents = "updateQuestion";
         Answer answer = qnaService.updateAnswer(defaultUser(), DEFAULT_ANSWER_ID, contents);
+
         softly.assertThat(answer.getContents()).isEqualTo(contents);
         softly.assertThat(defaultAnswer().getContents()).isEqualTo(contents);
     }
@@ -149,6 +153,7 @@ public class QnaServiceTest extends BaseTest {
     @Test
     public void delete_answer_self() throws Exception {
         qnaService.deleteAnswer(defaultUser(), DEFAULT_ANSWER_ID);
+
         softly.assertThat(defaultAnswer().isDeleted()).isTrue();
     }
 

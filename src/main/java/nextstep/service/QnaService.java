@@ -67,7 +67,7 @@ public class QnaService {
     public List<Answer> findAnswers(long questionId) {
         Question question = questionRepository.findById(questionId).get();
 
-        return answerRepository.findAllByQuestion(question);
+        return question.getAnswers();
     }
 
     public Answer findAnswer(long id) {
