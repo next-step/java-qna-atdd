@@ -40,7 +40,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void create_login() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = selfQuestion();
         String contents = "answer";
 
@@ -112,7 +112,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_login_another() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = selfQuestion();
         Answer answer = anotherAnswer();
         String updateContents = "updateQuestion answer";
@@ -128,7 +128,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_login_self() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = selfQuestion();
         Answer answer = selfAnswer();
         String updateContents = "updateQuestion answer";
@@ -155,7 +155,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_login_another() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = selfQuestion();
         Answer answer = anotherAnswer();
 
@@ -170,7 +170,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_login_self() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = selfQuestion();
         Answer answer = selfAnswer();
 

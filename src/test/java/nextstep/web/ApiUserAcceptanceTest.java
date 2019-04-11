@@ -55,7 +55,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
         // When
         response = RestApiCallUtils.getResource(
-                basicAuthTemplate(defaultUser()), location, Void.class);
+                basicAuthTemplate(selfUser()), location, Void.class);
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
@@ -136,7 +136,7 @@ public class ApiUserAcceptanceTest extends AcceptanceTest {
 
         // When
         ResponseEntity<Void> responseEntity = RestApiCallUtils.updateResource(
-                basicAuthTemplate(defaultUser()), location, updateUser, Void.class);
+                basicAuthTemplate(selfUser()), location, updateUser, Void.class);
 
         // Then
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);

@@ -1,7 +1,6 @@
 package support.test;
 
 import nextstep.domain.*;
-import nextstep.service.QnaService;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,15 +29,19 @@ public abstract class AcceptanceTest extends BaseTest {
     }
 
     public TestRestTemplate basicAuthTemplate() {
-        return basicAuthTemplate(defaultUser());
+        return basicAuthTemplate(selfUser());
     }
 
     public TestRestTemplate basicAuthTemplate(User loginUser) {
         return template.withBasicAuth(loginUser.getUserId(), loginUser.getPassword());
     }
 
-    protected User defaultUser() {
-        return findByUserId(DEFAULT_LOGIN_USER);
+    protected User selfUser() {
+        return findByUserId(super.selfUser().getUserId());
+    }
+
+    protected User anotherUser() {
+        return findByUserId(super.anotherUser().getUserId());
     }
 
     protected User findByUserId(String userId) {

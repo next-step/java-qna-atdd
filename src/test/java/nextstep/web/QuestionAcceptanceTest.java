@@ -43,7 +43,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void createForm_login() throws Exception {
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
 
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .getForEntity("/questions/form", String.class);
@@ -64,7 +64,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create_login() throws Exception {
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
 
         ResponseEntity<String> response = create(basicAuthTemplate(loginUser));
 

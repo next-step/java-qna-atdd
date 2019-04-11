@@ -8,9 +8,6 @@ import support.test.BaseTest;
 
 public class QuestionTest extends BaseTest {
 
-    private User self;
-    private User another;
-
     private Question selfQuestion;
     private Question anotherQuestion;
 
@@ -24,45 +21,43 @@ public class QuestionTest extends BaseTest {
 
     @Before
     public void setup() {
-        self = new User(1, "self", "pass", "self", "email@email.com");
-        another = new User(2, "another", "pass", "another", "email2@email.com");
         selfQuestion = newQuestion("selfTitle", "selfContent");
         anotherQuestion = newQuestion("anotherTitle", "anotherContent");
 
-        selfQuestion.writeBy(self);
-        anotherQuestion.writeBy(another);
+        selfQuestion.writeBy(selfUser());
+        anotherQuestion.writeBy(anotherUser());
     }
 
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
-        selfQuestion.update(another, new QuestionDto());
+        selfQuestion.update(anotherUser(), new QuestionDto());
     }
 
     @Test
     public void update_self() throws Exception {
         QuestionDto updateQuestionDto = new QuestionDto("updateTitle", "updateContents");
 
-        selfQuestion.update(self, updateQuestionDto);
+        selfQuestion.update(selfUser(), updateQuestionDto);
 
         softly.assertThat(selfQuestion.getTitle()).isEqualTo(updateQuestionDto.getTitle());
         softly.assertThat(selfQuestion.getContents()).isEqualTo(updateQuestionDto.getContents());
-        softly.assertThat(selfQuestion.getWriter()).isEqualTo(self);
+        softly.assertThat(selfQuestion.getWriter()).isEqualTo(selfUser());
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_another() throws Exception {
-        selfQuestion.delete(another);
+        selfQuestion.delete(anotherUser());
     }
 
     @Test
     public void delete_self() throws Exception {
-        selfQuestion.delete(self);
+        selfQuestion.delete(selfUser());
         softly.assertThat(selfQuestion.isDeleted()).isTrue();
     }
 
     @Test
     public void add_answer() {
-        Answer answer = new Answer(self, "answer");
+        Answer answer = new Answer(selfUser(), "answer");
         selfQuestion.addAnswer(answer);
 
         softly.assertThat(selfQuestion.getAnswers())

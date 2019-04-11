@@ -48,23 +48,23 @@ public class UserAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = template().getForEntity("/users", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         log.debug("body : {}", response.getBody());
-        softly.assertThat(response.getBody()).contains(defaultUser().getEmail());
+        softly.assertThat(response.getBody()).contains(selfUser().getEmail());
     }
 
     @Test
     public void updateForm_no_login() throws Exception {
-        ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", defaultUser().getId()),
+        ResponseEntity<String> response = template().getForEntity(String.format("/users/%d/form", selfUser().getId()),
                 String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void updateForm_login() throws Exception {
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         ResponseEntity<String> response = basicAuthTemplate(loginUser)
                 .getForEntity(String.format("/users/%d/form", loginUser.getId()), String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(response.getBody()).contains(defaultUser().getEmail());
+        softly.assertThat(response.getBody()).contains(selfUser().getEmail());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
                 .addParameter("email", "javajigi@slipp.net")
                 .build();
 
-        return template.postForEntity(String.format("/users/%d", defaultUser().getId()), request, String.class);
+        return template.postForEntity(String.format("/users/%d", selfUser().getId()), request, String.class);
     }
 
     @Test

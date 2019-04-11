@@ -40,7 +40,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void create_login() throws Exception {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = newQuestion();
 
         // When
@@ -105,7 +105,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_login_another() throws Exception {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = anotherQuestion();
 
         // When
@@ -119,7 +119,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void update_login_self() throws Exception {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         QuestionDto questionDto = new QuestionDto("updateQuestion title", "updateQuestion contents");
         Question question = selfQuestion();
 
@@ -149,7 +149,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_login_another() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = anotherQuestion();
 
         // When
@@ -163,7 +163,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void delete_login_self() {
         // Given
-        User loginUser = defaultUser();
+        User loginUser = selfUser();
         Question question = selfQuestion();
 
         // When
