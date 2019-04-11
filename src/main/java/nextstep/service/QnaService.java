@@ -31,20 +31,20 @@ public class QnaService {
         return questionRepository.save(question);
     }
 
-    public Optional<Question> findById(long id) {
-        return questionRepository.findById(id);
+    public Question findById(long id) {
+        return questionRepository.findById(id).orElseThrow(IllegalArgumentException::new);
     }
 
     @Transactional
     public Question update(User loginUser, long id, Question updatedQuestion) {
-        Optional<Question> original = findById(id);
-        return original.orElseThrow(IllegalArgumentException::new).update(loginUser, updatedQuestion);
+        Question original = findById(id);
+        return original.update(loginUser, updatedQuestion);
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        Optional<Question> question = findById(questionId);
-        question.orElseThrow(IllegalArgumentException::new).delete(loginUser);
+        Question question = findById(questionId);
+        question.delete(loginUser);
     }
 
     public Iterable<Question> findAll() {
@@ -55,9 +55,15 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    public Answer createAnswer(User loginUser, Answer answer) {
+        answer.writeBy(loginUser);
+        log.debug("question : {}", answer);
+        return answerRepository.save(answer);
+    }
+
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        Optional<Question> question = findById(questionId);
-        return question.orElseThrow(IllegalAccessError::new).addAnswer(new Answer(loginUser, contents));
+        Question question = findById(questionId);
+        return question.addAnswer(new Answer(loginUser, contents));
     }
 
     @Transactional
