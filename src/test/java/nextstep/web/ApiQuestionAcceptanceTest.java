@@ -1,75 +1,88 @@
 package nextstep.web;
 
+import nextstep.domain.Question;
 import nextstep.domain.User;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
-import support.domain.HtmlFormDataBuilder;
+import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
-public class ApiQuestionAcceptanceTest extends AcceptanceTest {
-    private static final Logger log = LoggerFactory.getLogger(UserAcceptanceTest.class);
-    private static final String FORMAT_PATH_VALUE_ID = "/%d";
+import static nextstep.domain.QuestionTest.newQuestion;
 
-    @Test
-    public void createForm() throws Exception {
-        ResponseEntity<String> response = template().getForEntity("/questions/form", String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
-    }
+public class ApiQuestionAcceptanceTest extends AcceptanceTest {
+    private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
+    static final String TITLE = "제목 내용";
+    static final String CONTENTS = "본문 내용";
+    static final String API_QUESTION_LOCATION = "/api/questions";
 
     @Test
     public void create() throws Exception {
         User loginUser = defaultUser();
-        String title = "첫 게시물";
-        String contents = "첫 내용";
 
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .addParameter("userId", loginUser.getUserId())
-                .addParameter("title", title)
-                .addParameter("contents", contents)
-                .build();
+        Question question = newQuestion(TITLE, CONTENTS, loginUser);
 
-        softly.assertThat(foundResource(getQuestionPath(""), request)).startsWith("/questions");
+        ResponseEntity<Void> response = basicAuthTemplate().postForEntity(API_QUESTION_LOCATION, question, Void.class);
+        Question dbQuestion = basicAuthTemplate().getForObject(API_QUESTION_LOCATION, Question.class);
+
+        softly.assertThat(dbQuestion).isNotNull();
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
     }
 
-    @Test
-    public void list() throws Exception {
-        PageRequest pageRequest = PageRequest.of(1, 10);
-        ResponseEntity<String> response = template().getForEntity(String.format("/questions/list", pageRequest),  String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
-    }
-
-    @Test
-    public void updateForm() throws Exception {
-        ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", defaultUser().getId()), String.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        log.debug("body : {}", response.getBody());
-    }
 
     @Test
     public void update() throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .put()
-                .addParameter("title", "제목수정한 것")
-                .addParameter("contents", "내용 수정된 것")
-                .build();
+        User loginUser = defaultUser();
 
-        softly.assertThat(foundResource(getQuestionPath(FORMAT_PATH_VALUE_ID), request).startsWith("/questions"));
+        String location = createLocation(loginUser);
+
+        Question original = getResource(location, Question.class, loginUser);
+        Question updateQuestion = new Question(original.getId(), original.getTitle(), original.getContents(), loginUser);
+
+        ResponseEntity<Question> responseEntity =
+                basicAuthTemplate().exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(updateQuestion.equals(responseEntity.getBody())).isTrue();
+    }
+
+    @Test
+    public void update_no_login() throws Exception {
+        User loginUser = defaultUser();
+
+        String location = createLocation(loginUser);
+
+        Question original = getResource(location, Question.class, loginUser);
+        Question updateQuestion = new Question(original.getId(), original.getTitle(), original.getContents(), loginUser);
+
+        ResponseEntity<Question> responseEntity =
+                template().exchange(location, HttpMethod.PUT, createHttpEntity(updateQuestion), Question.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        log.debug("error message : {}", responseEntity.getBody());
     }
 
     @Test
     public void delete() throws Exception {
-        HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
-                .delete()
-                .build();
+        User loginUser = defaultUser();
 
-        softly.assertThat(foundResource(getQuestionPath(FORMAT_PATH_VALUE_ID), request)).startsWith("/questions");
+        String location = createLocation(loginUser);
+        Question original = getResource(location, Question.class, loginUser);
+
+        ResponseEntity<Void> responseEntity
+                = basicAuthTemplate().exchange(location, HttpMethod.DELETE, createHttpEntity(original), Void.class);
+
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    private String createLocation(User loginUser) {
+        Question question = newQuestion(TITLE, CONTENTS, loginUser);
+        return createResource(API_QUESTION_LOCATION, question);
+    }
+
+    private HttpEntity createHttpEntity(Object body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity(body, headers);
     }
 }

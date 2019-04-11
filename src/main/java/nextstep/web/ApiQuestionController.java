@@ -5,60 +5,43 @@ import nextstep.domain.Question;
 import nextstep.domain.User;
 import nextstep.security.LoginUser;
 import nextstep.service.QnaService;
-import nextstep.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.List;
+import javax.validation.Valid;
+import java.net.URI;
 
-@Controller
-@RequestMapping("/questions")
+@RestController
+@RequestMapping("/api/questions")
 public class ApiQuestionController {
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Resource(name = "qnaService")
     private QnaService qnaService;
 
-    @GetMapping("/form")
-    public String form() {
-        return "/qna/form";
-    }
-
     @PostMapping("")
-    public String create(@LoginUser User user, Question question) {
-        qnaService.create(user, question);
-        return "redirect:/questions/form";
+    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
+        Question saveQuestion = qnaService.create(loginUser, question);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create("/api/questions/" + saveQuestion.getId()));
+        return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
     }
 
-    @GetMapping("/list")
-    public String list(Model model, Pageable pageable) {
-        List<Question> questions = qnaService.findAll(pageable);
-        log.debug("question size : {}", questions.size());
-
-        model.addAttribute("questions", questions);
-        return "/home";
-    }
-
-    @GetMapping("/{id}/form")
-    public String updateForm(@PathVariable long id, Model model) {
-        model.addAttribute("question", qnaService.findById(id));
-        return "/qna/show";
+    @GetMapping("/{id}")
+    public Question show(@PathVariable long id) {
+        return qnaService.findById(id);
     }
 
     @PutMapping("/{id}")
-    public String update(@LoginUser User loginUser, @PathVariable long id, Question target) {
-        qnaService.update(loginUser, id, target);
-        return "redirect:/questions";
+    public Question update(@LoginUser User loginUser, @PathVariable long id, @Valid @RequestBody Question updateQuestion) {
+        return qnaService.update(loginUser, id, updateQuestion);
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
+    public void delete(@LoginUser User loginUser, @PathVariable long id) throws CannotDeleteException {
         qnaService.deleteQuestion(loginUser, id);
-        return "redirect:/questions";
     }
 }
