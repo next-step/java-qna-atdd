@@ -34,13 +34,13 @@ public class QuestionController {
 
     @GetMapping("/{id}")
     public String show(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("question", qnaService.findById(id));
+        model.addAttribute("question", qnaService.findByQuestionId(id));
         return "/qna/show";
     }
 
     @GetMapping("/{id}/form")
     public String updateForm(@LoginUser User loginUser, @PathVariable long id, Model model) {
-        model.addAttribute("question", qnaService.findById(id));
+        model.addAttribute("question", qnaService.findByQuestionId(id));
         return "/qna/updateForm";
     }
 

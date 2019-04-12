@@ -1,7 +1,7 @@
 package nextstep.domain;
 
-import nextstep.exception.UnAuthorizedException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import nextstep.exception.UnAuthorizedException;
 import support.domain.AbstractEntity;
 
 import javax.persistence.Column;
@@ -93,7 +93,6 @@ public class User extends AbstractEntity {
     }
 
 
-
     private boolean matchUserId(String userId) {
         return this.userId.equals(userId);
     }
@@ -116,15 +115,15 @@ public class User extends AbstractEntity {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "User [userId=" + userId + ", password=" + password + ", name=" + name + ", email=" + email + "]";
+    }
+
     private static class GuestUser extends User {
         @Override
         public boolean isGuestUser() {
             return true;
         }
-    }
-
-    @Override
-    public String toString() {
-        return "User [userId=" + userId + ", password=" + password + ", name=" + name + ", email=" + email + "]";
     }
 }
