@@ -1,6 +1,5 @@
-package nextstep.domain;
+package nextstep.domain.entity;
 
-import nextstep.domain.entity.User;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;

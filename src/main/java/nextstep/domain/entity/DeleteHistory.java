@@ -1,11 +1,9 @@
 package nextstep.domain.entity;
 
 import nextstep.domain.ContentType;
-import org.hibernate.sql.Delete;
 import support.domain.AbstractEntity;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

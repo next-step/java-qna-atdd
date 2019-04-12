@@ -1,4 +1,4 @@
-package nextstep.domain;
+package nextstep.domain.entity;
 
 import nextstep.domain.entity.Question;
 import org.junit.BeforeClass;
