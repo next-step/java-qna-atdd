@@ -71,10 +71,8 @@ public class QuestionTest extends BaseTest {
         List<DeleteHistory> deleteHistories = question.delete(SELF_USER);
 
         softly.assertThat(question.isDeleted()).isTrue();
-        softly.assertThat(question.getAnswers())
-                .allMatch(answer -> answer.isDeleted());
-        softly.assertThat(deleteHistories)
-                .hasSize(2);
+        softly.assertThat(question.isDeletedWithAllAnswers()).isTrue();
+        softly.assertThat(deleteHistories).hasSize(2);
     }
 
     @Test
@@ -96,7 +94,6 @@ public class QuestionTest extends BaseTest {
         Answer answer = new Answer(SELF_USER, "answer");
         question.addAnswer(answer);
 
-        softly.assertThat(question.getAnswers())
-                .contains(answer);
+        softly.assertThat(question.sizeAnswers()).isEqualTo(1);
     }
 }
