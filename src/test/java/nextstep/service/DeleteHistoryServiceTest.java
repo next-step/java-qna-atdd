@@ -31,13 +31,11 @@ public class DeleteHistoryServiceTest extends BaseTest {
         User user = SELF_USER;
 
         List<DeleteHistory> deleteHistories = selfQuestion().delete(user);
-        when(deleteHistoryRepository.findAllByContentType(ContentType.QUESTION))
-                .thenReturn(deleteHistories);
+        when(deleteHistoryRepository.findAll()).thenReturn(deleteHistories);
 
         deleteHistoryService.saveAll(selfQuestion().delete(user));
 
-        softly.assertThat(deleteHistoryRepository.findAllByContentType(ContentType.QUESTION))
-                .hasSize(1);
+        softly.assertThat(deleteHistoryRepository.findAll()).hasSize(1);
     }
 
     @Test
@@ -47,14 +45,12 @@ public class DeleteHistoryServiceTest extends BaseTest {
         Answer answer = selfAnswer();
         question.addAnswer(answer);
 
-        when(deleteHistoryRepository.findAllByContentType(ContentType.ANSWER))
-                .thenReturn(Arrays.asList(answer.delete(user)));
+        when(deleteHistoryRepository.findAll()).thenReturn(Arrays.asList(answer.delete(user)));
 
         answer = selfAnswer();
         question.addAnswer(answer);
         deleteHistoryService.save(answer.delete(user));
 
-        softly.assertThat(deleteHistoryRepository.findAllByContentType(ContentType.ANSWER))
-                .hasSize(1);
+        softly.assertThat(deleteHistoryRepository.findAll()).hasSize(1);
     }
 }

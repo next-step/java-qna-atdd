@@ -6,7 +6,5 @@ import java.util.List;
 
 public interface DeleteHistoryRepository extends CrudRepository<DeleteHistory, Long> {
 
-    List<DeleteHistory> findAllByContentTypeAndContentId(ContentType contentType, Long contentId);
-
     List<DeleteHistory> findAllByContentType(ContentType contentType);
 }
