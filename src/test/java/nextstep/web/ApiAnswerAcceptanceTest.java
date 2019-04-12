@@ -1,12 +1,10 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
-import nextstep.domain.ContentType;
-import nextstep.domain.Question;
-import nextstep.domain.User;
+import nextstep.domain.*;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +13,18 @@ import support.test.RestApiCallUtils;
 
 import java.util.List;
 
+import static nextstep.domain.AnswerTest.ANOTHER_ANSWER_ID;
+import static nextstep.domain.AnswerTest.SELF_ANSWER_ID;
+
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     public static final String BASE_URL = "/api/questions/%d/answers";
+
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @Autowired
+    private AnswerRepository answerRepository;
 
     @Test
     public void create_no_login() {
@@ -74,7 +81,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
                 template(), getUrl(question), Answer.class);
 
         // Then
-        int size = question.getAnswers().size();
+        int size = question.sizeAnswers();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).hasSize(size);
     }
@@ -197,8 +204,6 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(selfAnswer().isDeleted()).isTrue();
-        softly.assertThat(deleteHistoryRepository.findAllByContentType(ContentType.ANSWER))
-                .hasSize(1);
     }
 
     private String getUrl(Question question, Answer defaultAnswer) {
@@ -207,5 +212,25 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     private String getUrl(Question question) {
         return String.format(BASE_URL, question.getId());
+    }
+
+    private Question selfQuestion() {
+        return ApiQuestionAcceptanceTest.selfQuestion(questionRepository);
+    }
+
+    private Answer selfAnswer() {
+        return selfAnswer(answerRepository);
+    }
+
+    public static Answer selfAnswer(AnswerRepository answerRepository) {
+        return answerRepository.findById(SELF_ANSWER_ID).get();
+    }
+
+    private Answer anotherAnswer() {
+        return anotherAnswer(answerRepository);
+    }
+
+    public static Answer anotherAnswer(AnswerRepository answerRepository) {
+        return answerRepository.findById(ANOTHER_ANSWER_ID).get();
     }
 }

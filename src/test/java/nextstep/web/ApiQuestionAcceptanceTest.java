@@ -1,12 +1,14 @@
 package nextstep.web;
 
-import nextstep.domain.ContentType;
+import nextstep.domain.DeleteHistoryRepository;
 import nextstep.domain.Question;
+import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
 import nextstep.dto.QuestionDto;
 import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
@@ -14,9 +16,14 @@ import support.test.RestApiCallUtils;
 
 import java.util.List;
 
+import static nextstep.domain.QuestionTest.*;
+
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     private static final String BASE_URL = "/api/questions";
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @Test
     public void create_no_login() {
@@ -187,10 +194,25 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(deleteHistoryRepository.findAllByContentType(ContentType.QUESTION)).hasSize(1);
     }
 
     private String getUrl(Question question) {
         return String.format(BASE_URL + "/%d", question.getId());
+    }
+
+    private Question selfQuestion() {
+        return selfQuestion(questionRepository);
+    }
+
+    public static Question selfQuestion(QuestionRepository questionRepository) {
+        return questionRepository.findById(SELF_QUESTION_ID).get();
+    }
+
+    private Question anotherQuestion() {
+        return anotherQuestion(questionRepository);
+    }
+
+    public static Question anotherQuestion(QuestionRepository questionRepository) {
+        return questionRepository.findById(ANOTHER_QUESTION_ID).get();
     }
 }

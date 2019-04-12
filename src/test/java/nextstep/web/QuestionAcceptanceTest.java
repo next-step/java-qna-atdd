@@ -15,9 +15,6 @@ import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 import support.test.HtmlFormDataBuilder;
 
-import static nextstep.domain.QuestionTest.ANOTHER_QUESTION_ID;
-import static nextstep.domain.QuestionTest.SELF_QUESTION_ID;
-
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
@@ -193,11 +190,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
     }
 
-    public Question selfQuestion() {
-        return questionRepository.findById(SELF_QUESTION_ID).get();
+    private Question selfQuestion() {
+        return ApiQuestionAcceptanceTest.selfQuestion(questionRepository);
     }
 
-    public Question anotherQuestion() {
-        return questionRepository.findById(ANOTHER_QUESTION_ID).get();
+    private Question anotherQuestion() {
+        return ApiQuestionAcceptanceTest.anotherQuestion(questionRepository);
     }
 }

@@ -34,7 +34,7 @@ public class QnaServiceTest extends BaseTest {
     @Mock
     AnswerRepository answerRepository;
 
-    @Spy
+    @Mock
     DeleteHistoryRepository deleteHistoryRepository;
 
     @Spy
@@ -96,8 +96,7 @@ public class QnaServiceTest extends BaseTest {
         qnaService.deleteQuestion(SELF_USER, SELF_QUESTION_ID);
 
         softly.assertThat(question.isDeleted()).isTrue();
-        softly.assertThat(question.getAnswers())
-                .allMatch(answer -> answer.isDeleted());
+        softly.assertThat(question.isDeletedWithAllAnswers()).isTrue();
     }
 
     @Test
