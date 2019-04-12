@@ -1,7 +1,6 @@
 package nextstep.service;
 
 import nextstep.UnAuthorizedException;
-import nextstep.domain.dto.AnswerResponseDto;
 import nextstep.domain.entity.Answer;
 import nextstep.domain.entity.Question;
 import nextstep.domain.entity.User;
@@ -64,6 +63,12 @@ public class QnaService {
 
     @Transactional
     public Question deleteQuestion(User loginUser, long id) {
+        Question deleteQuestion = findQuestionById(id)
+                .map(question -> question.delete(loginUser))
+                .orElseThrow(UnAuthorizedException::new);
+
+        deleteHistoryService.saveAll(deleteQuestion);
+
         return findQuestionById(id)
                 .map(question -> question.delete(loginUser))
                 .orElseThrow(UnAuthorizedException::new);
