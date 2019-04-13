@@ -13,6 +13,9 @@ import support.test.RestApiCallUtils;
 
 import java.util.List;
 
+import static nextstep.domain.AnswerTest.ANOTHER_ANSWER_ID;
+import static nextstep.domain.AnswerTest.SELF_ANSWER_ID;
+
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
     public static final String BASE_URL = "/api/questions/%d/answers";
@@ -78,7 +81,7 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
                 template(), getUrl(question), Answer.class);
 
         // Then
-        int size = question.getAnswers().size();
+        int size = question.sizeAnswers();
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(response.getBody()).hasSize(size);
     }
@@ -173,7 +176,22 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_self() {
+    public void delete_login_self_but_different_owner_from_question() {
+        // Given
+        User loginUser = selfUser();
+        Question question = selfQuestion();
+        Answer answer = anotherAnswer();
+
+        // When
+        ResponseEntity<Void> response = RestApiCallUtils.deleteResource(
+                basicAuthTemplate(loginUser), getUrl(question, answer));
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_login_self_and_same_owner_from_question() throws Exception {
         // Given
         User loginUser = selfUser();
         Question question = selfQuestion();
@@ -194,5 +212,25 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     private String getUrl(Question question) {
         return String.format(BASE_URL, question.getId());
+    }
+
+    private Question selfQuestion() {
+        return ApiQuestionAcceptanceTest.selfQuestion(questionRepository);
+    }
+
+    private Answer selfAnswer() {
+        return selfAnswer(answerRepository);
+    }
+
+    public static Answer selfAnswer(AnswerRepository answerRepository) {
+        return answerRepository.findById(SELF_ANSWER_ID).get();
+    }
+
+    private Answer anotherAnswer() {
+        return anotherAnswer(answerRepository);
+    }
+
+    public static Answer anotherAnswer(AnswerRepository answerRepository) {
+        return answerRepository.findById(ANOTHER_ANSWER_ID).get();
     }
 }

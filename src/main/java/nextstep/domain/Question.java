@@ -1,16 +1,16 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import nextstep.CannotDeleteException;
 import nextstep.CannotUpdateException;
 import nextstep.dto.QuestionDto;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -28,10 +28,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -44,20 +42,38 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void update(User writer, QuestionDto updatedQuestionDto) throws CannotUpdateException {
-        if (!isOwner(writer)) {
-            throw new CannotUpdateException(MSG_NOT_OWNER);
-        }
+        isOwner(writer).orElseThrow(() -> new CannotUpdateException(MSG_NOT_OWNER));
 
         this.title = updatedQuestionDto.getTitle();
         this.contents = updatedQuestionDto.getContents();
     }
 
-    public void delete(User writer) throws CannotDeleteException {
-        if (!isOwner(writer)) {
-            throw new CannotDeleteException(MSG_NOT_OWNER);
+    public List<DeleteHistory> delete(User writer) throws CannotDeleteException {
+        isOwner(writer).orElseThrow(() -> new CannotDeleteException(MSG_NOT_OWNER));
+
+        if (!answers.allOwner(writer)) {
+            throw new CannotDeleteException("Answers should contain only answer wrote by owner of question or empty.");
         }
 
+        List<DeleteHistory> deleteHistories = deleteAnswers(writer);
+
         this.deleted = true;
+        deleteHistories.add(createDeleteHistory());
+
+        return deleteHistories;
+    }
+
+    private DeleteHistory createDeleteHistory() {
+        return new DeleteHistory(ContentType.QUESTION, getId(), writer);
+    }
+
+    private List<DeleteHistory> deleteAnswers(User writer) throws CannotDeleteException {
+        return answers.delete(writer);
+    }
+
+    public Optional<User> isOwner(User writer) {
+        return Optional.of(writer)
+                .filter(user -> this.writer.equals(writer));
     }
 
     public String getTitle() {
@@ -91,14 +107,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         answers.add(answer);
     }
 
-    public boolean isOwner(User loginUser) {
-        if (loginUser == null) {
-            return false;
-        }
-
-        return writer.equals(loginUser);
-    }
-
     public boolean isDeleted() {
         return deleted;
     }
@@ -113,7 +121,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + ", deleted=" + deleted +"]";
     }
 
+    @JsonIgnore
     public List<Answer> getAnswers() {
-        return answers;
+        return answers.getAnswers();
+    }
+
+    public int sizeAnswers() {
+        return answers.size();
+    }
+
+    public boolean isDeletedWithAllAnswers() {
+        return deleted && answers.allDeleted();
     }
 }

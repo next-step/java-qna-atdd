@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.DeleteHistoryRepository;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -15,7 +16,7 @@ import support.test.RestApiCallUtils;
 
 import java.util.List;
 
-import static nextstep.domain.QuestionTest.newQuestion;
+import static nextstep.domain.QuestionTest.*;
 
 public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiQuestionAcceptanceTest.class);
@@ -27,7 +28,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     @Test
     public void create_no_login() {
         // Given
-        Question question = newQuestion();
+        Question question = new Question();
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.createResource(
@@ -41,7 +42,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     public void create_login() throws Exception {
         // Given
         User loginUser = selfUser();
-        Question question = newQuestion();
+        Question question = new Question("title", "contents");
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.createResource(
@@ -57,7 +58,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         User loginUser = selfUser();
 
         ResponseEntity<Void> createResponse = RestApiCallUtils.createResource(
-                basicAuthTemplate(loginUser), BASE_URL, newQuestion());
+                basicAuthTemplate(loginUser), BASE_URL, new Question("title", "contents"));
         String location = createResponse.getHeaders().getLocation().getPath();
 
         // When
@@ -141,7 +142,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_no_login() {
+    public void delete_no_login() throws Exception {
         // Given
         Question question = selfQuestion();
 
@@ -154,24 +155,38 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_another() {
+    public void delete_login_another() throws Exception {
         // Given
         User loginUser = selfUser();
         Question question = anotherQuestion();
 
         // When
-        ResponseEntity<Void> response =
-                RestApiCallUtils.deleteResource(basicAuthTemplate(loginUser), getUrl(question));
+        ResponseEntity<Void> response = RestApiCallUtils.deleteResource(
+                basicAuthTemplate(loginUser), getUrl(question));
 
         // Then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
-    public void delete_login_self() {
+    public void delete_login_self_contains_another_answers() throws Exception {
         // Given
         User loginUser = selfUser();
         Question question = selfQuestion();
+
+        // When
+        ResponseEntity<Void> response = RestApiCallUtils.deleteResource(
+                basicAuthTemplate(loginUser), getUrl(question));
+
+        // Then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_login_self_contains_only_self_answers() {
+        // Given
+        User loginUser = anotherUser();
+        Question question = anotherQuestion();
 
         // When
         ResponseEntity<Void> response = RestApiCallUtils.deleteResource(
@@ -183,5 +198,21 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     private String getUrl(Question question) {
         return String.format(BASE_URL + "/%d", question.getId());
+    }
+
+    private Question selfQuestion() {
+        return selfQuestion(questionRepository);
+    }
+
+    public static Question selfQuestion(QuestionRepository questionRepository) {
+        return questionRepository.findById(SELF_QUESTION_ID).get();
+    }
+
+    private Question anotherQuestion() {
+        return anotherQuestion(questionRepository);
+    }
+
+    public static Question anotherQuestion(QuestionRepository questionRepository) {
+        return questionRepository.findById(ANOTHER_QUESTION_ID).get();
     }
 }

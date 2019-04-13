@@ -10,7 +10,6 @@ import javax.validation.constraints.Size;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
-    private static final String MSG_NOT_OWNER = "writer is not owner";
 
     @ManyToOne(optional = false)
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_answer_writer"))
@@ -83,17 +82,26 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public void update(User loginUser, String contents) throws CannotUpdateException {
         if (!isOwner(loginUser)) {
-            throw new CannotUpdateException(MSG_NOT_OWNER);
+            throw new CannotUpdateException("writer should be owner");
         }
 
         this.contents = contents;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
-        if (!isOwner(loginUser)) {
-            throw new CannotDeleteException(MSG_NOT_OWNER);
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
+        if (!isOwner(loginUser) || !sameOwnerFromQuestion(loginUser)) {
+            throw new CannotDeleteException("writer should be owner and same writer from question");
         }
 
         this.deleted = true;
+        return createDeleteHistory();
+    }
+
+    private DeleteHistory createDeleteHistory() {
+        return new DeleteHistory(ContentType.ANSWER, getId(), writer);
+    }
+
+    private boolean sameOwnerFromQuestion(User loginUser) {
+        return question.isOwner(loginUser).isPresent();
     }
 }

@@ -15,9 +15,6 @@ import org.springframework.util.MultiValueMap;
 import support.test.AcceptanceTest;
 import support.test.HtmlFormDataBuilder;
 
-import static nextstep.domain.QuestionTest.ANOTHER_QUESTION_ID;
-import static nextstep.domain.QuestionTest.SELF_QUESTION_ID;
-
 public class QuestionAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(QuestionAcceptanceTest.class);
 
@@ -157,25 +154,33 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_login_self() {
-        ResponseEntity<String> response = delete(basicAuthTemplate(), selfQuestion());
-
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
-        softly.assertThat(selfQuestion().isDeleted()).isTrue();
-
-        log.debug("body : {}", response.getBody());
-
-    }
-
-    @Test
     public void delete_login_another() {
         ResponseEntity<String> response = delete(basicAuthTemplate(), anotherQuestion());
 
-
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
         log.debug("body : {}", response.getBody());
     }
+
+    @Test
+    public void delete_login_self_contains_another_answers() throws Exception {
+        ResponseEntity<String> response = delete(basicAuthTemplate(), selfQuestion());
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        log.debug("body : {}", response.getBody());
+    }
+
+    @Test
+    public void delete_login_self_contains_only_self_answers() {
+        ResponseEntity<String> response = delete(basicAuthTemplate(anotherUser()), anotherQuestion());
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
+
+        log.debug("body : {}", response.getBody());
+    }
+
 
     private ResponseEntity<String> delete(TestRestTemplate template, Question question) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm()
@@ -185,11 +190,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         return template.postForEntity(String.format("/questions/%d", question.getId()), request, String.class);
     }
 
-    public Question selfQuestion() {
-        return questionRepository.findById(SELF_QUESTION_ID).get();
+    private Question selfQuestion() {
+        return ApiQuestionAcceptanceTest.selfQuestion(questionRepository);
     }
 
-    public Question anotherQuestion() {
-        return questionRepository.findById(ANOTHER_QUESTION_ID).get();
+    private Question anotherQuestion() {
+        return ApiQuestionAcceptanceTest.anotherQuestion(questionRepository);
     }
 }

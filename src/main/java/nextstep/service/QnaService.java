@@ -42,15 +42,15 @@ public class QnaService {
 
     @Transactional
     public Question updateQuestion(User loginUser, long id, QuestionDto updatedQuestionDto) throws CannotUpdateException {
-        Question origin = questionRepository.findById(id).get();
-        origin.update(loginUser, updatedQuestionDto);
-        return origin;
+        Question question = questionRepository.findById(id).get();
+        question.update(loginUser, updatedQuestionDto);
+        return question;
     }
 
     @Transactional
     public void deleteQuestion(User loginUser, long id) throws CannotDeleteException {
-        Question origin = questionRepository.findById(id).get();
-        origin.delete(loginUser);
+        Question question = questionRepository.findById(id).get();
+        deleteHistoryService.saveAll(question.delete(loginUser));
     }
 
     @Transactional
@@ -84,6 +84,6 @@ public class QnaService {
     @Transactional
     public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
         Answer answer = answerRepository.findById(id).get();
-        answer.delete(loginUser);
+        deleteHistoryService.save(answer.delete(loginUser));
     }
 }

@@ -6,66 +6,94 @@ import nextstep.dto.QuestionDto;
 import org.junit.*;
 import support.test.BaseTest;
 
-import static nextstep.domain.AnswerTest.ANOTHER_ANSWER_OF_DEFAULT_QUESTION;
-import static nextstep.domain.AnswerTest.SELF_ANSWER_OF_DEFAULT_QUESTION;
+import java.util.List;
+
+import static nextstep.domain.AnswerTest.anotherAnswer;
+import static nextstep.domain.AnswerTest.selfAnswer;
 import static nextstep.domain.UserTest.ANOTHER_USER;
 import static nextstep.domain.UserTest.SELF_USER;
 
 public class QuestionTest extends BaseTest {
 
-    public static final Question SELF_QUESTION = new Question("selfTitle", "selfContent");
-    public static final Question ANOTHER_QUESTION = new Question("anotherTitle", "anotherContent");
-
     public static final long SELF_QUESTION_ID = 1;
     public static final long ANOTHER_QUESTION_ID = 2;
 
-    static {
-        SELF_QUESTION.setId(SELF_QUESTION_ID);
-        SELF_QUESTION.writeBy(SELF_USER);
-        SELF_QUESTION.addAnswer(SELF_ANSWER_OF_DEFAULT_QUESTION);
-        SELF_QUESTION.addAnswer(ANOTHER_ANSWER_OF_DEFAULT_QUESTION);
-
-        ANOTHER_QUESTION.setId(ANOTHER_QUESTION_ID);
-        ANOTHER_QUESTION.writeBy(ANOTHER_USER);
+    public static Question selfQuestion() {
+        return newQuestion(SELF_QUESTION_ID, SELF_USER, "selfTitle", "selfContents");
     }
 
-    public static Question newQuestion() {
-        return new Question("title", "contents");
+    public static Question anotherQuestion() {
+        return newQuestion(ANOTHER_QUESTION_ID, ANOTHER_USER, "anotherTitle", "anotherContents");
+    }
+
+    private static Question newQuestion(long id, User writer, String title, String content) {
+        Question question = new Question(title, content);
+        question.setId(id);
+        question.writeBy(writer);
+        return question;
     }
 
     @Test(expected = CannotUpdateException.class)
     public void update_another() throws Exception {
-        SELF_QUESTION.update(ANOTHER_USER, new QuestionDto());
+        selfQuestion().update(ANOTHER_USER, new QuestionDto());
     }
 
     @Test
     public void update_self() throws Exception {
+        Question question = selfQuestion();
+
         QuestionDto updateQuestionDto = new QuestionDto("updateTitle", "updateContents");
+        question.update(SELF_USER, updateQuestionDto);
 
-        SELF_QUESTION.update(SELF_USER, updateQuestionDto);
-
-        softly.assertThat(SELF_QUESTION.getTitle()).isEqualTo(updateQuestionDto.getTitle());
-        softly.assertThat(SELF_QUESTION.getContents()).isEqualTo(updateQuestionDto.getContents());
-        softly.assertThat(SELF_QUESTION.getWriter()).isEqualTo(SELF_USER);
+        softly.assertThat(question.getTitle()).isEqualTo(updateQuestionDto.getTitle());
+        softly.assertThat(question.getContents()).isEqualTo(updateQuestionDto.getContents());
+        softly.assertThat(question.getWriter()).isEqualTo(SELF_USER);
     }
 
     @Test(expected = CannotDeleteException.class)
     public void delete_another() throws Exception {
-        SELF_QUESTION.delete(ANOTHER_USER);
+        selfQuestion().delete(ANOTHER_USER);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_self_contains_another_answers() throws Exception {
+        Question question = selfQuestion();
+        question.addAnswer(anotherAnswer());
+
+        question.delete(SELF_USER);
     }
 
     @Test
-    public void delete_self() throws Exception {
-        SELF_QUESTION.delete(SELF_USER);
-        softly.assertThat(SELF_QUESTION.isDeleted()).isTrue();
+    public void delete_self_contains_only_self_answers() throws Exception {
+        Question question = selfQuestion();
+        question.addAnswer(selfAnswer());
+
+        List<DeleteHistory> deleteHistories = question.delete(SELF_USER);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(question.isDeletedWithAllAnswers()).isTrue();
+        softly.assertThat(deleteHistories).hasSize(2);
+    }
+
+    @Test
+    public void delete_self_empty_answers() throws Exception {
+        Question question = new Question("title", "contents");
+        question.writeBy(SELF_USER);
+
+        List<DeleteHistory> deleteHistories = question.delete(SELF_USER);
+
+        softly.assertThat(question.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories)
+                .hasSize(1);
     }
 
     @Test
     public void add_answer() {
-        Answer answer = new Answer(SELF_USER, "answer");
-        SELF_QUESTION.addAnswer(answer);
+        Question question = selfQuestion();
 
-        softly.assertThat(SELF_QUESTION.getAnswers())
-                .contains(answer);
+        Answer answer = new Answer(SELF_USER, "answer");
+        question.addAnswer(answer);
+
+        softly.assertThat(question.sizeAnswers()).isEqualTo(1);
     }
 }

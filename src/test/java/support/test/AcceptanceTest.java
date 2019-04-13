@@ -1,6 +1,7 @@
 package support.test;
 
-import nextstep.domain.*;
+import nextstep.domain.User;
+import nextstep.domain.UserRepository;
 import org.junit.runner.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,10 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static nextstep.domain.AnswerTest.ANOTHER_ANSWER_ID;
-import static nextstep.domain.AnswerTest.SELF_ANSWER_ID;
-import static nextstep.domain.QuestionTest.ANOTHER_QUESTION_ID;
-import static nextstep.domain.QuestionTest.SELF_QUESTION_ID;
 import static nextstep.domain.UserTest.ANOTHER_USER;
 import static nextstep.domain.UserTest.SELF_USER;
 
@@ -20,16 +17,10 @@ import static nextstep.domain.UserTest.SELF_USER;
 public abstract class AcceptanceTest extends BaseTest {
 
     @Autowired
-    private TestRestTemplate template;
+    protected TestRestTemplate template;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private QuestionRepository questionRepository;
-
-    @Autowired
-    private AnswerRepository answerRepository;
+    protected UserRepository userRepository;
 
     public TestRestTemplate template() {
         return template;
@@ -53,21 +44,5 @@ public abstract class AcceptanceTest extends BaseTest {
 
     protected User findByUserId(String userId) {
         return userRepository.findByUserId(userId).get();
-    }
-
-    protected Question selfQuestion() {
-        return questionRepository.findById(SELF_QUESTION_ID).get();
-    }
-
-    protected Question anotherQuestion() {
-        return questionRepository.findById(ANOTHER_QUESTION_ID).get();
-    }
-
-    protected Answer selfAnswer() {
-        return answerRepository.findById(SELF_ANSWER_ID).get();
-    }
-
-    protected Answer anotherAnswer() {
-        return answerRepository.findById(ANOTHER_ANSWER_ID).get();
     }
 }

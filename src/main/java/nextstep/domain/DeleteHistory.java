@@ -1,9 +1,13 @@
 package nextstep.domain;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class DeleteHistory {
     @Id
     @GeneratedValue
@@ -18,16 +22,17 @@ public class DeleteHistory {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_deletehistory_to_user"))
     private User deletedBy;
 
-    private LocalDateTime createDate = LocalDateTime.now();
+    @Column(nullable = false, updatable = false)
+    @CreatedDate
+    private LocalDateTime createDate;
 
     public DeleteHistory() {
     }
 
-    public DeleteHistory(ContentType contentType, Long contentId, User deletedBy, LocalDateTime createDate) {
+    public DeleteHistory(ContentType contentType, Long contentId, User deletedBy) {
         this.contentType = contentType;
         this.contentId = contentId;
         this.deletedBy = deletedBy;
-        this.createDate = createDate;
     }
 
     @Override
