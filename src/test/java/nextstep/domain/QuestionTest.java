@@ -28,7 +28,6 @@ public class QuestionTest extends BaseTest {
         // given
         Question originQuestion = origin;
         // when
-//        System.out.println(OTHER);
         originQuestion.update(OTHER, target);
         // then
     }

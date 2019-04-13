@@ -47,6 +47,7 @@ public class UserAcceptanceTest extends AcceptanceTest {
         softly.assertThat(userRepository.findByUserId(userId).isPresent()).isTrue();
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/users");
     }
+
     @Test
     public void list() throws Exception {
         ResponseEntity<String> response = template().getForEntity("/users", String.class);

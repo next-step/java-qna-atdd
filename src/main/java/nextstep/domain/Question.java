@@ -10,6 +10,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -86,8 +87,12 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Question update(User loginUser, Question updatedQuestion) throws UnAuthorizedException{
-        if(!isOwner(loginUser)){
+    public boolean hasAnswer(Answer answer) {
+        return answers.stream().anyMatch(answer1 -> answer1.equals(answer));
+    }
+
+    public Question update(User loginUser, Question updatedQuestion) throws UnAuthorizedException {
+        if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("작성자만 질문 수정이 가능합니다.");
         }
         this.title = updatedQuestion.title;
@@ -95,11 +100,19 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
+    public boolean equalsTitleAndContent(Question target) {
+        if (Objects.isNull(target)) {
+            return false;
+        }
+
+        return title.equals(target.title) && contents.equals(target.contents);
+    }
+
     public void delete(User loginUser) throws CannotDeleteException {
-        if(!isOwner(loginUser)) {
+        if (!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 질문 삭제가 가능합니다.");
         }
-        if(isDeleted()) {
+        if (isDeleted()) {
             throw new CannotDeleteException("이미 삭제된 글입니다.");
         }
         deleted = true;
