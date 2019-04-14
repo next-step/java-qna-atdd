@@ -1,4 +1,4 @@
-package nextstep.domain;
+package nextstep.domain.entity;
 
 import nextstep.UnAuthorizedException;
 import nextstep.domain.entity.Answer;
@@ -54,5 +54,38 @@ public class QuestionTest {
     public void add_Answer() {
         question.addAnswer(new Answer(user, "안녕하세요!"));
         assertThat(question.getAnswers().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void delete_답변없는경우() {
+        Question question = new Question(1L, "삭제대상", "지우겠습니다.", user);
+        Question result = question.delete(user);
+        assertThat(result.isDeleted()).isTrue();
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void delete_실패_다른사용자_댓글_존재() {
+        Question question = new Question(1L, "삭제대상", "지우겠습니다.", user);
+        User otherUser = new User(2L, "other", "other", "noname", "nono@gmail.com");
+        Answer answer = new Answer(otherUser,"답변");
+        question.addAnswer(answer);
+
+        question.delete(user);
+    }
+
+    @Test
+    public void delete_성공_질문_댓글_삭제() {
+        Question question = new Question(1L, "삭제대상", "지우겠습니다.", user);
+        Answer answer1 = new Answer(user,"답변");
+        Answer answer2 = new Answer(user,"두번째");
+
+        question.addAnswer(answer1);
+        question.addAnswer(answer2);
+
+        question.delete(user);
+        assertThat(question.isDeleted()).isTrue();
+        for (Answer answer : question.getAnswers()) {
+            assertThat(answer.isDeleted()).isTrue();
+        }
     }
 }

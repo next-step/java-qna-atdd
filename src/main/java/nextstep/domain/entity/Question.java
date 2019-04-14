@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -37,6 +38,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     public Question(String title, String contents) {
         this.title = title;
         this.contents = contents;
+    }
+
+    public Question(long id, String title, String contents, User writer) {
+        super(id);
+        this.title = title;
+        this.contents = contents;
+        this.writer = writer;
     }
 
     public String getTitle() {
@@ -98,8 +106,29 @@ public class Question extends AbstractEntity implements UrlGeneratable {
             throw new UnAuthorizedException();
         }
 
+        if (answers.isEmpty()) {
+            this.deleted = true;
+            return this;
+        }
+
+        if (findDifferentUser(loginUser)) {
+            throw new UnAuthorizedException();
+        }
+
+        deleteAnswers(loginUser);
+
         this.deleted = true;
         return this;
+    }
+
+    private void deleteAnswers(User loginUser) {
+        for (Answer answer : answers) {
+            answer.delete(loginUser);
+        }
+    }
+
+    private boolean findDifferentUser(User loginUser) {
+        return answers.stream().anyMatch(answer -> !answer.isOwner(loginUser));
     }
 
     public String generateApiUrl() {

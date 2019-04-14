@@ -60,7 +60,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
         String location = createResourceWithLogin(CREATE_PATH, testQuestion, defaultUser());
         Question originalQuestion = getResourceWithLogin(location, Question.class, defaultUser());
 
-        User newUser = new User("admin", "password", "spring", "spring@gmail.com");
+        User newUser = new User("up_admin", "password", "spring", "spring@gmail.com");
         User owner = getResourceWithLogin(createResource("/api/users", newUser), User.class, newUser);
 
         Question newQuestion = new Question("update", "성공할거야");
@@ -89,11 +89,11 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_다른사람() {
+    public void delete_미가입회원() {
         String location = createResourceWithLogin(CREATE_PATH, testQuestion, defaultUser());
-        User newUser = new User("admin", "password", "spring", "spring@gmail.com");
-        ResponseEntity<String> response = basicAuthTemplate(newUser)
-                .exchange(location, HttpMethod.DELETE, createHttpEntity(testQuestion), String.class);
+        User newUser = new User("del_admin", "password", "spring", "spring@gmail.com");
+        ResponseEntity<Question> response = basicAuthTemplate(newUser)
+                .exchange(location, HttpMethod.DELETE, createHttpEntity(testQuestion), Question.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -105,6 +105,22 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
                 .exchange("/api/questions/-1", HttpMethod.DELETE, createHttpEntity(testQuestion), String.class);
 
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_실패_다른사용자댓글() {
+        User newUser = new User("del_admin2", "password", "spring", "spring@gmail.com");
+        ResponseEntity<Void> userApiResponse = template().postForEntity("/api/users", newUser, Void.class);
+
+        String content = "댓글입니다.";
+
+        String questionLocation = createResourceWithLogin(CREATE_PATH, testQuestion, defaultUser());
+        createResourceWithLogin(questionLocation + "/answers", content, newUser);
+
+        ResponseEntity<Question> questionApiResponse = basicAuthTemplate()
+        .exchange(questionLocation, HttpMethod.DELETE, createHttpEntity(null), Question.class);
+
+        softly.assertThat(questionApiResponse.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     private HttpEntity createHttpEntity(Object body) {

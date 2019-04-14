@@ -1,7 +1,7 @@
 package nextstep.domain.entity;
 
-import nextstep.UnAuthorizedException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
 
 import javax.persistence.Column;

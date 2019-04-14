@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import support.test.AcceptanceTest;
 
-import static nextstep.domain.UserTest.newUser;
+import static nextstep.domain.entity.UserTest.newUser;
 
 public class ApiUserAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
