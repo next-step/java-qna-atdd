@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -127,12 +128,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     private boolean findDifferentUser(User loginUser) {
-        for (Answer answer : answers) {
-            if (!answer.isOwner(loginUser)) {
-                return true;
-            }
-        }
-        return false;
+        return answers.stream().anyMatch(answer -> !answer.isOwner(loginUser));
     }
 
     public String generateApiUrl() {

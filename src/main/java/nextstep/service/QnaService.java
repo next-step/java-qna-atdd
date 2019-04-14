@@ -69,9 +69,7 @@ public class QnaService {
 
         deleteHistoryService.saveAll(deleteQuestion);
 
-        return findQuestionById(id)
-                .map(question -> question.delete(loginUser))
-                .orElseThrow(UnAuthorizedException::new);
+        return deleteQuestion;
     }
 
     public Iterable<Question> findAll() {
