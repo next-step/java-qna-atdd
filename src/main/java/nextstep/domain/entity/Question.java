@@ -128,7 +128,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     private boolean findDifferentUser(User loginUser) {
-        return answers.stream().allMatch(answer -> !answer.isOwner(loginUser));
+        return answers.stream().anyMatch(answer -> !answer.isOwner(loginUser));
     }
 
     public String generateApiUrl() {
