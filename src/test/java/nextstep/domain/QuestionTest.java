@@ -9,12 +9,11 @@ import support.test.BaseTest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class QuestionTest extends BaseTest {
-    private Question question;
+    private Question question = new Question("test title", "test contents");
 
     @Before
     public void initQuestion() {
-        this.question = new Question("test title", "test contents");
-        question.writeBy(UserTest.JAVAJIGI);
+        this.question.writeBy(UserTest.JAVAJIGI);
     }
 
     @Test

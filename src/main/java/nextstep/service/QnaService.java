@@ -55,13 +55,24 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
-    public Answer addAnswer(User loginUser, long questionId, String contents) {
-        // TODO 답변 추가 기능 구현
-        return null;
+    public Answer findAnswer(long answerId) {
+        return answerRepository.findById(answerId)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
-    public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
-        return null;
+    @Transactional
+    public Answer addAnswer(User loginUser, long questionId, Answer answer) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(EntityNotFoundException::new);
+
+        answer = new Answer(loginUser, answer.getContents());
+        question.addAnswer(answer);
+        return answer;
+    }
+
+    @Transactional
+    public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
+        Answer answer = findAnswer(answerId);
+        return answer.delete(loginUser);
     }
 }
