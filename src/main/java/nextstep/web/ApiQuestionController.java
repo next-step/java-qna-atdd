@@ -22,7 +22,7 @@ public class ApiQuestionController {
     private QnaService qnaService;
 
     @PostMapping("")
-    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody Question question) {
+    public ResponseEntity<Void> create(@LoginUser User loginUser, @Valid @RequestBody QuestionBody question) {
         Question savedQuestion = qnaService.create(loginUser, question);
 
         HttpHeaders headers = new HttpHeaders();

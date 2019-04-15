@@ -15,7 +15,7 @@ public class QuestionBody {
     @Lob
     private String contents;
 
-    public QuestionBody(@Size(min = 3, max = 100) String title, @Size(min = 3) String contents) {
+    public QuestionBody(String title, String contents) {
         this.title = title;
         this.contents = contents;
     }
@@ -49,5 +49,9 @@ public class QuestionBody {
                 "title='" + title + '\'' +
                 ", contents='" + contents + '\'' +
                 '}';
+    }
+
+    public Question toQuestion() {
+        return new Question(title, contents);
     }
 }

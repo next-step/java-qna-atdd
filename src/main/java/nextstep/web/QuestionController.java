@@ -28,7 +28,7 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String create(@LoginUser User loginUser, Question question) {
+    public String create(@LoginUser User loginUser, QuestionBody question) {
         qnaService.create(loginUser, question);
         return "redirect:/";
     }

@@ -68,10 +68,14 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
-        if (!isOwner(loginUser)) {
+    public void isAvailableDelete(User loginUser) throws CannotDeleteException {
+        if(!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 답변 삭제가 가능합니다.");
         }
+    }
+
+    public void delete(User loginUser) throws CannotDeleteException {
+        isAvailableDelete(loginUser);
         this.deleted = true;
     }
 
@@ -84,4 +88,5 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     public String toString() {
         return "Answer [id=" + getId() + ", writer=" + writer + ", contents=" + contents + "]";
     }
+
 }

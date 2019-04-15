@@ -78,6 +78,5 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
         ResponseEntity<Void> responseEntity = HttpClientRequestUtils.deleteResource(basicAuthTemplate(findByUserId("sanjigi")), location, Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-
     }
 }

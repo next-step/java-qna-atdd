@@ -25,7 +25,8 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question create(User loginUser, QuestionBody questionBody) {
+        Question question = questionBody.toQuestion();
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);

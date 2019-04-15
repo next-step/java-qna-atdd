@@ -105,7 +105,6 @@ public class User extends AbstractEntity {
         if (Objects.isNull(target)) {
             return false;
         }
-
         return name.equals(target.name) &&
                 email.equals(target.email);
     }

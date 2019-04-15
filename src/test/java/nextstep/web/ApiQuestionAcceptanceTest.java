@@ -44,7 +44,7 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show_not_exist() throws Exception {
-        ResponseEntity<Void> response = HttpClientRequestUtils.showResource(template(), QUESTION_API_PATH + 100L, Void.class);
+        ResponseEntity<Void> response = HttpClientRequestUtils.showResource(template(), QUESTION_API_PATH + "/" +100L, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
@@ -101,5 +101,14 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
         ResponseEntity<Void> responseEntity = HttpClientRequestUtils.deleteResource(template(), location, Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void delete_has_other_answer() throws Exception {
+        Question question = HttpClientRequestUtils.getResource(template(), QUESTION_API_PATH + "/" + 1L, Question.class);
+        String location = "/api" + question.generateUrl();
+
+        ResponseEntity<Void> responseEntity2 = HttpClientRequestUtils.deleteResource(basicAuthTemplate(), location, Void.class);
+        softly.assertThat(responseEntity2.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 }

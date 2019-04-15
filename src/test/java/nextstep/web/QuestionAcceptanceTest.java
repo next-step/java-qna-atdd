@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -160,7 +161,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     private ResponseEntity<String> makeResponseEntityForDelete(User user) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
         return basicAuthTemplate(user)
-                .postForEntity(String.format("/questions/%d", firstQuestion.getId()), request, String.class);
+                .postForEntity(String.format("/questions/%d", secondQuestion.getId()), request, String.class);
     }
 
     @Test
@@ -176,19 +177,29 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     public void delete_not_owner() {
         // given
         // when
-        ResponseEntity<String> response = makeResponseEntityForDelete(secondQuestion.getWriter());
+        ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
         // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void delete_has_other_answer() {
+        // given
+        // when
+        ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isFalse();
     }
 
     @Test
     public void delete_owner() {
         // given
         // when
-        ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
+        ResponseEntity<String> response = makeResponseEntityForDelete(secondQuestion.getWriter());
         // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
-        softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isTrue();
+        softly.assertThat(questionRepository.findById(2L).get().isDeleted()).isTrue();
     }
 }
