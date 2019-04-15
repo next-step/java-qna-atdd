@@ -44,8 +44,8 @@ public class ApiQuestionAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void show_not_exist() throws Exception {
-        ResponseEntity<Void> response = HttpClientRequestUtils.showResource(template(), QUESTION_API_PATH + "/" +100L, Void.class);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        ResponseEntity<Void> response = HttpClientRequestUtils.showResource(template(), QUESTION_API_PATH + "/" + 100L, Void.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test

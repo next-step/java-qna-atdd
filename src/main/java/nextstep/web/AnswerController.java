@@ -24,7 +24,7 @@ public class AnswerController {
     private QnaService qnaService;
 
     @PostMapping("/answers")
-    public String createAnswer(@LoginUser User loginUser, @PathVariable long questionId, Answer answer){
+    public String createAnswer(@LoginUser User loginUser, @PathVariable long questionId, Answer answer) {
         qnaService.addAnswer(loginUser, questionId, answer.getContents());
         return "redirect:/questions" + questionId;
     }

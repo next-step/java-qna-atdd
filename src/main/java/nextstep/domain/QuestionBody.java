@@ -27,12 +27,12 @@ public class QuestionBody {
         return title;
     }
 
-    public String getContents() {
-        return contents;
-    }
-
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getContents() {
+        return contents;
     }
 
     public void setContents(String contents) {

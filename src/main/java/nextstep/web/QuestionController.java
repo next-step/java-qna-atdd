@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.domain.Question;
 import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.exception.CannotDeleteException;

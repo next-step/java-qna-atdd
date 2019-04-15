@@ -7,8 +7,6 @@ import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
-   @Embedded
+    @Embedded
     private QuestionBody questionBody;
 
     @ManyToOne
@@ -40,21 +38,13 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = writer;
     }
 
-    public Question(Long id, QuestionBody questionBody, User writer) {
-        super(id);
-        this.questionBody = questionBody;
-        this.writer = writer;
-    }
-
     public Question(String title, String contents) {
         this.questionBody = new QuestionBody(title, contents);
     }
 
-    public Question(QuestionBody questionBody) {
-        this.questionBody = questionBody;
+    public QuestionBody getQuestionBody() {
+        return this.questionBody;
     }
-
-    public QuestionBody getQuestionBody() { return this.questionBody; }
 
     public void setQuestionBody(QuestionBody questionBody) {
         this.questionBody = questionBody;
@@ -111,13 +101,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     private void isAvailableDelete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
-            throw new CannotDeleteException("작성자만 질문 삭제가 가능합니다."); }
+            throw new CannotDeleteException("작성자만 질문 삭제가 가능합니다.");
+        }
         if (isDeleted()) {
             throw new CannotDeleteException("이미 삭제된 글입니다.");
         }
     }
 
-    private void deleteAnswers(User loginUser) throws CannotDeleteException{
+    private void deleteAnswers(User loginUser) throws CannotDeleteException {
         for (Answer answer : answers) {
             answer.delete(loginUser);
         }
@@ -146,6 +137,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", " + questionBody +", " + ", writer=" + writer + "]";
+        return "Question [id=" + getId() + ", " + questionBody + ", " + ", writer=" + writer + "]";
     }
 }

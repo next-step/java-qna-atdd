@@ -1,6 +1,5 @@
 package nextstep.web;
 
-import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionRepository;
 import nextstep.domain.User;
@@ -109,7 +108,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void updateForm_login() {
+    public void updateForm_login() throws Exception {
         // given
         // when
         ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/%d/form", firstQuestion.getId()), String.class);
@@ -120,7 +119,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void updateForm_no_login() {
+    public void updateForm_no_login() throws Exception {
         // given
         // when
         ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", firstQuestion.getId()), String.class);
@@ -139,7 +138,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update_owner() {
+    public void update_owner() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForUpdate(firstQuestion.getWriter());
@@ -150,7 +149,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update_not_owner() {
+    public void update_not_owner() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForUpdate(secondQuestion.getWriter());
@@ -165,7 +164,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_no_login() {
+    public void delete_no_login() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForDelete(User.GUEST_USER);
@@ -174,7 +173,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_not_owner() {
+    public void delete_not_owner() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
@@ -183,7 +182,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_has_other_answer() {
+    public void delete_has_other_answer() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
@@ -193,7 +192,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_owner() {
+    public void delete_owner() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForDelete(secondQuestion.getWriter());

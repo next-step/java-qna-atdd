@@ -69,7 +69,7 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
     }
 
     public void isAvailableDelete(User loginUser) throws CannotDeleteException {
-        if(!isOwner(loginUser)) {
+        if (!isOwner(loginUser)) {
             throw new CannotDeleteException("작성자만 답변 삭제가 가능합니다.");
         }
     }
