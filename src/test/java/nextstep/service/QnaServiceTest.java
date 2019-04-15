@@ -28,37 +28,32 @@ public class QnaServiceTest extends BaseTest {
     @InjectMocks
     private QnaService qnaService;
 
-    private static final Question ORIGINAL_QUESTION = new Question("title", "contents");
-    private static final Question UPDATE_QUESTION = new Question("update title", "update contents");
-    private static final Answer ORIGIN_ANSWER = new Answer(1L, UserTest.JAVAJIGI, ORIGINAL_QUESTION, "answer");
-    private static final Answer UPDATE_ANSWER = new Answer(1L, UserTest.JAVAJIGI, ORIGINAL_QUESTION, "update question");
-
     @Before
     public void setUp() {
-        when(this.questionRepository.findById(1L)).thenReturn(Optional.of(ORIGINAL_QUESTION));
-        when(this.answerRepository.findById(1L)).thenReturn(Optional.of(ORIGIN_ANSWER));
+        when(this.questionRepository.findById(1L)).thenReturn(Optional.of(QuestionTest.ORIGINAL_QUESTION));
+        when(this.answerRepository.findById(1L)).thenReturn(Optional.of(AnswerTest.ORIGIN_ANSWER));
     }
 
     @Before
     public void initQnaService() {
-        ORIGINAL_QUESTION.writeBy(UserTest.JAVAJIGI);
+        QuestionTest.ORIGINAL_QUESTION.writeBy(UserTest.JAVAJIGI);
 
     }
 
     @Test
     public void update_owner() {
-        this.qnaService.update(UserTest.JAVAJIGI,1L, UPDATE_QUESTION);
-        softly.assertThat(ORIGINAL_QUESTION.getTitle()).isEqualTo(UPDATE_QUESTION.getTitle());
+        this.qnaService.update(UserTest.JAVAJIGI,1L, QuestionTest.UPDATE_QUESTION);
+        softly.assertThat(QuestionTest.ORIGINAL_QUESTION.getTitle()).isEqualTo(QuestionTest.UPDATE_QUESTION.getTitle());
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_not_owner() throws UnAuthorizedException{
-        this.qnaService.update(UserTest.SANJIGI,1L, UPDATE_QUESTION);
+        this.qnaService.update(UserTest.SANJIGI,1L, QuestionTest.UPDATE_QUESTION);
     }
 
     @Test(expected = UnAuthorizedException.class)
     public void update_guest() throws UnAuthorizedException{
-        this.qnaService.update(User.GUEST_USER,1L, UPDATE_QUESTION);
+        this.qnaService.update(User.GUEST_USER,1L, QuestionTest.UPDATE_QUESTION);
     }
 
     @Test
@@ -78,12 +73,12 @@ public class QnaServiceTest extends BaseTest {
 
     @Test
     public void create() {
-        this.qnaService.addAnswer(UserTest.JAVAJIGI, 1L, ORIGIN_ANSWER);
+        this.qnaService.addAnswer(UserTest.JAVAJIGI, 1L, AnswerTest.ORIGIN_ANSWER);
     }
 
     @Test(expected = EntityNotFoundException.class)
     public void create_not_exist_question() {
-        this.qnaService.addAnswer(UserTest.JAVAJIGI, 10L, ORIGIN_ANSWER);
+        this.qnaService.addAnswer(UserTest.JAVAJIGI, 10L, AnswerTest.ORIGIN_ANSWER);
     }
 
 
