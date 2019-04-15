@@ -14,13 +14,8 @@ import java.util.Objects;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @Size(min = 3, max = 100)
-    @Column(length = 100, nullable = false)
-    private String title;
-
-    @Size(min = 3)
-    @Lob
-    private String contents;
+   @Embedded
+    private QuestionBody questionBody;
 
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
@@ -38,32 +33,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public Question(Long id, String title, String contents, User writer) {
         super(id);
-        this.title = title;
-        this.contents = contents;
+        this.questionBody = new QuestionBody(title, contents);
         this.writer = writer;
     }
 
     public Question(String title, String contents) {
-        this.title = title;
-        this.contents = contents;
+        this.questionBody = new QuestionBody(title, contents);
     }
+
+    public QuestionBody getQuestionBody() { return this.questionBody; }
 
     public String getTitle() {
-        return title;
-    }
-
-    public Question setTitle(String title) {
-        this.title = title;
-        return this;
+        return this.questionBody.getTitle();
     }
 
     public String getContents() {
-        return contents;
-    }
-
-    public Question setContents(String contents) {
-        this.contents = contents;
-        return this;
+        return this.questionBody.getContents();
     }
 
     public User getWriter() {
@@ -74,9 +59,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.writer = loginUser;
     }
 
-    public void addAnswer(Answer answer) {
+    public Answer addAnswer(Answer answer) {
         answer.toQuestion(this);
         answers.add(answer);
+        return answer;
     }
 
     public boolean isOwner(User loginUser) {
@@ -88,24 +74,22 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean hasAnswer(Answer answer) {
-        return answers.stream().anyMatch(answer1 -> answer1.equals(answer));
+        return answers.stream().anyMatch(savedAnswer -> savedAnswer.equals(answer));
     }
 
-    public Question update(User loginUser, Question updatedQuestion) throws UnAuthorizedException {
+    public Question update(User loginUser, QuestionBody updatedQuestion) throws UnAuthorizedException {
         if (!isOwner(loginUser)) {
             throw new UnAuthorizedException("작성자만 질문 수정이 가능합니다.");
         }
-        this.title = updatedQuestion.title;
-        this.contents = updatedQuestion.contents;
+        this.questionBody = updatedQuestion;
         return this;
     }
 
-    public boolean equalsTitleAndContent(Question target) {
+    public boolean equalsQuestionBody(QuestionBody target) {
         if (Objects.isNull(target)) {
             return false;
         }
-
-        return title.equals(target.title) && contents.equals(target.contents);
+        return this.questionBody.equals(target);
     }
 
     public void delete(User loginUser) throws CannotDeleteException {
@@ -125,6 +109,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @Override
     public String toString() {
-        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
+        return "Question [id=" + getId() + ", " + questionBody.toString() + ", writer=" + writer + "]";
     }
 }

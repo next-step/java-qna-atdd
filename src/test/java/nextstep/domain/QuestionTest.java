@@ -10,7 +10,7 @@ public class QuestionTest extends BaseTest {
     public static final User OTHER = new User(4L, "testuser", "testuser", "테스트", "test@gmail.com");
 
     public static Question origin = new Question(0L, "제목이에요.", "내용이에요", ONE);
-    public static Question target = new Question("제목이다", "내용이다");
+    public static QuestionBody target = new QuestionBody("제목이다", "내용이다");
 
     @Test
     public void update_owner() throws Exception {

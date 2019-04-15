@@ -36,7 +36,7 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, QuestionBody updatedQuestion) {
         Question originQuestion = findByQuestionId(id);
         return originQuestion.update(loginUser, updatedQuestion);
     }
@@ -55,11 +55,11 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
         Question question = findByQuestionId(questionId);
-        question.addAnswer(answer);
-        return answerRepository.save(answer);
+        return question.addAnswer(answer);
     }
 
     @Transactional

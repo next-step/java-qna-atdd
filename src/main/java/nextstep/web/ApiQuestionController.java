@@ -1,6 +1,7 @@
 package nextstep.web;
 
 import nextstep.domain.Question;
+import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
 import nextstep.exception.CannotDeleteException;
 import nextstep.security.LoginUser;
@@ -40,7 +41,7 @@ public class ApiQuestionController {
     }
 
     @PutMapping("/{id}")
-    public Question update(@LoginUser User loginUser, @PathVariable Long id, @RequestBody Question updateQuestion) {
+    public Question update(@LoginUser User loginUser, @PathVariable Long id, @RequestBody QuestionBody updateQuestion) {
         return qnaService.update(loginUser, id, updateQuestion);
     }
 

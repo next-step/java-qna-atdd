@@ -2,15 +2,14 @@ package nextstep.web;
 
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
-import nextstep.domain.User;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import support.test.AcceptanceTest;
+import support.test.HttpClientRequestUtils;
 
 public class ApiAnswerAcceptanceTest extends AcceptanceTest {
     private static final Logger log = LoggerFactory.getLogger(ApiUserAcceptanceTest.class);
@@ -21,8 +20,9 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     @Before
     public void setUp() throws Exception {
-        String location = createResource(QUESTION_API_PATH, new Question("제목이다", "내용이다"));
-        originQuestion = getResource(defaultUser(), location, Question.class);
+        ResponseEntity<Void> responseEntity = HttpClientRequestUtils.createResource(basicAuthTemplate(), QUESTION_API_PATH, new Question("제목이다", "내용이다"), Void.class);
+        String location = responseEntity.getHeaders().getLocation().getPath();
+        originQuestion = HttpClientRequestUtils.getResource(basicAuthTemplate(), location, Question.class);
 
         newAnswer = "답변입니당";
     }
@@ -33,24 +33,30 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void create() throws Exception {
-        String location = createResource(getAnswerCreateApiPath(originQuestion), newAnswer);
-        Answer dbAnswer = getResource(defaultUser(), location, Answer.class);
+        createAnswer();
+    }
+
+    private String createAnswer() {
+        ResponseEntity<Void> responseEntity = HttpClientRequestUtils.createResource(basicAuthTemplate(), getAnswerCreateApiPath(originQuestion), newAnswer, Void.class);
+        String location = responseEntity.getHeaders().getLocation().getPath();
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Answer dbAnswer = HttpClientRequestUtils.getResource(basicAuthTemplate(), location, Answer.class);
         softly.assertThat(dbAnswer).isNotNull();
+        return location;
     }
 
     @Test
     public void create_no_login() throws Exception {
-        ResponseEntity<Void> response = template().postForEntity(getAnswerCreateApiPath(originQuestion), newAnswer, Void.class);
+        ResponseEntity<Void> response = HttpClientRequestUtils.createResource(template(), getAnswerCreateApiPath(originQuestion), newAnswer, Void.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void delete() {
-        String location = createResource(getAnswerCreateApiPath(originQuestion), newAnswer);
+        String location = createAnswer();
 
-        ResponseEntity<Void> responseEntity =
-                basicAuthTemplate().exchange(location, HttpMethod.DELETE, createHttpEntity(null), Void.class);
-        Answer deletedAnswer = getResource(User.GUEST_USER, location, Answer.class);
+        ResponseEntity<Void> responseEntity = HttpClientRequestUtils.deleteResource(basicAuthTemplate(), location, Void.class);
+        Answer deletedAnswer = HttpClientRequestUtils.getResource(basicAuthTemplate(), location, Answer.class);
 
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
         softly.assertThat(responseEntity.getHeaders().getLocation().getPath()).isEqualTo("/api/" + originQuestion.generateUrl());
@@ -60,19 +66,17 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete_no_login() {
-        String location = createResource(getAnswerCreateApiPath(originQuestion), newAnswer);
+        String location = createAnswer();
 
-        ResponseEntity<Void> responseEntity
-                = template().exchange(location, HttpMethod.DELETE, createHttpEntity(null), Void.class);
+        ResponseEntity<Void> responseEntity = HttpClientRequestUtils.deleteResource(template(), location, Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void delete_not_owner() {
-        String location = createResource(getAnswerCreateApiPath(originQuestion), newAnswer);
+        String location = createAnswer();
 
-        ResponseEntity<Void> responseEntity =
-                basicAuthTemplate(findByUserId("sanjigi")).exchange(location, HttpMethod.DELETE, createHttpEntity(null), Void.class);
+        ResponseEntity<Void> responseEntity = HttpClientRequestUtils.deleteResource(basicAuthTemplate(findByUserId("sanjigi")), location, Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
     }
