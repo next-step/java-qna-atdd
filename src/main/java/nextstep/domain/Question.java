@@ -1,14 +1,15 @@
 package nextstep.domain;
 
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import static nextstep.domain.ContentType.QUESTION;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
@@ -24,10 +25,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -78,13 +77,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public Question update(User loginUser, Question targetQna) {
-        if (!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
-
-        if(isDeleted()) {
-            throw new IllegalArgumentException();
-        }
+        checkOwner(loginUser);
+        checkDeleted();
 
         this.writer = loginUser;
         this.title = targetQna.title;
@@ -94,16 +88,28 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void delete(User loginUser) {
-        if (!isOwner(loginUser)) {
-            throw new UnAuthorizedException();
-        }
+    public List<DeleteHistory> delete(User loginUser) {
+        checkOwner(loginUser);
+        checkDeleted();
 
-        if(isDeleted()) {
+        answers.checkAnswerOwner(loginUser);
+        this.deleted = true;
+
+        List<DeleteHistory> deleteHistories = answers.deleteAll(loginUser);
+        deleteHistories.add(new DeleteHistory(QUESTION, this.getId(), loginUser, LocalDateTime.now()));
+        return deleteHistories;
+    }
+
+    private void checkOwner(User loginUser) {
+        if (!isOwner(loginUser)) {
+            throw new UnAuthorizedException("질문자와 답변자가 같지 않습니다.");
+        }
+    }
+
+    private void checkDeleted() {
+        if (isDeleted()) {
             throw new IllegalArgumentException();
         }
-
-        this.deleted = true;
     }
 
     public Answer addAnswer(Answer answer) {
