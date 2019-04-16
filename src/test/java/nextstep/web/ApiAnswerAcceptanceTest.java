@@ -23,6 +23,14 @@ public class ApiAnswerAcceptanceTest extends AcceptanceTest {
 
 
     @Test
+    public void show() throws Exception {
+        String location = createLocation();
+        Answer answer = basicAuthTemplate().getForObject(location, Answer.class);
+
+        softly.assertThat(answer).isNotNull();
+    }
+
+    @Test
     public void add() throws Exception {
         String location = createLocation();
         String contents = "댓글 내용";
