@@ -10,8 +10,16 @@ import static nextstep.domain.UserTest.JAVAJIGI;
 
 public class AnswerTest extends BaseTest {
 
+    static final Answer newAnswer(long id, String contents) {
+        return new Answer(id, JAVAJIGI, newQuestion("title", "contensts"), contents);
+    }
+
     static final Answer newAnswer(String contents) {
         return new Answer(0L, JAVAJIGI, newQuestion("title", "contensts"), contents);
+    }
+
+    static final Answer newAnswerAnoterUser(String contents) {
+        return new Answer(0L, SANGGU, newQuestion("title", "contensts"), contents);
     }
 
     @Test
