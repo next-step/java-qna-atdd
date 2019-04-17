@@ -86,15 +86,6 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_success() {
-        Question question = questionRepository.findById(UserTest.JAVAJIGI.getId()).get();
-        ResponseEntity<String> response = this.delete(basicAuthTemplate(), question);
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        softly.assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/");
-        log.debug("body : {}", response.getBody());
-    }
-
-    @Test
     public void delete_fail() {
         Question question = questionRepository.findById(UserTest.JAVAJIGI.getId()).get();
         ResponseEntity<String> response = this.delete(template(), question);

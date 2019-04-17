@@ -1,30 +1,30 @@
 package nextstep.domain;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
 public class AnswerTest extends BaseTest {
-    private Question question = new Question("title", "contents");
-    private User answerWriter = UserTest.JAVAJIGI;
-    private Answer answer = new Answer(1L, this.answerWriter, this.question, "answer");
+    public static final Answer ORIGIN_ANSWER = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.ORIGINAL_QUESTION, "answer");
 
     @Test
     public void 답변_생성() {
-        Answer answer = new Answer(1L, UserTest.JAVAJIGI, this.question, "answer");
+        Answer answer = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.ORIGINAL_QUESTION, "answer");
         softly.assertThat(answer.getWriter()).isEqualTo(UserTest.JAVAJIGI);
         softly.assertThat(answer.getContents()).isEqualTo("answer");
     }
 
     @Test
-    public void delete_answer() throws CannotDeleteException {
-        this.answer.delete(this.answerWriter);
-        softly.assertThat(this.answer.isDeleted()).isTrue();
+    public void 답변_삭제() throws CannotDeleteException {
+        Answer answer = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.ORIGINAL_QUESTION, "answer");
+        answer.delete(UserTest.JAVAJIGI);
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 
-    @Test(expected = CannotDeleteException.class)
-    public void delete_answer_not_owner() throws CannotDeleteException {
-        this.answer.delete(UserTest.SANJIGI);
-        softly.assertThat(this.answer.isDeleted()).isFalse();
+    @Test(expected = UnAuthorizedException.class)
+    public void 답변_작성자가_다른_경우() throws CannotDeleteException {
+        Answer answer = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.ORIGINAL_QUESTION, "answer");
+        answer.delete(UserTest.SANJIGI);
     }
 }

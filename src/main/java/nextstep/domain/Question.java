@@ -2,13 +2,11 @@ package nextstep.domain;
 
 import nextstep.CannotDeleteException;
 import nextstep.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,10 +23,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -88,11 +84,16 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return this;
     }
 
-    public void delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("삭제 권한이 없습니다.");
         }
+        if (isDeleted()) {
+            throw new CannotDeleteException("삭제 권한이 없습니다.");
+        }
         this.deleted = true;
+
+        return answers.delete(loginUser);
     }
 
     @Override

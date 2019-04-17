@@ -7,6 +7,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -69,12 +70,16 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public Answer delete(User loginUser) throws CannotDeleteException {
+    public DeleteHistory delete(User loginUser) throws CannotDeleteException {
+        if (isDeleted()) {
+            throw new CannotDeleteException("삭제된 답변입니다.");
+        }
+
         if (!isOwner(loginUser)) {
-            throw new CannotDeleteException("삭제 권한이 없습니다.");
+            throw new UnAuthorizedException("삭제 권한이 없습니다.");
         }
         this.deleted = true;
-        return this;
+        return new DeleteHistory(ContentType.ANSWER, getId(), loginUser, LocalDateTime.now());
     }
 
     @Override

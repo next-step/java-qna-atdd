@@ -52,9 +52,8 @@ public class ApiQnaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteQuestion(@LoginUser User loginUser, @PathVariable long id) throws nextstep.CannotDeleteException {
+    public void deleteQuestion(@LoginUser User loginUser, @PathVariable long id) throws nextstep.CannotDeleteException {
         qnaService.deleteQuestion(loginUser, id);
-        return new ResponseEntity(HttpStatus.OK);
     }
 
     @GetMapping("/{questionId}/answers/{answerId}")
@@ -75,8 +74,7 @@ public class ApiQnaController {
     }
 
     @DeleteMapping("/{questionId}/answers/{answerId}")
-    public ResponseEntity<Void> deleteAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @PathVariable Long answerId) throws CannotDeleteException {
+    public void deleteAnswer(@LoginUser User loginUser, @PathVariable Long questionId, @PathVariable Long answerId) throws CannotDeleteException {
         qnaService.deleteAnswer(loginUser, answerId);
-        return new ResponseEntity(HttpStatus.OK);
     }
 }
