@@ -70,6 +70,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
                 .delete()
                 .build();
 
-        softly.assertThat(foundResource(getQuestionPath(FORMAT_PATH_VALUE_ID), request)).startsWith("/questions");
+        ResponseEntity<String> response = basicAuthTemplate().postForEntity(getQuestionPath(FORMAT_PATH_VALUE_ID), request, String.class);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 }

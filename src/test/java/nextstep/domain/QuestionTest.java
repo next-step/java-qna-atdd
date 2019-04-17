@@ -4,6 +4,8 @@ import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import static nextstep.domain.AnswerTest.newAnswer;
+import static nextstep.domain.AnswerTest.newAnswerAnoterUser;
 import static nextstep.domain.UserTest.JAVAJIGI;
 import static nextstep.domain.UserTest.newUser;
 
@@ -63,5 +65,47 @@ public class QuestionTest extends BaseTest {
         Question question = newQuestion("제목", "내용", loginUser);
 
         question.delete(SANGGU);
+    }
+
+    @Test
+    public void delete_when_have_answers() {
+        User loginUser = JAVAJIGI;
+
+        Answer answer = newAnswer("삭제못하는 댓글");
+        Question question = newQuestion("제목", "내용", loginUser);
+
+        question.addAnswer(answer);
+        question.delete(loginUser);
+
+        softly.assertThat(question.isDeleted()).isEqualTo(true);
+    }
+
+    @Test(expected = UnAuthorizedException.class)
+    public void cant_delete_as_answers_is_not_owner() {
+        User loginUser = JAVAJIGI;
+
+        Answer answer = newAnswerAnoterUser("삭제못하는 댓글");
+        Question question = newQuestion("제목", "내용", loginUser);
+
+        question.addAnswer(answer);
+        question.delete(loginUser);
+    }
+
+    @Test
+    public void delete_all_answers() {
+        User loginUser = JAVAJIGI;
+
+        Answer firstAnswer = newAnswer("첫번 째 댓글");
+        Answer secondAnswer = newAnswer(1L, "두번 째 댓글");
+        Question question = newQuestion("제목", "내용", loginUser);
+
+        question.addAnswer(firstAnswer);
+        question.addAnswer(secondAnswer);
+
+        question.delete(loginUser);
+
+        softly.assertThat(question.isDeleted()).isEqualTo(true);
+        softly.assertThat(firstAnswer.isDeleted()).isEqualTo(true);
+        softly.assertThat(secondAnswer.isDeleted()).isEqualTo(true);
     }
 }
