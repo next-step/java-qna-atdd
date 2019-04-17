@@ -64,22 +64,22 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void delete() {
-        ResponseEntity<Question> responseEntity = basicAuthTemplate(defaultUser())
-                .exchange(this.location, HttpMethod.DELETE, createHttpEntity(QuestionTest.ORIGINAL_QUESTION), Question.class);
+        ResponseEntity<Void> responseEntity = basicAuthTemplate()
+                .exchange(this.location, HttpMethod.DELETE, createHttpEntity(QuestionTest.ORIGINAL_QUESTION), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
     public void delete_question_no_login() {
-        ResponseEntity<Question> responseEntity = template()
-                .exchange(this.location, HttpMethod.DELETE, createHttpEntity(QuestionTest.ORIGINAL_QUESTION), Question.class);
+        ResponseEntity<Void> responseEntity = template()
+                .exchange(this.location, HttpMethod.DELETE, createHttpEntity(QuestionTest.ORIGINAL_QUESTION), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     public void delete_not_owner() {
-        ResponseEntity<Question> responseEntity = basicAuthTemplate(UserTest.SANJIGI)
-                .exchange(this.location, HttpMethod.DELETE, createHttpEntity(QuestionTest.ORIGINAL_QUESTION), Question.class);
+        ResponseEntity<Void> responseEntity = basicAuthTemplate(UserTest.SANJIGI)
+                .exchange(this.location, HttpMethod.DELETE, createHttpEntity(QuestionTest.ORIGINAL_QUESTION), Void.class);
         softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
@@ -101,7 +101,17 @@ public class ApiQnaAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_answer() {
+    public void delete_answer_success() {
+        String answerLocation = createResourceBasicAuth(this.questionLocation + "/answers", AnswerTest.ORIGIN_ANSWER);
+        softly.assertThat(answerLocation).startsWith(this.questionLocation + "/answers/");
+
+        ResponseEntity<Answer> responseEntity = basicAuthTemplate()
+                .exchange(answerLocation, HttpMethod.DELETE, createHttpEntity(AnswerTest.ORIGIN_ANSWER), Answer.class);
+        softly.assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void delete_answer_fail() {
         String answerLocation = createResourceBasicAuth(this.questionLocation + "/answers", AnswerTest.ORIGIN_ANSWER);
         softly.assertThat(answerLocation).startsWith(this.questionLocation + "/answers/");
 

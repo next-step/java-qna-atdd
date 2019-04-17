@@ -23,7 +23,7 @@ public class QnaService {
     private AnswerRepository answerRepository;
 
     @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+    private DeleteHistoryRepository deleteHistoryRepository;
 
     public Question create(User loginUser, Question question) {
         question.writeBy(loginUser);
@@ -71,8 +71,8 @@ public class QnaService {
     }
 
     @Transactional
-    public Answer deleteAnswer(User loginUser, long answerId) throws CannotDeleteException {
-        Answer answer = findAnswer(answerId);
-        return answer.delete(loginUser);
+    public void deleteAnswer(User loginUser, long id) throws CannotDeleteException {
+        Answer answer = answerRepository.findById(id).get();
+        deleteHistoryRepository.save(answer.delete(loginUser));
     }
 }

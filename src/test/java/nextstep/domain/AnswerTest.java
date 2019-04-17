@@ -1,6 +1,7 @@
 package nextstep.domain;
 
 import nextstep.CannotDeleteException;
+import nextstep.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
@@ -15,14 +16,15 @@ public class AnswerTest extends BaseTest {
     }
 
     @Test
-    public void delete_answer() throws CannotDeleteException {
-        ORIGIN_ANSWER.delete(UserTest.JAVAJIGI);
-        softly.assertThat(ORIGIN_ANSWER.isDeleted()).isTrue();
+    public void 답변_삭제() throws CannotDeleteException {
+        Answer answer = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.ORIGINAL_QUESTION, "answer");
+        answer.delete(UserTest.JAVAJIGI);
+        softly.assertThat(answer.isDeleted()).isTrue();
     }
 
-    @Test(expected = CannotDeleteException.class)
-    public void delete_answer_not_owner() throws CannotDeleteException {
-        ORIGIN_ANSWER.delete(UserTest.SANJIGI);
-        softly.assertThat(ORIGIN_ANSWER.isDeleted()).isFalse();
+    @Test(expected = UnAuthorizedException.class)
+    public void 답변_작성자가_다른_경우() throws CannotDeleteException {
+        Answer answer = new Answer(1L, UserTest.JAVAJIGI, QuestionTest.ORIGINAL_QUESTION, "answer");
+        answer.delete(UserTest.SANJIGI);
     }
 }
