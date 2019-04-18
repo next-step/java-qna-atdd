@@ -5,6 +5,8 @@ import nextstep.exception.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
+import java.util.List;
+
 import static nextstep.domain.AnswerTest.ONE_ANSWER;
 import static nextstep.domain.AnswerTest.OTHER_ANSWER;
 import static nextstep.domain.UserTest.ONE;
@@ -68,9 +70,10 @@ public class QuestionTest extends BaseTest {
         // given
         Question originQuestion = origin;
         // when
-        originQuestion.delete(ONE);
+        List<DeleteHistory> deleteHistories = originQuestion.delete(ONE);
         // then
         softly.assertThat(originQuestion.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories.size()).isEqualTo(1);
     }
 
     @Test
@@ -79,9 +82,10 @@ public class QuestionTest extends BaseTest {
         Question originQuestion = origin;
         originQuestion.addAnswer(ONE_ANSWER);
         // when
-        originQuestion.delete(ONE);
+        List<DeleteHistory> deleteHistories = originQuestion.delete(ONE);
         // then
         softly.assertThat(originQuestion.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories.size()).isEqualTo(2);
     }
 
     @Test(expected = CannotDeleteException.class)

@@ -2,15 +2,12 @@ package nextstep.domain;
 
 import nextstep.exception.CannotDeleteException;
 import nextstep.exception.UnAuthorizedException;
-import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {

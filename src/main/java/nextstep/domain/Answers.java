@@ -18,8 +18,6 @@ public class Answers {
     @OrderBy("id ASC")
     private List<Answer> answers = new ArrayList<>();
 
-    public Answers() { }
-
     public void add(Answer answer) {
         this.answers.add(answer);
     }
