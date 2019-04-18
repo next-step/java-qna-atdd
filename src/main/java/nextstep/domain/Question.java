@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import nextstep.UnAuthorizedException;
 import nextstep.ForbiddenException;
 import org.hibernate.annotations.Where;
@@ -20,10 +21,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Embedded
     private QuestionBody questionBody;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @JsonIgnore
+    @Embedded
+    private Answers answers;
 
     private boolean deleted = false;
 
@@ -45,7 +45,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public void addAnswer(Answer answer) {
-        this.answers.add(answer);
+        answers.add(answer);
     }
 
     public void update(User writer, QuestionBody newQuestionBody) {
@@ -57,18 +57,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public List<DeleteHistory> delete(User writer) {
-        List<DeleteHistory> histories = new ArrayList<>();
-
         if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
+        List<DeleteHistory> histories = answers.delete(writer);
+
         deleted = true;
         histories.add(new DeleteHistory(ContentType.QUESTION, getId(), writer, LocalDateTime.now()));
-
-        getAnswers().stream()
-            .map(a -> a.delete(writer))
-            .forEach(histories::add);
 
         return histories;
     }
@@ -82,7 +78,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public List<Answer> getAnswers() {
-        return answers;
+        return answers.getAnswers();
     }
 
     public boolean isOwner(User loginUser) {

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,7 +24,7 @@ public class QnAServiceTest extends BaseTest {
     @Mock
     private AnswerRepository answerRepository;
     @Mock
-    private DeleteHistoryService deleteHistoryService;
+    private DeleteHistoryRepository deleteHistoryRepository;
 
     @InjectMocks
     private QnAService qnaService;
@@ -78,8 +78,8 @@ public class QnAServiceTest extends BaseTest {
     public void 질문을_삭제한다() {
         답변이_포함된_질문_1건을_조회_가능하게함(1L);
 
-        List<DeleteHistory> histories = qnaService.deleteQuestion(1L, writer);
-        softly.assertThat(histories).hasSize(2);
+        qnaService.deleteQuestion(1L, writer);
+        verify(deleteHistoryRepository, times(1)).saveAll(any(List.class));
     }
 
     @Test
@@ -114,8 +114,8 @@ public class QnAServiceTest extends BaseTest {
     public void 답변을_삭제한다() {
         답변_1건을_조회_가능하게함(1L, 1L);
 
-        DeleteHistory deleteHistory = qnaService.deleteAnswer(writer, 1L);
-        softly.assertThat(deleteHistory).isNotNull();
+        qnaService.deleteAnswer(writer, 1L);
+        verify(deleteHistoryRepository, times(1)).save(any(DeleteHistory.class));
     }
 
     private void 질문_1건을_저장_가능하게함(QuestionBody questionBody) {
