@@ -21,10 +21,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers;
 
     private boolean deleted = false;
 
@@ -36,6 +34,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         super(id);
         this.questionBody = new QuestionBody(title, contents);
         this.writer = writer;
+        this.answers = new Answers();
     }
 
     public Question(String title, String contents) {
@@ -81,7 +80,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public boolean hasAnswer(Answer answer) {
-        return answers.stream().anyMatch(savedAnswer -> savedAnswer.equals(answer));
+        return answers.hasAnswer(answer);
     }
 
     public Question update(User loginUser, QuestionBody updatedQuestion) throws UnAuthorizedException {
@@ -109,16 +108,11 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     private void deleteAnswers(User loginUser) throws CannotDeleteException {
-        for (Answer answer : answers) {
-            answer.delete(loginUser);
-        }
+        answers.delete(loginUser);
     }
 
     private List<DeleteHistory> createDeleteHistory() {
-        List<DeleteHistory> histories = answers.stream()
-                .map(answer -> new DeleteHistory(ContentType.ANSWER, answer.getId(), answer.getWriter()))
-                .collect(Collectors.toList());
-
+        List<DeleteHistory> histories = answers.createDeleteHistory();
         histories.add(new DeleteHistory(ContentType.QUESTION, this.getId(), this.getWriter()));
         return histories;
     }
