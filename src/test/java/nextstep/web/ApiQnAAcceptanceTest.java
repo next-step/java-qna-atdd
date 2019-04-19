@@ -111,7 +111,7 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 질문을_삭제한다() {
+    public void 답변이_없는경우_질문을_삭제할수_있다() {
         // given
         Question question = generateQuestion(defaultUser());
 
@@ -125,7 +125,36 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void 작성자가_어니면_질문을_삭제할수_없다() {
+    public void 답변자와_질문자가_동일할경우_질문을_삭제할수_있다() {
+        // given
+        Question question = generateQuestion(defaultUser());
+        Answer answer = generateAnswer(defaultUser(), question);
+
+        // when
+        ResponseEntity<Void> response =
+            restApiTestCaller.deleteResource(String.format("/api/questions/%d", question.getId()), defaultUser());
+
+        // then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        softly.assertThat(questionRepository.findById(question.getId()).get().isDeleted()).isTrue();
+        softly.assertThat(answerRepository.findById(answer.getId()).get().isDeleted()).isTrue();
+    }
+
+    @Test
+    public void 다른_사용자가_작성한_답변이_있는경우_질문삭제가_불가능하다() {
+        // given
+        Question question = generateQuestion(defaultUser());
+        generateAnswer(findByUserId("sanjigi"), question);
+
+        // when
+        ResponseEntity<Void> response =
+            restApiTestCaller.deleteResource(String.format("/api/questions/%d", question.getId()), defaultUser());
+
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    public void 작성자가_아니면_질문을_삭제할수_없다() {
         // given
         Question question = generateQuestion(defaultUser());
 

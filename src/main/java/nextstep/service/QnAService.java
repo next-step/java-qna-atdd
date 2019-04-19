@@ -1,6 +1,5 @@
 package nextstep.service;
 
-import nextstep.ForbiddenException;
 import nextstep.NotFoundException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
@@ -21,8 +20,8 @@ public class QnAService {
     @Resource(name = "answerRepository")
     private AnswerRepository answerRepository;
 
-    @Resource(name = "deleteHistoryService")
-    private DeleteHistoryService deleteHistoryService;
+    @Resource(name = "deleteHistoryRepository")
+    private DeleteHistoryRepository deleteHistoryRepository;
 
     @Transactional
     public Question createQuestion(User writer, QuestionBody questionBody) {
@@ -51,26 +50,28 @@ public class QnAService {
     }
 
     @Transactional
-    public Question deleteQuestion(Long id, User writer) {
+    public void deleteQuestion(Long id, User writer) {
         Question question = findQuestionById(id);
-        question.delete(writer);
+        List<DeleteHistory> histories = question.delete(writer);
 
-        return question;
+        deleteHistoryRepository.saveAll(histories);
     }
 
     @Transactional
     public Answer addAnswer(User writer, Long questionId, String contents) {
         Question question = findQuestionById(questionId);
-        Answer answer = new Answer(writer, question, contents);
 
-        return answerRepository.save(answer);
+        Answer answer = new Answer(writer, question, contents);
+        question.addAnswer(answer);
+
+        return answer;
     }
 
     @Transactional(readOnly = true)
     public List<Answer> findAnswers(Long questionId) {
         Question question = findQuestionById(questionId);
 
-        return answerRepository.findByQuestionAndDeletedFalse(question);
+        return question.getAnswers();
     }
 
     @Transactional(readOnly = true)
@@ -80,22 +81,10 @@ public class QnAService {
     }
 
     @Transactional
-    public Answer deleteAnswer(User writer, Long id) {
+    public void deleteAnswer(User writer, Long id) {
         Answer answer = findAnswer(id);
-        answer.delete();
+        DeleteHistory deleteHistory = answer.delete(writer);
 
-        return answer;
-    }
-
-    @Deprecated
-    @Transactional(readOnly = true)
-    public Question findByOwner(User loginUser, Long id) {
-        Question question = findQuestionById(id);
-
-        if (!question.isOwner(loginUser)) {
-            throw new ForbiddenException();
-        }
-
-        return question;
+        deleteHistoryRepository.save(deleteHistory);
     }
 }

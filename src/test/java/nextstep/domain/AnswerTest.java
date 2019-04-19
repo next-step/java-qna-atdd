@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.ForbiddenException;
 import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
 import org.junit.Test;
@@ -10,7 +11,7 @@ public class AnswerTest extends BaseTest {
     private Question question = QuestionTest.newQuestion(1L);
 
     public static Answer newAnswer(Long id) {
-        return new Answer(id, new User(), new Question(), "answer");
+        return new Answer(id, UserTest.newUser(1L), QuestionTest.newQuestion(1L), "answer");
     }
 
     @Test
@@ -32,10 +33,24 @@ public class AnswerTest extends BaseTest {
     }
 
     @Test
+    public void 작성자인지_확인한다() {
+        Answer answer = new Answer(writer, question, "This is answer");
+        softly.assertThat(answer.isOwner(writer)).isTrue();
+    }
+
+    @Test
     public void 답변을_삭제한다() {
         Answer answer = new Answer(writer, question, "This is answer");
-        answer.delete();
+        answer.delete(writer);
 
         softly.assertThat(answer.isDeleted()).isTrue();
+    }
+
+    @Test(expected = ForbiddenException.class)
+    public void 작성자가_아닌데_답변을_삭제하면_예외가_발생한다() {
+        Answer answer = new Answer(writer, question, "This is answer");
+
+        User otherUser = UserTest.newUser(2L);
+        answer.delete(otherUser);
     }
 }

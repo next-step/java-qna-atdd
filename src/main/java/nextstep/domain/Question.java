@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import nextstep.UnAuthorizedException;
 import nextstep.ForbiddenException;
 import org.hibernate.annotations.Where;
@@ -7,6 +8,7 @@ import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,10 +21,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @Embedded
     private QuestionBody questionBody;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @JsonIgnore
+    @Embedded
+    private Answers answers;
 
     private boolean deleted = false;
 
@@ -43,6 +44,10 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         this.questionBody = questionBody;
     }
 
+    public void addAnswer(Answer answer) {
+        answers.add(answer);
+    }
+
     public void update(User writer, QuestionBody newQuestionBody) {
         if(!isOwner(writer)) {
             throw new ForbiddenException();
@@ -51,12 +56,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         questionBody = newQuestionBody;
     }
 
-    public void delete(User writer) {
+    public List<DeleteHistory> delete(User writer) {
         if(!isOwner(writer)) {
             throw new ForbiddenException();
         }
 
+        List<DeleteHistory> histories = answers.delete(writer);
+
         deleted = true;
+        histories.add(new DeleteHistory(ContentType.QUESTION, getId(), writer, LocalDateTime.now()));
+
+        return histories;
     }
 
     public User getWriter() {
@@ -68,7 +78,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public List<Answer> getAnswers() {
-        return answers;
+        return answers.getAnswers();
     }
 
     public boolean isOwner(User loginUser) {

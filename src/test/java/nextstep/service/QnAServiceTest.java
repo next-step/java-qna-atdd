@@ -2,7 +2,6 @@ package nextstep.service;
 
 import nextstep.NotFoundException;
 import nextstep.domain.*;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -10,12 +9,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import support.test.BaseTest;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,49 +23,40 @@ public class QnAServiceTest extends BaseTest {
     private QuestionRepository questionRepository;
     @Mock
     private AnswerRepository answerRepository;
+    @Mock
+    private DeleteHistoryRepository deleteHistoryRepository;
 
     @InjectMocks
     private QnAService qnaService;
 
     private User writer = UserTest.newUser(1L);
-    private List<Question> questions = new ArrayList<>();
-    private Question question = QuestionTest.newQuestion(1L);
-    private List<Answer> answers = new ArrayList<>();
-    private Answer answer = AnswerTest.newAnswer(1L);
-
-    @Before
-    public void setUp() {
-        // question
-        when(questionRepository.save(any(Question.class))).thenReturn(question);
-        when(questionRepository.findByDeletedFalse()).thenReturn(questions);
-        when(questionRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(question));
-
-        // answer
-        when(answerRepository.save(any(Answer.class))).thenReturn(answer);
-        when(answerRepository.findByQuestionAndDeletedFalse(question)).thenReturn(answers);
-        when(answerRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(answer));
-    }
 
     @Test
     public void 질문을_등록한다() {
         QuestionBody questionBody = new QuestionBody("This is title", "This is contents");
+        질문_1건을_저장_가능하게함(questionBody);
+
         Question returned = qnaService.createQuestion(writer, questionBody);
 
-        softly.assertThat(returned).isEqualTo(question);
+        softly.assertThat(returned.getQuestionBody()).isEqualTo(questionBody);
     }
 
     @Test
     public void 질문_목록을_조회한다() {
+        질문_목록을_조회_가능하게함();
+
         List<Question> returned = qnaService.findQuestions();
 
-        softly.assertThat(returned).isEqualTo(questions);
+        softly.assertThat(returned).isNotEmpty();
     }
 
     @Test
     public void 질문을_상세조회한다() {
+        질문_1건을_조회_가능하게함(1L);
+
         Question returned = qnaService.findQuestionById(1L);
 
-        softly.assertThat(returned).isEqualTo(question);
+        softly.assertThat(returned.getId()).isEqualTo(1L);
     }
 
     @Test(expected = NotFoundException.class)
@@ -76,6 +66,8 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 질문을_수정한다() {
+        질문_1건을_조회_가능하게함(1L);
+
         QuestionBody newQuestionBody = new QuestionBody("This is updated title", "This is updated contents");
         Question returned = qnaService.updateQuestion(1L, writer, newQuestionBody);
 
@@ -84,38 +76,73 @@ public class QnAServiceTest extends BaseTest {
 
     @Test
     public void 질문을_삭제한다() {
-        qnaService.deleteQuestion(1L, writer);
+        답변이_포함된_질문_1건을_조회_가능하게함(1L);
 
-        softly.assertThat(question.isDeleted()).isTrue();
+        qnaService.deleteQuestion(1L, writer);
+        verify(deleteHistoryRepository, times(1)).saveAll(any(List.class));
     }
 
     @Test
     public void 답변을_등록한다() {
-        User user = UserTest.newUser(2L);
-        String contents = "This is fixtureAnswer";
-        Answer returned = qnaService.addAnswer(user, 1L, contents);
+        질문_1건을_조회_가능하게함(1L);
 
-        softly.assertThat(returned).isEqualTo(answer);
+        String contents = "This is answer";
+        Answer returned = qnaService.addAnswer(writer, 1L, contents);
+
+        softly.assertThat(returned.getContents()).isEqualTo(contents);
     }
 
     @Test
     public void 답변목록을_조회한다() {
+        답변이_포함된_질문_1건을_조회_가능하게함(1L);
+
         List<Answer> returned = qnaService.findAnswers(1L);
 
-        softly.assertThat(returned).isEqualTo(answers);
+        softly.assertThat(returned).isNotEmpty();
     }
 
     @Test
     public void 답변을_조회한다() {
+        답변_1건을_조회_가능하게함(1L, 1L);
+
         Answer returned = qnaService.findAnswer(1L);
 
-        softly.assertThat(returned).isEqualTo(answer);
+        softly.assertThat(returned.getId()).isEqualTo(1L);
     }
 
     @Test
     public void 답변을_삭제한다() {
-        qnaService.deleteAnswer(writer, 1L);
+        답변_1건을_조회_가능하게함(1L, 1L);
 
-        softly.assertThat(answer.isDeleted()).isTrue();
+        qnaService.deleteAnswer(writer, 1L);
+        verify(deleteHistoryRepository, times(1)).save(any(DeleteHistory.class));
+    }
+
+    private void 질문_1건을_저장_가능하게함(QuestionBody questionBody) {
+        Question question = new Question(writer, questionBody);
+        when(questionRepository.save(any(Question.class))).thenReturn(question);
+    }
+
+    private void 질문_목록을_조회_가능하게함() {
+        List<Question> questions = Arrays.asList(QuestionTest.newQuestion(1L), QuestionTest.newQuestion(2L));
+        when(questionRepository.findByDeletedFalse()).thenReturn(questions);
+    }
+
+    private void 질문_1건을_조회_가능하게함(Long questionId) {
+        Question question = QuestionTest.newQuestion(questionId);
+        when(questionRepository.findByIdAndDeletedFalse(questionId)).thenReturn(Optional.of(question));
+    }
+
+    private void 답변이_포함된_질문_1건을_조회_가능하게함(Long questionId) {
+        Question question = QuestionTest.newQuestion(questionId);
+        question.addAnswer(new Answer(writer, QuestionTest.newQuestion(questionId), "answer"));
+        when(questionRepository.findByIdAndDeletedFalse(questionId)).thenReturn(Optional.of(question));
+    }
+
+    private void 답변_1건을_조회_가능하게함(Long questionId, Long answerId) {
+        답변이_포함된_질문_1건을_조회_가능하게함(questionId);
+
+        Answer answer = AnswerTest.newAnswer(answerId);
+        when(answerRepository.findByIdAndDeletedFalse(answerId)).thenReturn(Optional.of(answer));
     }
 }

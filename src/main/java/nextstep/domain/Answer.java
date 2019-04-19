@@ -1,5 +1,6 @@
 package nextstep.domain;
 
+import nextstep.ForbiddenException;
 import nextstep.NotFoundException;
 import nextstep.UnAuthorizedException;
 import support.domain.AbstractEntity;
@@ -7,6 +8,7 @@ import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 @Entity
 public class Answer extends AbstractEntity implements UrlGeneratable {
@@ -47,8 +49,21 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public void delete() {
+    public DeleteHistory delete(User writer) {
+        if(!this.writer.equals(writer)) {
+            throw new ForbiddenException();
+        }
+
         deleted = true;
+        return new DeleteHistory(ContentType.ANSWER, getId(), writer, LocalDateTime.now());
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public boolean isOwner(User writer) {
+        return this.writer.equals(writer);
     }
 
     public User getWriter() {
@@ -57,10 +72,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public String getContents() {
         return contents;
-    }
-
-    public boolean isDeleted() {
-        return deleted;
     }
 
     @Override
