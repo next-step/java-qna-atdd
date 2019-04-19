@@ -5,12 +5,16 @@ import nextstep.exception.UnAuthorizedException;
 import org.junit.Test;
 import support.test.BaseTest;
 
-public class QuestionTest extends BaseTest {
-    public static final User ONE = new User(3L, "crystal", "crystal", "크리스탈", "crystal@gmail.com");
-    public static final User OTHER = new User(4L, "testuser", "testuser", "테스트", "test@gmail.com");
+import java.util.List;
 
+import static nextstep.domain.AnswerTest.ONE_ANSWER;
+import static nextstep.domain.AnswerTest.OTHER_ANSWER;
+import static nextstep.domain.UserTest.ONE;
+import static nextstep.domain.UserTest.OTHER;
+
+public class QuestionTest extends BaseTest {
     public static Question origin = new Question(0L, "제목이에요.", "내용이에요", ONE);
-    public static Question target = new Question("제목이다", "내용이다");
+    public static QuestionBody target = new QuestionBody("제목이다", "내용이다");
 
     @Test
     public void update_owner() throws Exception {
@@ -52,9 +56,43 @@ public class QuestionTest extends BaseTest {
     }
 
     @Test
-    public void delete_owner() throws Exception {
+    public void add_answer() {
         // given
         Question originQuestion = origin;
+        // when
+        originQuestion.addAnswer(ONE_ANSWER);
+        // then
+        softly.assertThat(originQuestion.hasAnswer(ONE_ANSWER)).isTrue();
+    }
+
+    @Test
+    public void delete_owner_no_answer() throws Exception {
+        // given
+        Question originQuestion = origin;
+        // when
+        List<DeleteHistory> deleteHistories = originQuestion.delete(ONE);
+        // then
+        softly.assertThat(originQuestion.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void delete_question_owner_is_same_answer_owner() throws Exception {
+        // given
+        Question originQuestion = origin;
+        originQuestion.addAnswer(ONE_ANSWER);
+        // when
+        List<DeleteHistory> deleteHistories = originQuestion.delete(ONE);
+        // then
+        softly.assertThat(originQuestion.isDeleted()).isTrue();
+        softly.assertThat(deleteHistories.size()).isEqualTo(2);
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void delete_question_owner_is_not_same_answer_owner() throws Exception {
+        // given
+        Question originQuestion = origin;
+        originQuestion.addAnswer(OTHER_ANSWER);
         // when
         originQuestion.delete(ONE);
         // then

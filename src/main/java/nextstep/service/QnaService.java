@@ -25,7 +25,8 @@ public class QnaService {
     @Resource(name = "deleteHistoryService")
     private DeleteHistoryService deleteHistoryService;
 
-    public Question create(User loginUser, Question question) {
+    public Question create(User loginUser, QuestionBody questionBody) {
+        Question question = questionBody.toQuestion();
         question.writeBy(loginUser);
         log.debug("question : {}", question);
         return questionRepository.save(question);
@@ -36,7 +37,7 @@ public class QnaService {
     }
 
     @Transactional
-    public Question update(User loginUser, long id, Question updatedQuestion) {
+    public Question update(User loginUser, long id, QuestionBody updatedQuestion) {
         Question originQuestion = findByQuestionId(id);
         return originQuestion.update(loginUser, updatedQuestion);
     }
@@ -44,7 +45,8 @@ public class QnaService {
     @Transactional
     public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
         Question originQuestion = findByQuestionId(questionId);
-        originQuestion.delete(loginUser);
+        List<DeleteHistory> deleteHistories = originQuestion.delete(loginUser);
+        deleteHistoryService.saveAll(deleteHistories);
     }
 
     public Iterable<Question> findAll() {
@@ -55,11 +57,11 @@ public class QnaService {
         return questionRepository.findAll(pageable).getContent();
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Answer answer = new Answer(loginUser, contents);
         Question question = findByQuestionId(questionId);
-        question.addAnswer(answer);
-        return answerRepository.save(answer);
+        return question.addAnswer(answer);
     }
 
     @Transactional

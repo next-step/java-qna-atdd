@@ -108,7 +108,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void updateForm_login() {
+    public void updateForm_login() throws Exception {
         // given
         // when
         ResponseEntity<String> response = basicAuthTemplate().getForEntity(String.format("/questions/%d/form", firstQuestion.getId()), String.class);
@@ -119,7 +119,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void updateForm_no_login() {
+    public void updateForm_no_login() throws Exception {
         // given
         // when
         ResponseEntity<String> response = template().getForEntity(String.format("/questions/%d/form", firstQuestion.getId()), String.class);
@@ -138,7 +138,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update_owner() {
+    public void update_owner() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForUpdate(firstQuestion.getWriter());
@@ -149,7 +149,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void update_not_owner() {
+    public void update_not_owner() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForUpdate(secondQuestion.getWriter());
@@ -160,11 +160,11 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     private ResponseEntity<String> makeResponseEntityForDelete(User user) {
         HttpEntity<MultiValueMap<String, Object>> request = HtmlFormDataBuilder.urlEncodedForm().delete().build();
         return basicAuthTemplate(user)
-                .postForEntity(String.format("/questions/%d", firstQuestion.getId()), request, String.class);
+                .postForEntity(String.format("/questions/%d", secondQuestion.getId()), request, String.class);
     }
 
     @Test
-    public void delete_no_login() {
+    public void delete_no_login() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForDelete(User.GUEST_USER);
@@ -173,22 +173,32 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
     }
 
     @Test
-    public void delete_not_owner() {
+    public void delete_not_owner() throws Exception {
         // given
         // when
-        ResponseEntity<String> response = makeResponseEntityForDelete(secondQuestion.getWriter());
+        ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
         // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
-    public void delete_owner() {
+    public void delete_has_other_answer() throws Exception {
         // given
         // when
         ResponseEntity<String> response = makeResponseEntityForDelete(firstQuestion.getWriter());
         // then
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isFalse();
+    }
+
+    @Test
+    public void delete_owner() throws Exception {
+        // given
+        // when
+        ResponseEntity<String> response = makeResponseEntityForDelete(secondQuestion.getWriter());
+        // then
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         softly.assertThat(response.getHeaders().getLocation().getPath()).startsWith("/");
-        softly.assertThat(questionRepository.findById(1L).get().isDeleted()).isTrue();
+        softly.assertThat(questionRepository.findById(2L).get().isDeleted()).isTrue();
     }
 }
