@@ -1,84 +1,72 @@
 package nextstep.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import nextstep.UnAuthorizedException;
-import nextstep.ForbiddenException;
 import org.hibernate.annotations.Where;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class Question extends AbstractEntity implements UrlGeneratable {
-    @ManyToOne(optional = false)
+    @Size(min = 3, max = 100)
+    @Column(length = 100, nullable = false)
+    private String title;
+
+    @Size(min = 3)
+    @Lob
+    private String contents;
+
+    @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @Embedded
-    private QuestionBody questionBody;
-
-    @JsonIgnore
-    @Embedded
-    private Answers answers = new Answers();
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
+    @Where(clause = "deleted = false")
+    @OrderBy("id ASC")
+    private List<Answer> answers = new ArrayList<>();
 
     private boolean deleted = false;
 
     public Question() {
     }
 
-    public Question(User writer, QuestionBody questionBody) {
-        this(null, writer, questionBody);
+    public Question(String title, String contents) {
+        this.title = title;
+        this.contents = contents;
     }
 
-    public Question(Long id, User writer, QuestionBody questionBody) {
-        super(id);
-
-        if(writer == null) {
-            throw new UnAuthorizedException();
-        }
-        this.writer = writer;
-        this.questionBody = questionBody;
+    public String getTitle() {
+        return title;
     }
 
-    public void addAnswer(Answer answer) {
-        answers.add(answer);
+    public Question setTitle(String title) {
+        this.title = title;
+        return this;
     }
 
-    public void update(User writer, QuestionBody newQuestionBody) {
-        if(!isOwner(writer)) {
-            throw new ForbiddenException();
-        }
-
-        questionBody = newQuestionBody;
+    public String getContents() {
+        return contents;
     }
 
-    public List<DeleteHistory> delete(User writer) {
-        if(!isOwner(writer)) {
-            throw new ForbiddenException();
-        }
-
-        List<DeleteHistory> histories = answers.delete(writer);
-
-        deleted = true;
-        histories.add(new DeleteHistory(ContentType.QUESTION, getId(), writer, LocalDateTime.now()));
-
-        return histories;
+    public Question setContents(String contents) {
+        this.contents = contents;
+        return this;
     }
 
     public User getWriter() {
         return writer;
     }
 
-    public QuestionBody getQuestionBody() {
-        return questionBody;
+    public void writeBy(User loginUser) {
+        this.writer = loginUser;
     }
 
-    public List<Answer> getAnswers() {
-        return answers.getAnswers();
+    public void addAnswer(Answer answer) {
+        answer.toQuestion(this);
+        answers.add(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -89,13 +77,17 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
     @Override
     public String generateUrl() {
         return String.format("/questions/%d", getId());
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return super.equals(obj);
+    public String toString() {
+        return "Question [id=" + getId() + ", title=" + title + ", contents=" + contents + ", writer=" + writer + "]";
     }
 }

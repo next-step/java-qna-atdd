@@ -25,7 +25,7 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
 
     private Question generateQuestion(User writer) {
         return questionRepository.save(
-            new Question(writer, new QuestionBody("This is title", "This is contents")));
+            new Question("This is title", "This is contents"));
     }
 
     private Answer generateAnswer(User writer, Question question) {
@@ -43,7 +43,8 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
 
         String location = response.getHeaders().getLocation().getPath();
         Question question = restApiTestCaller.getResource(location, Question.class, defaultUser()).getBody();
-        softly.assertThat(question.getQuestionBody()).isEqualTo(payload);
+        softly.assertThat(question.getTitle()).isEqualTo(payload.getTitle());
+        softly.assertThat(question.getContents()).isEqualTo(payload.getContents());
     }
 
     @Test
@@ -76,7 +77,7 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         Question responseQuestion = response.getBody();
-        softly.assertThat(responseQuestion.getQuestionBody()).isEqualTo(question.getQuestionBody());
+        softly.assertThat(responseQuestion.getTitle()).isEqualTo(question.getTitle());
     }
 
     @Test
@@ -93,7 +94,7 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         Question responseQuestion = response.getBody();
-        softly.assertThat(responseQuestion.getQuestionBody()).isEqualTo(newPayload);
+        softly.assertThat(responseQuestion.getTitle()).isEqualTo(newPayload.getTitle());
     }
 
     @Test

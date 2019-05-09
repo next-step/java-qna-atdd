@@ -21,8 +21,8 @@ public class QuestionValidationTest extends BaseTest {
 
     @Test
     public void titleWhenIsEmpty() throws Exception {
-        QuestionBody questionBody = new QuestionBody("", "당근 엄청 의미있는 활동이고 말고..");
-        Set<ConstraintViolation<QuestionBody>> constraintViolcations = validator.validate(questionBody);
+        Question question = new Question("", "당근 엄청 의미있는 활동이고 말고..");
+        Set<ConstraintViolation<Question>> constraintViolcations = validator.validate(question);
         softly.assertThat(constraintViolcations).hasSize(1);
     }
 }

@@ -1,5 +1,6 @@
 package nextstep.service;
 
+import nextstep.CannotDeleteException;
 import nextstep.NotFoundException;
 import nextstep.domain.*;
 import org.slf4j.Logger;
@@ -24,9 +25,9 @@ public class QnAService {
     private DeleteHistoryService deleteHistoryService;
 
     @Transactional
-    public Question createQuestion(User writer, QuestionBody questionBody) {
-        Question question = new Question(writer, questionBody);
-
+    public Question createQuestion(User loginUser, Question question) {
+        question.writeBy(loginUser);
+        log.debug("question : {}", question);
         return questionRepository.save(question);
     }
 
@@ -42,19 +43,14 @@ public class QnAService {
     }
 
     @Transactional
-    public Question updateQuestion(Long id, User loginUser, QuestionBody newQuestionBody) {
-        Question question = findQuestionById(id);
-        question.update(loginUser, newQuestionBody);
-
-        return question;
+    public Question updateQuestion(User loginUser, long id, Question updatedQuestion) {
+        // TODO 수정 기능 구현
+        return null;
     }
 
     @Transactional
-    public void deleteQuestion(Long id, User writer) {
-        Question question = findQuestionById(id);
-        List<DeleteHistory> histories = question.delete(writer);
-
-        deleteHistoryService.saveAll(histories);
+    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
+        // TODO 삭제 기능 구현
     }
 
     @Transactional
@@ -80,11 +76,13 @@ public class QnAService {
             .orElseThrow(NotFoundException::new);
     }
 
-    @Transactional
-    public void deleteAnswer(User writer, Long id) {
-        Answer answer = findAnswer(id);
-        DeleteHistory deleteHistory = answer.delete(writer);
+    public Answer addAnswer(User loginUser, long questionId, String contents) {
+        // TODO 답변 추가 기능 구현
+        return null;
+    }
 
-        deleteHistoryService.save(deleteHistory);
+    public Answer deleteAnswer(User loginUser, long id) {
+        // TODO 답변 삭제 기능 구현
+        return null;
     }
 }

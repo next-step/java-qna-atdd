@@ -49,15 +49,6 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
         this.contents = contents;
     }
 
-    public DeleteHistory delete(User writer) {
-        if(!this.writer.equals(writer)) {
-            throw new ForbiddenException();
-        }
-
-        deleted = true;
-        return new DeleteHistory(ContentType.ANSWER, getId(), writer, LocalDateTime.now());
-    }
-
     public boolean isDeleted() {
         return deleted;
     }
@@ -72,6 +63,10 @@ public class Answer extends AbstractEntity implements UrlGeneratable {
 
     public String getContents() {
         return contents;
+    }
+
+    public void toQuestion(Question question) {
+        this.question = question;
     }
 
     @Override

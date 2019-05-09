@@ -18,8 +18,8 @@ public class HomeAcceptanceTest extends AcceptanceTest {
 
     @Test
     public void 질문목록이_출력된다() {
-        questionRepository.save(new Question(defaultUser(), new QuestionBody("This is title1", "This is contents1")));
-        questionRepository.save(new Question(defaultUser(), new QuestionBody("This is title2", "This is contents2")));
+        questionRepository.save(new Question("This is title1", "This is contents1"));
+        questionRepository.save(new Question("This is title2", "This is contents2"));
 
         ResponseEntity<String> response = template().getForEntity("/", String.class);
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

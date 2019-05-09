@@ -1,5 +1,6 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
 import nextstep.ForbiddenException;
 import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
@@ -39,8 +40,8 @@ public class QuestionController {
     }
 
     @PostMapping("")
-    public String create(@LoginUser User user, QuestionBody payload) {
-        Question result = qnAService.createQuestion(user, payload);
+    public String create(@LoginUser User user, Question question) {
+        Question result = qnAService.createQuestion(user, question);
 
         return "redirect:/questions/" + result.getId();
     }
@@ -57,15 +58,19 @@ public class QuestionController {
     }
 
     @PatchMapping("{id}")
-    public String update(@LoginUser User user, @PathVariable Long id, QuestionBody question) {
-        Question result = qnAService.updateQuestion(id, user, question);
+    public String update(@LoginUser User user, @PathVariable Long id, Question updatedQuestion) {
+        Question result = qnAService.updateQuestion(user, id, updatedQuestion);
 
         return "redirect:/questions/" + result.getId();
     }
 
     @DeleteMapping("{id}")
     public String delete(@LoginUser User user, @PathVariable Long id) {
-        qnAService.deleteQuestion(id, user);
+        try {
+            qnAService.deleteQuestion(user, id);
+        } catch (CannotDeleteException e) {
+            throw new ForbiddenException();
+        }
 
         return "redirect:/home";
     }

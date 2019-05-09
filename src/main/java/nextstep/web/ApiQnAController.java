@@ -1,5 +1,7 @@
 package nextstep.web;
 
+import nextstep.CannotDeleteException;
+import nextstep.ForbiddenException;
 import nextstep.domain.Answer;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionBody;
@@ -39,22 +41,26 @@ public class ApiQnAController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Void> createQuestion(@LoginUser User loginUser, @RequestBody QuestionBody payload) {
-        Question question = qnaService.createQuestion(loginUser, payload);
+    public ResponseEntity<Void> createQuestion(@LoginUser User loginUser, @RequestBody Question newQuestion) {
+        Question question = qnaService.createQuestion(loginUser, newQuestion);
 
         return ResponseEntity.created(URI.create(URL_PREFIX + question.generateUrl())).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Question> updateQuestion(@LoginUser User loginUser, @PathVariable Long id, @RequestBody QuestionBody newPayload) {
-        Question question = qnaService.updateQuestion(id, loginUser, newPayload);
+    public ResponseEntity<Question> updateQuestion(@LoginUser User loginUser, @PathVariable Long id, @RequestBody Question updatedQuestion) {
+        Question question = qnaService.updateQuestion(loginUser, id, updatedQuestion);
 
         return ResponseEntity.ok(question);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestion(@LoginUser User loginUser, @PathVariable Long id) {
-        qnaService.deleteQuestion(id, loginUser);
+        try {
+            qnaService.deleteQuestion(loginUser, id);
+        } catch (CannotDeleteException e) {
+            throw new ForbiddenException();
+        }
 
         return ResponseEntity.ok().build();
     }
