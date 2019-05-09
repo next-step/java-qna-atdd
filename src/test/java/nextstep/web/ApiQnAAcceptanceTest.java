@@ -24,8 +24,9 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
     }
 
     private Question generateQuestion(User writer) {
-        return questionRepository.save(
-            new Question("This is title", "This is contents"));
+        Question question = new Question("This is title", "This is contents");
+        question.writeBy(writer);
+        return questionRepository.save(question);
     }
 
     private Answer generateAnswer(User writer, Question question) {
@@ -215,20 +216,5 @@ public class ApiQnAAcceptanceTest extends AcceptanceTest {
         softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Answer responseAnswer = response.getBody();
         softly.assertThat(responseAnswer.getContents()).isEqualTo(responseAnswer.getContents());
-    }
-
-    @Test
-    public void 질문의_답변을_삭제한다() {
-        // given
-        Question question = generateQuestion(defaultUser());
-        Answer answer = generateAnswer(defaultUser(), question);
-
-        // when
-        ResponseEntity<Void> response = restApiTestCaller.deleteResource(
-            String.format("/api/questions/%d/answers/%d", question.getId(), answer.getId()), defaultUser());
-
-        // then
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        softly.assertThat(answerRepository.findById(answer.getId()).get().isDeleted()).isTrue();
     }
 }
