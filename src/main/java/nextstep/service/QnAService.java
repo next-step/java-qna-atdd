@@ -20,8 +20,8 @@ public class QnAService {
     @Resource(name = "answerRepository")
     private AnswerRepository answerRepository;
 
-    @Resource(name = "deleteHistoryRepository")
-    private DeleteHistoryRepository deleteHistoryRepository;
+    @Resource(name = "deleteHistoryService")
+    private DeleteHistoryService deleteHistoryService;
 
     @Transactional
     public Question createQuestion(User writer, QuestionBody questionBody) {
@@ -54,7 +54,7 @@ public class QnAService {
         Question question = findQuestionById(id);
         List<DeleteHistory> histories = question.delete(writer);
 
-        deleteHistoryRepository.saveAll(histories);
+        deleteHistoryService.saveAll(histories);
     }
 
     @Transactional
@@ -85,6 +85,6 @@ public class QnAService {
         Answer answer = findAnswer(id);
         DeleteHistory deleteHistory = answer.delete(writer);
 
-        deleteHistoryRepository.save(deleteHistory);
+        deleteHistoryService.save(deleteHistory);
     }
 }

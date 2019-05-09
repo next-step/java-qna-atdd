@@ -1,5 +1,7 @@
 package nextstep.web;
 
+import nextstep.ForbiddenException;
+import nextstep.UnAuthorizedException;
 import nextstep.domain.Question;
 import nextstep.domain.QuestionBody;
 import nextstep.domain.User;
@@ -46,6 +48,9 @@ public class QuestionController {
     @GetMapping("{id}/form")
     public String updateForm(@LoginUser User user, @PathVariable Long id, Model model) {
         Question result = qnAService.findQuestionById(id);
+        if (!result.isOwner(user)) {
+            throw new ForbiddenException();
+        }
 
         model.addAttribute("question", result);
         return "qna/updateForm";

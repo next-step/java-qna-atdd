@@ -122,7 +122,7 @@ public class QuestionAcceptanceTest extends AcceptanceTest {
         ResponseEntity<String> response = basicAuthTemplate(defaultUser()).exchange(
             String.format("/questions/%d", 1), HttpMethod.DELETE, null, String.class);
 
-        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        softly.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         log.debug("body : {}", response.getBody());
     }
 
