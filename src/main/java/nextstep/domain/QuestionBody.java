@@ -23,8 +23,18 @@ public class QuestionBody {
         this.contents = contents;
     }
 
+    public QuestionBody setTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
     public String getTitle() {
         return title;
+    }
+
+    public QuestionBody setContents(String contents) {
+        this.contents = contents;
+        return this;
     }
 
     public String getContents() {

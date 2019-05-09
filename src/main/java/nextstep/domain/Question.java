@@ -23,7 +23,7 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     @JsonIgnore
     @Embedded
-    private Answers answers;
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
