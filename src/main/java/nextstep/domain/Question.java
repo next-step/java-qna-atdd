@@ -1,11 +1,12 @@
 package nextstep.domain;
 
-import org.hibernate.annotations.Where;
+import nextstep.CannotDeleteException;
 import support.domain.AbstractEntity;
 import support.domain.UrlGeneratable;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +24,8 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
 
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    @Where(clause = "deleted = false")
-    @OrderBy("id ASC")
-    private List<Answer> answers = new ArrayList<>();
+    @Embedded
+    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -60,8 +59,9 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return writer;
     }
 
-    public void writeBy(User loginUser) {
+    public Question writeBy(User loginUser) {
         this.writer = loginUser;
+        return this;
     }
 
     public void addAnswer(Answer answer) {
@@ -83,7 +83,19 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     }
 
     public List<Answer> getAnswers() {
-        return answers;
+        return answers.getAnswers();
+    }
+
+    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+        if (!isOwner(loginUser)) {
+            throw new CannotDeleteException("질문을 삭제할 권한이 없습니다.");
+        }
+
+        this.deleted = true;
+
+        List<DeleteHistory> deleteHistories = answers.delete(loginUser);
+        deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), this.writer, LocalDateTime.now()));
+        return deleteHistories;
     }
 
     @Override
