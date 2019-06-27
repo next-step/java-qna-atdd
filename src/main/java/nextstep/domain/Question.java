@@ -7,7 +7,6 @@ import support.domain.UrlGeneratable;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,9 +22,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
     @ManyToOne
     @JoinColumn(foreignKey = @ForeignKey(name = "fk_question_writer"))
     private User writer;
-
-    @Embedded
-    private Answers answers = new Answers();
 
     private boolean deleted = false;
 
@@ -66,7 +62,6 @@ public class Question extends AbstractEntity implements UrlGeneratable {
 
     public void addAnswer(Answer answer) {
         answer.toQuestion(this);
-        answers.add(answer);
     }
 
     public boolean isOwner(User loginUser) {
@@ -82,18 +77,14 @@ public class Question extends AbstractEntity implements UrlGeneratable {
         return deleted;
     }
 
-    public List<Answer> getAnswers() {
-        return answers.getAnswers();
-    }
-
-    public List<DeleteHistory> delete(User loginUser) throws CannotDeleteException {
+    public List<DeleteHistory> delete(User loginUser, List<Answer> answers) throws CannotDeleteException {
         if (!isOwner(loginUser)) {
             throw new CannotDeleteException("질문을 삭제할 권한이 없습니다.");
         }
 
         this.deleted = true;
 
-        List<DeleteHistory> deleteHistories = answers.delete(loginUser);
+        List<DeleteHistory> deleteHistories = new Answers(answers).delete(loginUser);
         deleteHistories.add(new DeleteHistory(ContentType.QUESTION, getId(), this.writer, LocalDateTime.now()));
         return deleteHistories;
     }
